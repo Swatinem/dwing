@@ -79,6 +79,8 @@ if(!file_exists('inc/settings.php'))
 {
 	// not installed -> include install class, display install template
 	exit('not installed, installer currently disabled');
+	$_tpl->setPath('template', './tpl/install');
+	$_tpl->display('install.tpl.php');
 }
 // exit -> no else needed
 
