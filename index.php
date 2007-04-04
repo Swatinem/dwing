@@ -124,8 +124,13 @@ if(version_compare($_version,$_cfg['version']) == 1)
 {
 	// update needed -> include update class, display update template
 	exit('needs update, updater currently disabled');
+	
+	$_updater = new Updater();
+	$_tpl->assign('updater', $_updater);
+	
 	$_tpl->setPath('template', './tpl/install');
 	$_tpl->display('update.tpl.php');
+	exit;
 }
 // exit -> no else needed
 
