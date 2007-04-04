@@ -19,27 +19,55 @@ echo '<?xml version="1.0" encoding="utf-8"?>';
 		<div id="headershadow"></div>
 		<div id="content">
 
-<div id="formbox">
-	<div id="formbg">
-		<div id="messagebox">
-			<ul id="warningbox"><li>.</li></ul>
-			<ul id="noticebox"><li>.</li></ul>
-		</div>
-	</div>
-	<div id="buttonbg">
-		<div id="opensubmitbutton">Zurück</div>
-	</div>
+<?php if(!$user->authed || !$user->hasRight('admin')): ?>
+<div class="openid">
+<h3>Admin benötigt</h3>
+Es ist ein Update von der derzeit benutzen Version <?php echo $updater->oldversion; ?>
+auf die Version <?php echo $updater->version; ?> verfügbar. Es werden allerdings
+Adminrechte benötigt um das Update zu starten.
 </div>
-<script type="text/javascript"><![CDATA[
-window.addEventListener('load', function () {
-	<?php if($updater->update()): ?>
-		addNotice('Ihre dWing Installation wurde automatisch von Version <?php echo $updater->oldversion; ?> auf <?php echo $updater->version; ?> gebracht.');
-	<?php else: ?>
-		addWarning('Es trat ein Fehler auf. Update abgebrochen.');
-	<?php endif; ?>
-	$('opensubmitbutton').addEventListener('click', function () { document.location.href = 'index.php'; }, false);
-}, false);
-]]></script>
+<?php if($user->authed && !$user->hasRight('admin')): ?>
+<ul class="warning">
+	<li>Du bist bereits angemeldet, hast aber keine Adminrechte.</li>
+</ul>
+<?php endif; ?>
+<form action="./" method="post">
+<h2>Anmeldung mit deiner OpenID</h2>
+<div class="openid">
+<input type="text" name="openid_url" /><input type="submit" value="Login"/>
+<h3>Beispiele:</h3>
+<ul>
+	<li>http://deineadresse.de</li>
+	<li>http://deinname.myopenid.com</li>
+	<li>http://deinname.livejournal.com</li>
+	<li>http://openid.aol.com/deinAIMname</li>
+</ul>
+</div>
+</form>
+<?php if(!empty($loginerror)): ?>
+<ul class="warning">
+	<li><?php echo htmlspecialchars($loginerror); ?></li>
+</ul>
+<?php endif; ?>
+<?php else: ?>
+<?php if(empty($_GET['doupdate'])): ?>
+<div class="openid">
+<h3>Update verfügbar</h3>
+Es ist ein Update von der derzeit benutzen Version <?php echo $updater->oldversion; ?> 
+auf die Version <?php echo $updater->version; ?> verfügbar.<br />
+<a href="?doupdate=1">Update jetzt durchführen</a>
+</div>
+<?php else: ?>
+<?php if($updater->update()): ?>
+<div class="openid">
+<h3>Update erfolgreich</h3>
+Das Update von Version <?php echo $updater->oldversion; ?> 
+auf die Version <?php echo $updater->version; ?> wurde erfolgreich durchgeführt.
+<br /><a href="./">Zurück zur Startseite</a>
+</div>
+<?php endif; // update successful? ?>
+<?php endif; // doupdate? ?>
+<?php endif; // user signed in? ?>
 
 		</div>
 		<div id="footer">
