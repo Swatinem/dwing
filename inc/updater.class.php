@@ -151,5 +151,105 @@ class Updater extends Module
 	{
 		return true;
 	}*/
+
+	/**
+	 * Update from 0.0.1 to 0.0.2
+	 * 
+	 * @return bool
+	 **/
+	private function _1to2()
+	{
+		// add ratings table
+		self::$_db->query('CREATE TABLE `'.self::$_db->pref.'ratings` (
+			`user_id` INT UNSIGNED NOT NULL ,
+			`content_id` INT UNSIGNED NOT NULL ,
+			`content_type` TINYINT UNSIGNED NOT NULL ,
+			`rating` TINYINT UNSIGNED NOT NULL ,
+			PRIMARY KEY ( `user_id` , `content_id` , `content_type` )
+			) ENGINE = innodb;');
+		return true;
+	}
+
+	/**
+	 * Update from 0.0.2 to 0.0.3
+	 * 
+	 * @return bool
+	 **/
+	private function _2to3()
+	{
+		$newsRes = self::$_db->query('
+			SELECT news_id, text, COUNT(links.link_id) as linknum
+			FROM '.self::$_db->pref.'news_news
+			LEFT JOIN '.self::$_db->pref.'news_links AS links USING (news_id)
+			GROUP BY news_id HAVING linknum > 0');
+		while($news = $newsRes->fetch_assoc())
+		{
+			// hardcode german...
+			$text = $news['text'].'<br /><br /><strong>Links zu dem Thema:</strong><ul>';
+			$linksRes = self::$_db->query('SELECT * FROM '.self::$_db->pref.'news_links WHERE news_id='.(int)$news['news_id'].';');
+			while($link = $linksRes->fetch_assoc())
+			{
+				$text.= '<li><a href="'.$link['url'].'">'.$link['name'].'</a></li>';
+			}
+			$text.= '</ul>';
+			self::$_db->query('
+				UPDATE '.self::$_db->pref.'news_news
+				SET text="'.self::$_db->escape($text).'"
+				WHERE news_id='.(int)$news['news_id'].';');
+		}
+		// drop the links table
+		self::$_db->query('DROP TABLE `'.self::$_db->pref.'news_links`;');
+		// rename the news table
+		self::$_db->query('RENAME TABLE `'.self::$_db->pref.'news_news`  TO `'.self::$_db->pref.'news`;');
+		return true;
+	}
+
+	/**
+	 * Update from 0.0.3 to 0.0.4
+	 * 
+	 * @return bool
+	 **/
+	private function _3to4()
+	{
+		include_once('inc/modulesystem.class.php');
+		include_once('inc/utils.class.php');
+		self::$_db->query('ALTER TABLE `'.self::$_db->pref.'news` ADD `fancyurl` VARCHAR( 128 ) NOT NULL;');
+
+		$cleanTitles = array();
+		$newsRes = self::$_db->query('SELECT news_id, title FROM dw_news;');
+		while($news = $newsRes->fetch_assoc())
+		{
+			$cleanTitle = Utils::fancyUrl($news['title']);
+			if(in_array($cleanTitle, $cleanTitles))
+				$cleanTitle.= '-'.$news['news_id'];
+			$cleanTitles[] = $cleanTitle;
+			self::$_db->query('
+				UPDATE `'.self::$_db->pref.'news` SET fancyurl="'.$cleanTitle.'"
+				WHERE news_id='.(int)$news['news_id'].';');
+		}
+		self::$_db->query('ALTER TABLE `'.self::$_db->pref.'news` ADD UNIQUE `fancyurl` ( `fancyurl` );');
+		return true;
+	}
+
+	/**
+	 * Update from 0.0.4 to 0.0.5
+	 * 
+	 * @return bool
+	 **/
+	private function _4to5()
+	{
+		// add comments table
+		self::$_db->query('CREATE TABLE `'.self::$_db->pref.'comments` (
+			`comment_id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+			`user_id` INT UNSIGNED NOT NULL ,
+			`time` INT UNSIGNED NOT NULL ,
+			`text` TEXT NOT NULL ,
+			`content_id` INT UNSIGNED NOT NULL ,
+			`content_type` TINYINT UNSIGNED NOT NULL ,
+			INDEX ( `content_id` , `content_type` )
+			) ENGINE = innodb;');
+		self::$_db->query('ALTER TABLE `'.self::$_db->pref.'comments` ADD INDEX ( `user_id` );');
+		return true;
+	}
 }
 ?>
