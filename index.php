@@ -122,9 +122,6 @@ Module::assignCurrentUser($_user);
  */
 if(version_compare($_version,$_cfg['version']) == 1)
 {
-	// update needed -> include update class, display update template
-	exit('needs update, updater currently disabled');
-	
 	$_updater = new Updater();
 	$_tpl->assign('updater', $_updater);
 	

@@ -27,15 +27,13 @@ echo '<?xml version="1.0" encoding="utf-8"?>';
 		</div>
 	</div>
 	<div id="buttonbg">
-		<div id="opensubmitbutton">Zur&uuml;ck</div>
+		<div id="opensubmitbutton">Zurück</div>
 	</div>
 </div>
 <script type="text/javascript"><![CDATA[
 window.addEventListener('load', function () {
-	<?php if($install->update()): ?>
-		addNotice('Ihre SNN Installation wurde automatisch von Version <?php echo $oldversion; ?> auf <?php echo $version; ?> gebracht.');
-	<?php elseif(!empty($error)): ?>
-		addWarning('Es trat folgender Fehler auf: "<? echo $error; ?>". Update abgebrochen.');
+	<?php if($updater->update()): ?>
+		addNotice('Ihre dWing Installation wurde automatisch von Version <?php echo $updater->oldversion; ?> auf <?php echo $updater->version; ?> gebracht.');
 	<?php else: ?>
 		addWarning('Es trat ein Fehler auf. Update abgebrochen.');
 	<?php endif; ?>
@@ -45,7 +43,7 @@ window.addEventListener('load', function () {
 
 		</div>
 		<div id="footer">
-			&copy; 2006 dWing CMS<br />
+			© 2006-2007 dWing CMS<br />
 			Valid <a href="http://validator.w3.org/check?uri=referer">XHTML</a>
 			and <a href="http://jigsaw.w3.org/css-validator/check/referer">CSS</a>
 		</div>
