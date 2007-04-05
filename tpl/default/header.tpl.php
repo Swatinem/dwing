@@ -28,18 +28,7 @@ if(empty($title))
 			<li><a href="user/<?php echo $user->user_id; ?>"><?php echo l10n::_('My Account'); ?></a></li>
 			<li><a href="login?logout=1"><?php echo l10n::_('Sign out'); ?></a></li>
 			<?php endif; ?>
-			<li<?php if($site == 'index') echo ' class="selected"'; ?>><a href="./"><?php echo l10n::_('News'); ?></a>
-				<?php /*
-				<ul>
-					<?php
-					$newsTags = Tags::getTagsWithContentOfType(ContentType::NEWS);
-					foreach($newsTags as $newsTag):
-					?>
-					<li><a href="index.php?tag_id=<?php echo $newsTag['tag_id']; ?>"><?php echo $newsTag['name']; ?></a></li>
-					<?php endforeach; ?>
-				</ul>
-				*/ ?>
-			</li>
+			<li<?php if($site == 'index') echo ' class="selected"'; ?>><a href="./"><?php echo l10n::_('News'); ?></a></li>
 			<?php /*
 			<li<?php if($site == 'article') echo ' class="selected"'; ?>><a><?php echo l10n::_('Articles'); ?></a>
 				<ul>
@@ -57,8 +46,7 @@ unset($article);
 			</li>
 			*/ ?>
 			<li<?php if($site == 'gallery') echo ' class="selected"'; ?>><a href="gallery"><?php echo l10n::_('Pictures'); ?></a></li>
-			<?php /*<li<?php if($site == 'guestbook') echo ' class="selected"'; ?>><a href="guestbook"><?php echo l10n::_('Guestbook'); ?></a></li>
-			<li><a href="admin.php"><?php echo l10n::_('Admin'); ?></a></li> */ ?>
+			<?php /*<li<?php if($site == 'guestbook') echo ' class="selected"'; ?>><a href="guestbook"><?php echo l10n::_('Guestbook'); ?></a></li>*/ ?>
 			<li id="throbber" class="active"><span id="throbbertext"><?php echo l10n::_('loading...'); ?></span></li>
 		</ul>
 		<div id="headershadow"></div>
