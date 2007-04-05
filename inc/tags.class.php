@@ -34,12 +34,16 @@ class Tags extends Module
 	 **/
 	public static function getTagsForContent($aContentId, $aContentType)
 	{
-		return self::$_db->queryAll('
-			SELECT tags.tag_id, tags.name
+		$tagsRes = self::$_db->queryAll('
+			SELECT tags.name
 			FROM '.self::$_db->pref.'tagstocontent AS tagstocontent
 			LEFT JOIN '.self::$_db->pref.'tags AS tags USING (tag_id)
 			WHERE tagstocontent.content_id='.(int)$aContentId.' AND tagstocontent.content_type='.(int)$aContentType.'
 			ORDER BY tags.name ASC;');
+		$tagNames = array();
+		foreach($tagsRes as $tagRow)
+			$tagNames[] = $tagRow['name'];
+		return $tagNames;
 	}
 
 	/**
@@ -109,7 +113,11 @@ class Tags extends Module
 	 **/
 	public static function getTags()
 	{
-		return self::$_db->queryAll('SELECT tag_id, name FROM '.self::$_db->pref.'tags ORDER BY name ASC;');
+		$tagsRes = self::$_db->queryAll('SELECT name FROM '.self::$_db->pref.'tags ORDER BY name ASC;');
+		$tagNames = array();
+		foreach($tagsRes as $tagRow)
+			$tagNames[] = $tagRow['name'];
+		return $tagNames;
 	}
 
 	/**
@@ -190,7 +198,7 @@ class Tags extends Module
 	public static function getTagsWithContentOfType($aContentType)
 	{
 		return self::$_db->queryAll('
-			SELECT DISTINCT tags.tag_id, tags.name, COUNT(tagstocontent.content_id) AS content
+			SELECT DISTINCT tags.name, COUNT(tagstocontent.content_id) AS content
 			FROM '.self::$_db->pref.'tags AS tags
 			LEFT JOIN '.self::$_db->pref.'tagstocontent AS tagstocontent USING (tag_id)
 			WHERE tagstocontent.content_type='.(int)$aContentType.'
