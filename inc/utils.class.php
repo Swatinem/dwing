@@ -64,7 +64,7 @@ class Utils extends Module
 	public static function fancyUrl($aStr)
 	{
 		// strtolower not utf8 aware
-		$return = strtr($aStr,
+		$return = strtr(trim($aStr),
 			array('ä' => 'ae', 'ö' => 'oe', 'ü' => 'ue', 'ß' => 'ss', 'Ä' => 'ae',
 			'Ö' => 'oe', 'Ü' => 'ue', ' ' => '-'));
 		$return = strtolower($return);
