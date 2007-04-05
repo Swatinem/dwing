@@ -2,7 +2,7 @@ RewriteEngine on
 
 
 RewriteRule ^news/([a-z0-9-]+)/?$ index.php?news_id=$1&%{QUERY_STRING}
-RewriteRule ^news/tags/([a-z0-9-]+)/?$ index.php?tag_id=$1&%{QUERY_STRING}
+RewriteRule ^news/tags/([a-z0-9-]+)/?$ index.php?tag=$1&%{QUERY_STRING}
 
 RewriteRule ^user/([0-9]+)/?$ index.php?site=user&user_id=$1
 

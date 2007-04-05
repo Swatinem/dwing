@@ -29,23 +29,19 @@ class News extends Module
 	 * return the details of X news associated with either of the specified tags
 	 *
 	 * @param int $aPerPage how many news to return
-	 * @param mixed $aTagIds null, one tag id or a comma seperated list of tag ids
+	 * @param string $aTags
 	 * @return array
 	 **/
-	public static function getNews($aPerPage, $aTagIds = null)
+	public static function getNews($aPerPage, $aTags = null)
 	{
-		// if the zones have the wrong format, unset it to fetch all news. we can't handle exceptions here
-		if(!empty($aTagIds) && !Utils::commaSeperatedNumber($aTagIds))
-		{
-			trigger_error('Wrong Parameter Syntax for news::getnews');
-			unset($aTagIds);
-		}
 		$query = '
 		SELECT news.* FROM '.self::$_db->pref.'news AS news';
-		if(!empty($aTagIds))
+		if(!empty($aTags))
 		{
+			// problem: output of Tags::cleanTags is not escaped. lets hope we can trust it
 			$query.= ' LEFT JOIN '.self::$_db->pref.'tagstocontent AS tagstocontent ON news.news_id = tagstocontent.content_id
-			WHERE tagstocontent.tag_id IN ('.$aTagIds.') AND tagstocontent.content_type='.ContentType::NEWS;
+			LEFT JOIN '.self::$_db->pref.'tags AS tags ON tags.tag_id = tagstocontent.tag_id
+			WHERE tags.name IN ("'.implode('","',Tags::cleanTags($aTags)).'") AND tagstocontent.content_type='.ContentType::NEWS;
 		}
 		if(!empty($_GET['news_id']))
 		{
@@ -119,22 +115,8 @@ class News extends Module
 				SET fancyurl="'.self::$_db->escape($fancyUrl.'-'.$insertId).'"
 				WHERE news_id='.(int)$insertId.';');
 
-			/* Todo: New Tag System */
-			$tags = Tags::getTags();
-			$tagNamesMap = array();
-			foreach($tags as $tag)
-			{
-				$tagNamesMap[$tag['name']] = $tag['tag_id'];
-			}
-			$tagNames = explode(' ', $_POST['tags']);
-			$tags = array();
-			foreach($tagNames as $tagName)
-			{
-				if(!empty($tagNamesMap[$tagName]))
-					$tags[] = $tagNamesMap[$tagName];
-			}
 			// link with tags
-			Tags::addTagsForContent($insertId, ContentType::NEWS, $tags);
+			Tags::addTagsForContent($insertId, ContentType::NEWS, $_POST['tags']);
 
 			return $insertId;
 		}

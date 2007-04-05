@@ -1,9 +1,9 @@
 <?php
-if(!empty($_GET['tag_id']))
-	$title = l10n::_('News').': '.Tags::tagName($_GET['tag_id']);
+if(!empty($_GET['tag']))
+	$title = l10n::_('News').': '.$_GET['tag'];
 elseif(!empty($_GET['news_id']))
 {
-	$newsall = News::getNews(10, (!empty($_GET['tag_id']) ? $_GET['tag_id'] : null));
+	$newsall = News::getNews(10, (!empty($_GET['tag']) ? $_GET['tag'] : null));
 	$title = $newsall[0]['title'];
 }
 else
@@ -17,19 +17,18 @@ include($this->template('header.tpl.php'));
 <div class="outertabbar flex">
 	<div class="tabbar">
 		<a><span><?php echo l10n::_('tags:'); ?></span></a>
-		<a href="./"<?php if(empty($_GET['tag_id'])) echo ' class="selected"'; ?>><span><?php echo l10n::_('All'); ?></span></a>
+		<a href="./"<?php if(empty($_GET['tag'])) echo ' class="selected"'; ?>><span><?php echo l10n::_('All'); ?></span></a>
 		<?php
-		if(empty($newsTags)) // we may still have the tags from the header
-			$newsTags = Tags::getTagsWithContentOfType(ContentType::NEWS);
+		$newsTags = Tags::getTagsWithContentOfType(ContentType::NEWS);
 		foreach($newsTags as $newsTag):
 		?>
-		<a href="news/tags/<?php echo $newsTag['tag_id']; ?>"<?php if(!empty($_GET['tag_id']) && $_GET['tag_id'] == $newsTag['tag_id']) echo ' class="selected"'; ?>><span><?php echo $newsTag['name']; ?></span></a>
+		<a href="news/tags/<?php echo $newsTag['name']; ?>"<?php if(!empty($_GET['tag']) && $_GET['tag'] == $newsTag['name']) echo ' class="selected"'; ?>><span><?php echo $newsTag['name']; ?></span></a>
 		<?php endforeach; ?>
 <?php
-if(empty($_GET['tag_id']))
+if(empty($_GET['tag']))
 	$pages = Utils::pages(Tags::getContentCount(null, ContentType::NEWS), 10, '?page=');
 else
-	$pages =  Utils::pages(Tags::getContentCount($_GET['tag_id'], ContentType::NEWS), 10, 'news/tags/'.$_GET['tag_id'].'?page=');
+	$pages =  Utils::pages(Tags::getContentCount($_GET['tag'], ContentType::NEWS), 10, 'news/tags/'.$_GET['tag'].'?page=');
 if(!empty($pages)):
 ?>
 		<a class="spacer"></a>
@@ -76,7 +75,7 @@ endif; // empty(get news_id)
 <?php endif; ?>
 <?php
 if(empty($newsall))
-	$newsall = News::getNews(10, (!empty($_GET['tag_id']) ? $_GET['tag_id'] : null));
+	$newsall = News::getNews(10, (!empty($_GET['tag']) ? $_GET['tag'] : null));
 foreach($newsall as $news):
 ?>
 	<div class="post">
@@ -106,7 +105,7 @@ foreach($newsall as $news):
 		$tags = Tags::getTagsForContent($news['news_id'], ContentType::NEWS);
 		foreach($tags as $tag):
 		?>
-		<a href="news/tags/<?php echo $tag['tag_id']; ?>"><?php echo $tag['name']; ?></a>
+		<a href="news/tags/<?php echo $tag; ?>"><?php echo $tag; ?></a>
 		<?php
 		endforeach;
 		$commentNum = Comments::getCommentNum($news['news_id'], ContentType::NEWS);
