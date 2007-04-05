@@ -65,18 +65,33 @@ class Tags extends Module
 	 *
 	 * @param int $aContentId
 	 * @param int $aContentType
-	 * @param array $aTagIds
+	 * @param string $aTags
 	 * @return bool
 	 **/
-	public static function setTagsForContent($aContentId, $aContentType, $aTagIds)
+	public static function setTagsForContent($aContentId, $aContentType, $aTags)
 	{
 		// delete old tags
 		self::deleteTagsForContent($aContentId, $aContentType);
-		// add new tags
-		$query = 'INSERT INTO '.self::$_db->pref.'tagstocontent (tag_id, content_id, content_type) VALUES';
+		// names to id mapping
+		$nameToIdMap = array();
+		$tagsRes = self::$_db->queryAll('SELECT tag_id, name FROM '.self::$_db->pref.'tags;');
+		foreach($tagsRes as $tagRow)
+			$nameToIdMap[$tagRow['name']] = $tagRow['tag_id'];
+		// filter the tag names out of the input string
+		$tagNames = strtr(trim($aTags),
+			array('ä' => 'ae', 'ö' => 'oe', 'ü' => 'ue', 'ß' => 'ss', 'Ä' => 'ae',
+			'Ö' => 'oe', 'Ü' => 'ue'));
+		$tagNames = strtolower($tagNames);
+		$tagNames = preg_replace('![^a-z0-9-\s]*!', '', $tagNames);
+		$tagNames = preg_replace('!\s+!', ' ', $tagNames);
+		$tagNames = explode(' ', $tagNames);
+
+		// link the tags with the content item, adding new tags when necessary
+		$query = 'INSERT INTO '.self::$_db->pref.'tagstocontent (tag_id, content_id, content_type) VALUES ';
 		$insertRows = array();
-		foreach($aTagIds as $tagId)
+		foreach($tagNames as $tagName)
 		{
+			$tagId = !empty($nameToIdMap[$tagName]) ? $nameToIdMap[$tagName] : self::addTag($tagName);
 			$insertRows[] = '('.(int)$tagId.','.(int)$aContentId.','.(int)$aContentType.')';
 		}
 		$query.= implode(',', $insertRows).';';
@@ -101,22 +116,15 @@ class Tags extends Module
 	/**
 	 * add a tag
 	 *
-	 * @return mixed Exception on failure, id on success
+	 * @param string $aTagName
+	 * @return int insert_id of the newly created tag
 	 **/
-	public static function addTag()
+	private static function addTag($aTagName)
 	{
-		try
-		{
-			if(empty($_POST['name'])) throw new Exception(l10n::_('No name defined.'));
-			self::$_db->query('
-				INSERT INTO '.self::$_db->pref.'tags SET
-				name="'.self::$_db->escape($_POST['name']).'";');
-			return self::$_db->insert_id;
-		}
-		catch(Exception $e)
-		{
-			return $e;
-		}
+		self::$_db->query('
+			INSERT INTO '.self::$_db->pref.'tags SET
+			name="'.self::$_db->escape($aTagName).'";');
+		return self::$_db->insert_id;
 	}
 
 	/**
