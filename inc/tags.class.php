@@ -47,28 +47,6 @@ class Tags extends Module
 	}
 
 	/**
-	 * add tags to a content item without deleting the other tags
-	 *
-	 * @param int $aContentId
-	 * @param int $aContentType
-	 * @param array $aTagIds
-	 * @return bool
-	 **/
-	public static function addTagsForContent($aContentId, $aContentType, $aTagIds)
-	{
-		// REPLACE => add tag if it doesnt exist, otherwise leave it alone
-		$query = 'REPLACE INTO '.self::$_db->pref.'tagstocontent (tag_id, content_id, content_type) VALUES';
-		$insertRows = array();
-		foreach($aTagIds as $tagId)
-		{
-			$insertRows[] = '('.(int)$tagId.','.(int)$aContentId.','.(int)$aContentType.')';
-		}
-		$query.= implode(',', $insertRows).';';
-		self::$_db->query($query);
-		return true;
-	}
-
-	/**
 	 * delete the associations for a content item
 	 *
 	 * @param int $aContentId
@@ -139,42 +117,6 @@ class Tags extends Module
 		{
 			return $e;
 		}
-	}
-
-	/**
-	 * rename a tag
-	 *
-	 * @param int $aTagId
-	 * @return mixed Exception on failure, true on success
-	 **/
-	public static function renameTag($aTagId)
-	{
-		try
-		{
-			if(empty($_POST['name'])) throw new Exception(l10n::_('No name defined.'));
-			self::$_db->query('
-				UPDATE '.self::$_db->pref.'tags SET
-				name="'.self::$_db->escape($_POST['name']).'"
-				WHERE tag_id='.(int)$aTagId.';');
-			return true;
-		}
-		catch(Exception $e)
-		{
-			return $e;
-		}
-	}
-
-	/**
-	 * delete a tag
-	 *
-	 * @param int $aTagId
-	 * @return bool
-	 **/
-	public static function deleteTag($aTagId)
-	{
-		self::$_db->query('DELETE FROM '.self::$_db->pref.'tagstocontent WHERE tag_id='.(int)$aTagId.';');
-		self::$_db->query('DELETE FROM '.self::$_db->pref.'tags WHERE tag_id='.(int)$aTagId.';');
-		return true;
 	}
 
 	/**
