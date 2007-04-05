@@ -22,7 +22,7 @@ echo '<?xml version="1.0" encoding="utf-8"?>';
 <?php if(!$user->authed || !$user->hasRight('admin')): ?>
 <div class="openid">
 <h3>Admin benötigt</h3>
-Es ist ein Update von der derzeit benutzen Version <?php echo $updater->oldversion; ?>
+Es ist ein Update von der derzeit benutzen Version <?php echo $updater->oldversion; ?> 
 auf die Version <?php echo $updater->version; ?> verfügbar. Es werden allerdings
 Adminrechte benötigt um das Update zu starten.
 </div>
