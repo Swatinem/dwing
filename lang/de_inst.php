@@ -1,6 +1,5 @@
 <?php
 $__LANG = array (
-  ' tags selected' => ' Marken ausgewählt',
   '%d pictures imported' => '%d Bilder importiert',
   '%s ratings / %s average' => '%s Stimmen / %s Durchschnitt',
   '(%d clicks)' => '(%d Klicks)',
@@ -48,7 +47,6 @@ $__LANG = array (
   'Sign out' => 'Abmelden',
   'Source' => 'Quelle',
   'Source directory' => 'Quellverzeichnis',
-  'Tag added' => 'Marke hinzugefügt',
   'Tags' => 'Marken',
   'The directory is invalid.' => 'Der Ordner ist ungültig.',
   'The larger the font the more pictures are assigned to that tag.' => 'Je größer die Schrift, umso mehr Bilder sind der Marke zugeordnet.',
@@ -69,7 +67,6 @@ $__LANG = array (
   'loading...' => 'Lädt...',
   'new Entry' => 'neuer Eintrag',
   'new Quote' => 'neues Zitat',
-  'new tag...' => 'neue Marke...',
   'save Quote' => 'Zitat speichern',
   'send Entry' => 'Eintrag abschicken',
   'tags' => 'tags',

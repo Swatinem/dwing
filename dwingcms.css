@@ -580,7 +580,7 @@ label.check
 	height: 27px;
 	padding: 5px 0px;
 }
-label input[type="text"], label input[type="password"], #tagpopup input[type="text"]
+label input[type="text"], label input[type="password"]
 {
 	display: block;
 	height: 16px;
@@ -592,8 +592,7 @@ label input[type="text"], label input[type="password"], #tagpopup input[type="te
 	background: #EEF4F8;
 	border: 1px solid #9AC7F1;
 }
-label input[type="text"]:focus, label input[type="password"]:focus, textarea:focus,
-	#tagpopup input[type="text"]:focus
+label input[type="text"]:focus, label input[type="password"]:focus, textarea:focus
 {
 	background: #F8FAFC;
 	border: 1px dotted #9AC7F1;
@@ -886,66 +885,6 @@ font-size: 0.75em;
 	margin: 8px 16px 0px 36px;
 	padding: 40px 0px 0px 4px;
 	background: url(images/tango-next.png) #E1EEFB no-repeat;
-}
-
-/* tag system */
-#tagpopup
-{
-	position: absolute;
-	z-index: 1002;
-	display: none;
-	width: 255px;
-	margin-right: 5px;
-	padding: 3px 3px;
-	font-size: 1em;
-	background: #C8E2FA;
-	border: 1px solid #7EB2E4;
-}
-#taglist
-{
-	max-height: 150px;
-	overflow: auto;
-}
-#taglist label
-{
-	display: block;
-	float: none;
-	width: auto;
-	height: auto;
-	padding: 2px;
-	margin: 3px;
-	background: #EEF4F8;
-	border: 1px dotted #9AC7F1;
-}
-#taglist label.selected
-{
-	color: #2F960A;
-	font-weight: bold;
-	background: #E4F2AF;
-	border: 1px dotted #8DCB5F;
-}
-#tagpopup input[type="text"]
-{
-	margin: 2px;
-	width: 190px;
-}
-#closetagpopup
-{
-	width: 16px;
-	height: 16px;
-	margin: -22px 0px 6px 236px;
-	background: url(images/tango-top.png) no-repeat;
-}
-#addtag
-{
-	width: 16px;
-	height: 16px;
-	margin: -22px 0px 6px 210px;
-	background: url(images/tango-add.png) no-repeat;
-}
-#closetagpopup:hover, #addtag:hover
-{
-	cursor: pointer;
 }
 
 /* tag cloud */

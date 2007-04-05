@@ -1,6 +1,5 @@
 <?php
 $__LANG = array (
-  ' tags selected' => ' tags selected',
   '%d pictures imported' => '%d pictures imported',
   '%s ratings / %s average' => '%s ratings / %s average',
   '(%d clicks)' => '(%d clicks)',
@@ -48,7 +47,6 @@ $__LANG = array (
   'Sign out' => 'Sign out',
   'Source' => 'Source',
   'Source directory' => 'Source directory',
-  'Tag added' => 'Tag added',
   'Tags' => 'Tags',
   'The directory is invalid.' => 'The directory is invalid.',
   'The larger the font the more pictures are assigned to that tag.' => 'The larger the font the more pictures are assigned to that tag.',
@@ -69,7 +67,6 @@ $__LANG = array (
   'loading...' => 'loading...',
   'new Entry' => 'new Entry',
   'new Quote' => 'new Quote',
-  'new tag...' => 'new tag...',
   'save Quote' => 'save Quote',
   'send Entry' => 'send Entry',
   'tags' => 'tags',

@@ -15,18 +15,9 @@ include($this->template('header.tpl.php'));
 				<label><input type="text" id="directory" value="<?php echo $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF']); ?>" /><?php echo l10n::_('Source directory'); ?></label>
 				<label><input type="text" id="title" /><?php echo l10n::_('Title'); ?></label>
 				<label class="check"><input type="checkbox" id="delold" /><?php echo l10n::_('delete source files'); ?></label>
-				<label id="taglabel"><input type="text" id="tagtext" value="0<?php echo l10n::_(' tags selected'); ?>" /><?php echo l10n::_('Tags'); ?></label>
+				<label><input type="text" id="tags" /><?php echo l10n::_('Tags'); ?></label>
 				<input type="submit" class="fake" />
 			</fieldset>
-			</form>
-			<form action="" id="tagform">
-				<div id="tagpopup">
-					<input type="text" id="newtag" value="<?php echo l10n::_('new tag...'); ?>" />
-					<div id="addtag"></div>
-					<div id="closetagpopup"></div>
-					<div id="taglist"></div>
-				</div>
-				<input type="submit" class="fake" />
 			</form>
 		</div>
 		<div id="messagebox">
@@ -39,7 +30,6 @@ include($this->template('header.tpl.php'));
 		<div id="opensubmitbutton"><?php echo l10n::_('import pictures'); ?></div>
 	</div>
 </div>
-<script type="text/javascript" src="js/tagsystem.js"></script>
 <script type="text/javascript" src="js/pictures.js"></script>
 <?php endif; ?>
 <?php

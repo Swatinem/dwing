@@ -5,11 +5,7 @@ function submitPictures()
 	postData['title'] = $F('title');
 	if($('delold').checked)
 		postData['delold'] = true;
-	selectedTags = getSelectedTags();
-	for(var i = 0; i < selectedTags.length; i++)
-	{
-		postData['tag_ids['+i+']'] = selectedTags[i];
-	}
+	postData['tags'] = $F('tags');
 	throbberOn();
 	clearMessages();
 	new Ajax.Request('index.php?site=ajax_importpictures', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {

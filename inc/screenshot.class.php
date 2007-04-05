@@ -118,7 +118,7 @@ class Screenshot extends Module
 			return $insertIds;
 		foreach($insertIds as $insertId)
 		{
-			Tags::addTagsForContent($insertId, ContentType::IMAGE, $_POST['tag_ids']);
+			Tags::addTagsForContent($insertId, ContentType::IMAGE, $_POST['tags']);
 		}
 		return count($insertIds);
 	}
