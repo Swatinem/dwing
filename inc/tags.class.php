@@ -26,6 +26,23 @@
 class Tags extends Module
 {
 	/**
+	 * clean the incoming string and return an array of cleaned tag names
+	 *
+	 * @param string $aTags
+	 * @return array
+	 **/
+	public static function cleanTags($aTags)
+	{
+		$tagNames = strtr(trim($aTags),
+			array('ä' => 'ae', 'ö' => 'oe', 'ü' => 'ue', 'ß' => 'ss', 'Ä' => 'ae',
+			'Ö' => 'oe', 'Ü' => 'ue'));
+		$tagNames = strtolower($tagNames);
+		$tagNames = preg_replace('![^a-z0-9-\s]*!', '', $tagNames);
+		$tagNames = preg_replace('!\s+!', ' ', $tagNames);
+		return explode(' ', $tagNames);
+	}
+
+	/**
 	 * get all tags associated to one content item
 	 *
 	 * @param int $aContentId
@@ -78,13 +95,7 @@ class Tags extends Module
 		foreach($tagsRes as $tagRow)
 			$nameToIdMap[$tagRow['name']] = $tagRow['tag_id'];
 		// filter the tag names out of the input string
-		$tagNames = strtr(trim($aTags),
-			array('ä' => 'ae', 'ö' => 'oe', 'ü' => 'ue', 'ß' => 'ss', 'Ä' => 'ae',
-			'Ö' => 'oe', 'Ü' => 'ue'));
-		$tagNames = strtolower($tagNames);
-		$tagNames = preg_replace('![^a-z0-9-\s]*!', '', $tagNames);
-		$tagNames = preg_replace('!\s+!', ' ', $tagNames);
-		$tagNames = explode(' ', $tagNames);
+		$tagNames = self::cleanTags($aTags);
 
 		// link the tags with the content item, adding new tags when necessary
 		$query = 'INSERT INTO '.self::$_db->pref.'tagstocontent (tag_id, content_id, content_type) VALUES ';
