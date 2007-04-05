@@ -121,6 +121,8 @@ class Updater extends Module
 	 **/
 	public function update()
 	{
+		$this->_updatelang();
+		// problem: the updater itself could require string changes
 		for($i = array_search($this->oldversion,$this->_versions), $max = count($this->_versions)-1; $i < $max; $i++)
 		{
 			$fromversion = $this->_versions[$i];
