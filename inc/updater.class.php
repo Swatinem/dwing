@@ -58,7 +58,7 @@ class Updater extends Module
 	 **/
 	public function __construct()
 	{
-		$this->_versions = array('0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5');
+		$this->_versions = array('0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6');
 		$this->_langs = array('en', 'de');
 		$this->version = $this->_versions[count($this->_versions)-1];
 		$this->oldversion = self::$_cfg['version'];
@@ -211,12 +211,10 @@ class Updater extends Module
 	 **/
 	private function _3to4()
 	{
-		include_once('inc/modulesystem.class.php');
-		include_once('inc/utils.class.php');
 		self::$_db->query('ALTER TABLE `'.self::$_db->pref.'news` ADD `fancyurl` VARCHAR( 128 ) NOT NULL;');
 
 		$cleanTitles = array();
-		$newsRes = self::$_db->query('SELECT news_id, title FROM dw_news;');
+		$newsRes = self::$_db->query('SELECT news_id, title FROM '.self::$_db->pref.'news;');
 		while($news = $newsRes->fetch_assoc())
 		{
 			$cleanTitle = Utils::fancyUrl($news['title']);
@@ -224,7 +222,7 @@ class Updater extends Module
 				$cleanTitle.= '-'.$news['news_id'];
 			$cleanTitles[] = $cleanTitle;
 			self::$_db->query('
-				UPDATE `'.self::$_db->pref.'news` SET fancyurl="'.$cleanTitle.'"
+				UPDATE `'.self::$_db->pref.'news` SET fancyurl="'.self::$_db->escape($cleanTitle).'"
 				WHERE news_id='.(int)$news['news_id'].';');
 		}
 		self::$_db->query('ALTER TABLE `'.self::$_db->pref.'news` ADD UNIQUE `fancyurl` ( `fancyurl` );');
@@ -249,6 +247,23 @@ class Updater extends Module
 			INDEX ( `content_id` , `content_type` )
 			) ENGINE = innodb;');
 		self::$_db->query('ALTER TABLE `'.self::$_db->pref.'comments` ADD INDEX ( `user_id` );');
+		return true;
+	}
+
+	/**
+	 * Update from 0.0.5 to 0.0.6
+	 * 
+	 * @return bool
+	 **/
+	private function _5to6()
+	{
+		$tagsRes = self::$_db->query('SELECT tag_id, name FROM '.self::$_db->pref.'tags;');
+		while($tagRow = $tagsRes->fetch_assoc())
+		{
+			self::$_db->query('
+				UPDATE `'.self::$_db->pref.'tags` SET name="'.self::$_db->escape(Utils::fancyUrl($tagRow['name'])).'"
+				WHERE tag_id='.(int)$tagRow['tag_id'].';');
+		}
 		return true;
 	}
 }

@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$_version = '0.0.5';
+$_version = '0.0.6';
 
 session_start();
 $_debug = false;
