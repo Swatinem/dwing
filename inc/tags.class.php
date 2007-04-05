@@ -120,18 +120,6 @@ class Tags extends Module
 	}
 
 	/**
-	 * get the name of a tag
-	 *
-	 * @param int $aTagId
-	 * @return string
-	 **/
-	public static function tagName($aTagId)
-	{
-		$tag = self::$_db->queryfirst('SELECT name FROM '.self::$_db->pref.'tags WHERE tag_id='.(int)$aTagId.';');
-		return $tag['name'];
-	}
-
-	/**
 	 * get only the tags which have associated content of type
 	 *
 	 * @param int $aContentType
@@ -151,19 +139,22 @@ class Tags extends Module
 	/**
 	 * how many items of a specified type are tagged with the specified tag
 	 *
-	 * @param int $aTagId
+	 * @param string $aTagName
 	 * @param int $aContentType
 	 * @return int
 	 **/
-	public static function getContentCount($aTagId = null, $aContentType = null)
+	public static function getContentCount($aTagName = null, $aContentType = null)
 	{
-		$query = 'SELECT COUNT(DISTINCT content_id) AS count FROM '.self::$_db->pref.'tagstocontent';
-		if($aTagId || $aContentType)
+		$query = '
+			SELECT COUNT(DISTINCT content_id) AS count FROM '.self::$_db->pref.'tagstocontent
+			LEFT JOIN '.self::$_db->pref.'tags as tags USING (tag_id)
+			';
+		if($aTagName || $aContentType)
 		{
 			$query.= ' WHERE ';
-			if($aTagId)
-				$query.= ' tag_id='.(int)$aTagId.' ';
-			if($aTagId && $aContentType)
+			if($aTagName)
+				$query.= ' tags.name="'.self::$_db->escape($aTagName).'" ';
+			if($aTagName && $aContentType)
 				$query.= ' AND ';
 			if($aContentType)
 				$query.= ' content_type='.(int)$aContentType.' ';
