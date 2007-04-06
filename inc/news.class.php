@@ -116,7 +116,7 @@ class News extends Module
 				WHERE news_id='.(int)$insertId.';');
 
 			// link with tags
-			Tags::addTagsForContent($insertId, ContentType::NEWS, $_POST['tags']);
+			Tags::setTagsForContent($insertId, ContentType::NEWS, $_POST['tags']);
 
 			return $insertId;
 		}

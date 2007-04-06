@@ -35,7 +35,7 @@ if(!is_a($newsId = News::addNews(), 'Exception')):
 		$tags = $news['tags'];
 		foreach($tags as $tag):
 		?>
-		<a href="news/tags/<?php echo $tag['tag_id']; ?>"><?php echo $tag['name']; ?></a>
+		<a href="news/tags/<?php echo $tag; ?>"><?php echo $tag; ?></a>
 		<?php
 		endforeach;
 		/*$commentNum = Comments::getCommentNum($news['news_id'], ContentType::NEWS);
