@@ -12,28 +12,43 @@ include($this->template('header.tpl.php'));
 ?>
 <script type="text/javascript" src="js/ratings.js"></script>
 <script type="text/javascript" src="./FCKeditor/fckeditor.js"></script>
-<?php if(empty($_GET['news_id'])): ?>
-<h1><?php echo l10n::_('News'); ?></h1>
-<div class="outertabbar flex">
-	<div class="tabbar">
-		<a><span><?php echo l10n::_('tags:'); ?></span></a>
-		<a href="./"<?php if(empty($_GET['tag'])) echo ' class="selected"'; ?>><span><?php echo l10n::_('All'); ?></span></a>
-		<?php
-		$newsTags = Tags::getTagsWithContentOfType(ContentType::NEWS);
-		foreach($newsTags as $newsTag):
-		?>
-		<a href="news/tags/<?php echo $newsTag['name']; ?>"<?php if(!empty($_GET['tag']) && $_GET['tag'] == $newsTag['name']) echo ' class="selected"'; ?>><span><?php echo $newsTag['name']; ?></span></a>
-		<?php endforeach; ?>
 <?php
-if(empty($_GET['tag']))
-	$pages = Utils::pages(Tags::getContentCount(null, ContentType::NEWS), 10, '?page=');
-else
-	$pages =  Utils::pages(Tags::getContentCount($_GET['tag'], ContentType::NEWS), 10, 'news/tags/'.$_GET['tag'].'?page=');
-if(!empty($pages)):
+if(empty($_GET['news_id'])):
+	if(empty($_GET['tag']))
+		$pages = Utils::pages(Tags::getContentCount(null, ContentType::NEWS), 10, '?page=');
+	else
+		$pages =  Utils::pages(Tags::getContentCount($_GET['tag'], ContentType::NEWS), 10, 'news/tags/'.$_GET['tag'].'?page=');
 ?>
-		<a class="spacer"></a>
-		<?php echo $pages; ?>
-<?php endif; ?>
+<h1><?php echo l10n::_('News').(!empty($_GET['tag']) ? ': '.htmlspecialchars($_GET['tag']) : ''); ?></h1>
+<div class="openid">
+	<div style="float: right;">
+		<h3><a href="./"><?php echo l10n::_('Show all posts'); ?></a></h3>
+		<div style="font-size: 0.75em;">
+		<?php
+		if(!empty($pages))
+			echo $pages;
+		?>
+		</div>
+	</div>
+	<h3><?php echo l10n::_('Show only posts with this tag:'); ?></h3>
+	<div class="tagcloud">
+	<?php
+	$newsTags = Tags::getTagsWithContentOfType(ContentType::NEWS);
+	$max = sqrt($newsTags[0]['content']);
+	$min = sqrt($newsTags[0]['content']);
+	for($i = 0, $imax = count($newsTags); $i < $imax; $i++)
+	{
+		$newsTags[$i]['score'] = sqrt($newsTags[$i]['content']);
+		if($newsTags[$i]['score'] > $max)
+			$max = $newsTags[$i]['score'];
+		if($newsTags[$i]['score'] < $min)
+			$min = $newsTags[$i]['score'];
+	}
+	$max-= $min;
+	foreach($newsTags as $newsTag):
+	?>
+	<a class="p<?php echo 10*ceil(10*($newsTag['score']-$min)/$max) ?>" href="news/tags/<?php echo $newsTag['name']; ?>" title="<?php printf(l10n::_('%d posts'),$newsTag['content']); ?>"><?php echo $newsTag['name']; ?></a>
+	<?php endforeach; ?>
 	</div>
 </div>
 <?php

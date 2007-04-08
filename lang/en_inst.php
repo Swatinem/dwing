@@ -1,6 +1,7 @@
 <?php
 $__LANG = array (
   '%d pictures imported' => '%d pictures imported',
+  '%d posts' => '%d posts',
   '%s ratings / %s average' => '%s ratings / %s average',
   '(%d clicks)' => '(%d clicks)',
   'Admin' => 'Admin',
@@ -43,6 +44,8 @@ $__LANG = array (
   'Quote altered' => 'Quote altered',
   'Quote deleted' => 'Quote deleted',
   'Quotes' => 'Quotes',
+  'Show all posts' => 'Show all posts',
+  'Show only posts with this tag:' => 'Show only posts with this tag:',
   'Sign in' => 'Sign in',
   'Sign out' => 'Sign out',
   'Source' => 'Source',

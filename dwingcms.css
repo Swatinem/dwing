@@ -888,51 +888,55 @@ font-size: 0.75em;
 }
 
 /* tag cloud */
-#tagcloud
+.tagcloud
 {
 	font-size: 0.75em;
 	line-height: 2em;
-	text-align: center;
+	text-align: justify;
 }
-#tagcloud a
+.tagcloud a
 {
 	margin: 0px 3px;
 	white-space: nowrap;
 	font-weight: bold;
 }
-#tagcloud .p10
+.tagcloud .p0
+{
+	font-size: 0.9em;
+}
+.tagcloud .p10, .tagcloud .p0
 {
 	font-weight: normal;
 }
-#tagcloud .p30
+.tagcloud .p30
 {
 	font-size: 1.1em;
 }
-#tagcloud .p40
+.tagcloud .p40
 {
 	font-size: 1.2em;
 }
-#tagcloud .p50
+.tagcloud .p50
 {
 	font-size: 1.3em;
 }
-#tagcloud .p60
+.tagcloud .p60
 {
 	font-size: 1.4em;
 }
-#tagcloud .p70
+.tagcloud .p70
 {
 	font-size: 1.5em;
 }
-#tagcloud .p80
+.tagcloud .p80
 {
 	font-size: 1.6em;
 }
-#tagcloud .p90
+.tagcloud .p90
 {
 	font-size: 1.7em;
 }
-#tagcloud .p100
+.tagcloud .p100
 {
 	font-size: 1.8em;
 }
