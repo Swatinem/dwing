@@ -21,6 +21,7 @@ var Throbber = {
 	},
 	on: function()
 	{
+		if(!this.icon) return;
 		this.textEffect.stop();
 		this.textEffect.start(1);
 		this.icon.addClass('active');
@@ -28,6 +29,7 @@ var Throbber = {
 	},
 	off: function()
 	{
+		if(!this.icon) return;
 		this.textEffect.stop();
 		this.textEffect.start(0);
 		this.icon.removeClass('active');
