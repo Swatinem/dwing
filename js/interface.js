@@ -1,4 +1,15 @@
+/*
+ * dWing uses the following mootools components:
+ * Core.Moo, Core.Utility, Core.Commom
+ * Native.Array, Native.String, Native.Function, Native.Element
+ * Fx.Base, Fx.CSS, Fx.Style, Fx.Styles
+ * Remote.XHR
+ * No Documentation Compression Type
+ */
+
 var xhtmlNS = 'http://www.w3.org/1999/xhtml';
+
+
 function include(src)
 {
 	var scriptElem = document.createElementNS(xhtmlNS, 'script');

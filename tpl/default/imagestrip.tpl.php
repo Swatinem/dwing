@@ -11,6 +11,7 @@ echo '<?xml version="1.0" encoding="utf-8"?>';
 		<script type="text/javascript" src="js/prototype.js"></script>
 		<script type="text/javascript" src="js/moo.fx.js"></script>
 		<script type="text/javascript" src="js/moo.fx.pack.js"></script>
+		<script type="text/javascript" src="js/mootools.js"></script>
 		<script type="text/javascript" src="js/interface.js"></script>
 		<script type="text/javascript" src="js/imagestrip.js"></script>
 		<script type="text/javascript" src="index.php?site=l10n"></script>

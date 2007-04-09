@@ -14,6 +14,7 @@ if(empty($title))
 		<script type="text/javascript" src="js/prototype.js"></script>
 		<script type="text/javascript" src="js/moo.fx.js"></script>
 		<script type="text/javascript" src="js/moo.fx.pack.js"></script>
+		<script type="text/javascript" src="js/mootools.js"></script>
 		<script type="text/javascript" src="js/interface.js"></script>
 		<script type="text/javascript" src="index.php?site=l10n"></script>
 		<link rel="alternate" type="application/atom+xml" title="dWing Atom 1.0" href="atom" />
