@@ -7,10 +7,6 @@ echo '<?xml version="1.0" encoding="utf-8"?>';
 	<head>
 		<title>dWing CMS Update</title>
 		<link rel="stylesheet" type="text/css" href="dwingcms.css" />
-		<script type="text/javascript" src="js/prototype.js"></script>
-		<script type="text/javascript" src="js/moo.fx.js"></script>
-		<script type="text/javascript" src="js/moo.fx.pack.js"></script>
-		<script type="text/javascript" src="js/interface.js"></script>
 	</head>
 	<body>
 		<ul id="header">
