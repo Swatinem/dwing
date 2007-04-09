@@ -11,21 +11,21 @@ function submitEntry()
 			postData['text'] = oEditor.GetXHTML();
 	}
 	Throbber.on();
-	clearMessages();
+	Messages.clear();
 	new Ajax.Request('index.php?site=ajax_guestbook', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
 		xml = req.responseXML;
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
 		{
-			addNotice(_('Entry added'));
+			Messages.addNotice(_('Entry added'));
 			window.setTimeout(function () {
 				window.location.href = window.location.href; // refresh
 			}, 2000);
 		}
 		else
 		{
-			addWarning(result.firstChild.data);
+			Messages.addWarning(result.firstChild.data);
 		}
 	}});
 }
@@ -36,7 +36,7 @@ function deleteEntry(gb_id)
 	postData = Array();
 	postData['gb_id'] = gb_id;
 	Throbber.on();
-	clearMessages();
+	Messages.clear();
 	new Ajax.Request('index.php?site=ajax_guestbook_delete', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
 		xml = req.responseXML;
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
@@ -45,14 +45,14 @@ function deleteEntry(gb_id)
 		{
 			var fadeaway = new fx.FadeSize('entry'+gb_id, {duration: 400});
 			fadeaway.toggle('height');
-			addNotice(_('Entry deleted'));
+			Messages.addNotice(_('Entry deleted'));
 			window.setTimeout(function () {
-				clearMessages();
+				Messages.clear();
 			}, 2000);
 		}
 		else
 		{
-			addWarning(result.firstChild.data);
+			Messages.addWarning(result.firstChild.data);
 		}
 	}});
 }
@@ -82,6 +82,6 @@ function closeForm()
 }
 window.addEventListener('load', function () {
 	$('opensubmitbutton').addEventListener('click', openForm, false);
-	$('closeform').addEventListener('click', function() { closeForm(); clearMessages(); }, false);
+	$('closeform').addEventListener('click', function() { closeForm(); Messages.clear(); }, false);
 	$('form').addEventListener('submit', function(e) { e.preventDefault(); submitEntry(); }, false);
 }, false);

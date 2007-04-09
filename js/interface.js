@@ -98,10 +98,6 @@ var Messages = {
 	}
 }
 window.addEventListener('load', function () { Messages.init(); }, false);
-function showMessages() { Messages.show(); }
-function clearMessages() { Messages.clear(); }
-function addNotice(noticeText) { Messages.addNotice(noticeText); }
-function addWarning(warningText) { Messages.addWarning(warningText); }
 
 function initInterface()
 {

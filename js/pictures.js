@@ -7,21 +7,21 @@ function submitPictures()
 		postData['delold'] = true;
 	postData['tags'] = $F('tags');
 	Throbber.on();
-	clearMessages();
+	Messages.clear();
 	new Ajax.Request('index.php?site=ajax_importpictures', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
 		xml = req.responseXML;
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
 		{
-			addNotice(result.firstChild.data);
+			Messages.addNotice(result.firstChild.data);
 			window.setTimeout(function () {
 				window.location.href = window.location.href; // refresh
 			}, 2000);
 		}
 		else
 		{
-			addWarning(result.firstChild.data);
+			Messages.addWarning(result.firstChild.data);
 		}
 	}});
 }
@@ -41,6 +41,6 @@ function closeForm()
 }
 window.addEventListener('load', function () {
 	$('opensubmitbutton').addEventListener('click', openForm, false);
-	$('closeform').addEventListener('click', function() { closeForm(); clearMessages(); }, false);
+	$('closeform').addEventListener('click', function() { closeForm(); Messages.clear(); }, false);
 	$('form').addEventListener('submit', function(e) { e.preventDefault(); submitPictures(); }, false);
 }, false);

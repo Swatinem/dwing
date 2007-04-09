@@ -10,21 +10,21 @@ function submitQuote()
 	postData['quote'] = $F('quote');
 	postData['source'] = $F('source');
 	Throbber.on();
-	clearMessages();
+	Messages.clear();
 	new Ajax.Request('index.php?site=ajax_quote_add', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
 		xml = req.responseXML;
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
 		{
-			addNotice(_('Quote added'));
+			Messages.addNotice(_('Quote added'));
 			window.setTimeout(function () {
 				window.location.href = window.location.href; // refresh
 			}, 2000);
 		}
 		else
 		{
-			addWarning(result.firstChild.data);
+			Messages.addWarning(result.firstChild.data);
 		}
 	}});
 }
@@ -35,21 +35,21 @@ function submitEditQuote()
 	postData['quote'] = $F('quote');
 	postData['source'] = $F('source');
 	Throbber.on();
-	clearMessages();
+	Messages.clear();
 	new Ajax.Request('index.php?site=ajax_quote_edit', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
 		xml = req.responseXML;
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
 		{
-			addNotice(_('Quote altered'));
+			Messages.addNotice(_('Quote altered'));
 			window.setTimeout(function () {
 				window.location.href = window.location.href; // refresh
 			}, 2000);
 		}
 		else
 		{
-			addWarning(result.firstChild.data);
+			Messages.addWarning(result.firstChild.data);
 		}
 	}});
 }
@@ -60,7 +60,7 @@ function deleteQuote(quote_id)
 	postData = Array();
 	postData['quote_id'] = quote_id;
 	Throbber.on();
-	clearMessages();
+	Messages.clear();
 	new Ajax.Request('index.php?site=ajax_quote_delete', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
 		xml = req.responseXML;
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
@@ -69,14 +69,14 @@ function deleteQuote(quote_id)
 		{
 			var fadeaway = new fx.FadeSize('quote'+quote_id, {duration: 400});
 			fadeaway.toggle('height');
-			addNotice(_('Quote deleted'));
+			Messages.addNotice(_('Quote deleted'));
 			window.setTimeout(function () {
-				clearMessages();
+				Messages.clear();
 			}, 2000);
 		}
 		else
 		{
-			addWarning(result.firstChild.data);
+			Messages.addWarning(result.firstChild.data);
 		}
 	}});
 }
@@ -128,6 +128,6 @@ function closeForm()
 }
 window.addEventListener('load', function () {
 	$('opensubmitbutton').addEventListener('click', openForm, false);
-	$('closeform').addEventListener('click', function() { closeForm(); clearMessages(); }, false);
+	$('closeform').addEventListener('click', function() { closeForm(); Messages.clear(); }, false);
 	$('form').addEventListener('submit', function(e) { e.preventDefault(); submitQuote(); }, false);
 }, false);
