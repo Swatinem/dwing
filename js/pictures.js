@@ -6,12 +6,12 @@ function submitPictures()
 	if($('delold').checked)
 		postData['delold'] = true;
 	postData['tags'] = $F('tags');
-	throbberOn();
+	Throbber.on();
 	clearMessages();
 	new Ajax.Request('index.php?site=ajax_importpictures', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
 		xml = req.responseXML;
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
-		throbberOff();
+		Throbber.off();
 		if(result.getAttribute('success') > 0)
 		{
 			addNotice(result.firstChild.data);

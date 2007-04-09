@@ -10,12 +10,12 @@ function submitEntry()
 		if(oEditor)
 			postData['text'] = oEditor.GetXHTML();
 	}
-	throbberOn();
+	Throbber.on();
 	clearMessages();
 	new Ajax.Request('index.php?site=ajax_guestbook', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
 		xml = req.responseXML;
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
-		throbberOff();
+		Throbber.off();
 		if(result.getAttribute('success') > 0)
 		{
 			addNotice(_('Entry added'));
@@ -35,12 +35,12 @@ function deleteEntry(gb_id)
 		return;
 	postData = Array();
 	postData['gb_id'] = gb_id;
-	throbberOn();
+	Throbber.on();
 	clearMessages();
 	new Ajax.Request('index.php?site=ajax_guestbook_delete', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
 		xml = req.responseXML;
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
-		throbberOff();
+		Throbber.off();
 		if(result.getAttribute('success') > 0)
 		{
 			var fadeaway = new fx.FadeSize('entry'+gb_id, {duration: 400});

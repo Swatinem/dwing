@@ -41,11 +41,7 @@ var Throbber = {
 			this.on();
 	}
 };
-//var Throbber = new ThrobberClass();
 window.addEventListener('load', function () { Throbber.init(); }, false);
-function throbberOn() { Throbber.on() };
-function throbberOff() { Throbber.off() };
-function throbberToggle() { Throbber.toggle() };
 
 function include(src)
 {

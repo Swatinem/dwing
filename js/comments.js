@@ -10,11 +10,11 @@ function submitComment()
 		if(oEditor)
 			postData['text'] = oEditor.GetXHTML();
 	}
-	throbberOn();
+	Throbber.on();
 	new Ajax.Request('index.php?site=ajax_comment_add', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
 		xml = req.responseXML;
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
-		throbberOff();
+		Throbber.off();
 		if(result.getAttribute('success') > 0)
 		{
 			importedNode = document.importNode(result.childNodes[1], true);

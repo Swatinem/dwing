@@ -9,12 +9,12 @@ function submitQuote()
 	postData = Array();
 	postData['quote'] = $F('quote');
 	postData['source'] = $F('source');
-	throbberOn();
+	Throbber.on();
 	clearMessages();
 	new Ajax.Request('index.php?site=ajax_quote_add', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
 		xml = req.responseXML;
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
-		throbberOff();
+		Throbber.off();
 		if(result.getAttribute('success') > 0)
 		{
 			addNotice(_('Quote added'));
@@ -34,12 +34,12 @@ function submitEditQuote()
 	postData['quote_id'] = editQuoteId;
 	postData['quote'] = $F('quote');
 	postData['source'] = $F('source');
-	throbberOn();
+	Throbber.on();
 	clearMessages();
 	new Ajax.Request('index.php?site=ajax_quote_edit', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
 		xml = req.responseXML;
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
-		throbberOff();
+		Throbber.off();
 		if(result.getAttribute('success') > 0)
 		{
 			addNotice(_('Quote altered'));
@@ -59,12 +59,12 @@ function deleteQuote(quote_id)
 		return;
 	postData = Array();
 	postData['quote_id'] = quote_id;
-	throbberOn();
+	Throbber.on();
 	clearMessages();
 	new Ajax.Request('index.php?site=ajax_quote_delete', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
 		xml = req.responseXML;
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
-		throbberOff();
+		Throbber.off();
 		if(result.getAttribute('success') > 0)
 		{
 			var fadeaway = new fx.FadeSize('quote'+quote_id, {duration: 400});
