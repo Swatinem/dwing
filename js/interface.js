@@ -9,6 +9,43 @@
 
 var xhtmlNS = 'http://www.w3.org/1999/xhtml';
 
+var Throbber = {
+	isOn: true,
+	icon: null,
+	textEffect: null,
+	init: function()
+	{
+		this.icon = $('throbber');
+		this.textEffect = $('throbbertext').effect('opacity', {duration: 200});
+		this.off();
+	},
+	on: function()
+	{
+		this.textEffect.stop();
+		this.textEffect.start(1);
+		this.icon.addClass('active');
+		this.isOn = true;
+	},
+	off: function()
+	{
+		this.textEffect.stop();
+		this.textEffect.start(0);
+		this.icon.removeClass('active');
+		this.isOn = false;
+	},
+	toggle: function()
+	{
+		if(this.isOn)
+			this.off();
+		else
+			this.on();
+	}
+};
+//var Throbber = new ThrobberClass();
+window.addEventListener('load', function () { Throbber.init(); }, false);
+function throbberOn() { Throbber.on() };
+function throbberOff() { Throbber.off() };
+function throbberToggle() { Throbber.toggle() };
 
 function include(src)
 {
@@ -24,12 +61,6 @@ function initInterface()
 		$('formcontent').style.display = 'block';
 		FormContentEffect = new fx.FadeSize('formcontent', {duration: 400});
 		FormContentEffect.hide('height');
-	}
-	if($('throbber'))
-	{
-		ThrobberTextFade = new fx.Opacity('throbbertext', {duration: 200});
-		throbberIsOn = true;
-		throbberOff();
 	}
 	if($('opensubmitbutton'))
 	{
@@ -110,27 +141,6 @@ function messageOn(type, text)
 function messageOff()
 {
 	clearMessages();
-}
-function throbberOn()
-{
-	if(throbberIsOn) return;
-	throbberIsOn = true;
-	ThrobberTextFade.toggle();
-	$('throbber').className = 'active';
-}
-function throbberOff()
-{
-	if(!throbberIsOn) return;
-	throbberIsOn = false;
-	ThrobberTextFade.toggle();
-	$('throbber').className = '';
-}
-function throbberToggle()
-{
-	if(throbberIsOn)
-		throbberOff();
-	else
-		throbberOn();
 }
 function urlEncode(dataArray)
 {

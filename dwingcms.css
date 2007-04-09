@@ -230,6 +230,7 @@ a.image
 /* throbber */
 li#throbber, li#throbber:hover
 {
+	font-size: 0.75em;
 	color: #444;
 	float: right;
 	height: 20px;
