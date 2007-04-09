@@ -43,13 +43,6 @@ var Throbber = {
 };
 window.addEventListener('load', function () { Throbber.init(); }, false);
 
-function include(src)
-{
-	var scriptElem = document.createElementNS(xhtmlNS, 'script');
-	scriptElem.setAttributeNS(null, 'type', 'text/javascript');
-	scriptElem.setAttributeNS(null, 'src', src);
-	document.getElementsByTagName('head')[0].appendChild(scriptElem);
-}
 function initInterface()
 {
 	if($('formcontent'))
@@ -121,23 +114,7 @@ function addWarning(warningText)
 	$('warningbox').appendChild(liElem);
 	showMessages();
 }
-// keeping these two functions for now
-function messageOn(type, text)
-{
-	if(type == 'error')
-	{
-		addWarning(text);
-	}
-	else
-	{
-		addNotice(text);
-	}
-	showMessages();
-}
-function messageOff()
-{
-	clearMessages();
-}
+
 function urlEncode(dataArray)
 {
 	var encodedData = String();
