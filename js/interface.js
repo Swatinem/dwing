@@ -45,6 +45,64 @@ var Throbber = {
 };
 window.addEventListener('load', function () { Throbber.init(); }, false);
 
+var Messages = {
+	isOn: false,
+	effect: null,
+	messageBox: null,
+	noticeBox: null,
+	warningBox: null,
+	init: function()
+	{
+		this.noticeBox = $('noticebox');
+		this.warningBox = $('warningbox');
+		this.messageBox = $('messagebox');
+		if(this.messageBox)
+		{
+			this.messageBox.style.display = 'block';
+			this.effect = this.messageBox.effects({duration: 200});
+			this.effect.set({'height': 0, 'opacity': 0});
+			this.clear();
+		}
+	},
+	show: function()
+	{
+		this.noticeBox.style.display = (this.noticeBox.childNodes.length == 0) ? 'none' : 'block';
+		this.warningBox.style.display = (this.warningBox.childNodes.length == 0) ? 'none' : 'block';
+
+		this.effect.stop();
+		this.effect.start({'height': this.messageBox.scrollHeight, 'opacity': 1});
+		this.isOn = true;
+	},
+	clear: function()
+	{
+		this.effect.stop();
+		while(this.noticeBox.firstChild)
+			this.noticeBox.removeChild(this.noticeBox.firstChild);
+		while(this.warningBox.firstChild)
+			this.warningBox.removeChild(this.warningBox.firstChild);
+		this.effect.start({'height': 0, 'opacity': 0});
+	},
+	addNotice: function(aText)
+	{
+		var liElem = document.createElementNS(xhtmlNS, 'li');
+		liElem.appendChild(document.createTextNode(aText));
+		this.noticeBox.appendChild(liElem);
+		this.show();
+	},
+	addWarning: function(aText)
+	{
+		var liElem = document.createElementNS(xhtmlNS, 'li');
+		liElem.appendChild(document.createTextNode(aText));
+		this.warningBox.appendChild(liElem);
+		this.show();
+	}
+}
+window.addEventListener('load', function () { Messages.init(); }, false);
+function showMessages() { Messages.show(); }
+function clearMessages() { Messages.clear(); }
+function addNotice(noticeText) { Messages.addNotice(noticeText); }
+function addWarning(warningText) { Messages.addWarning(warningText); }
+
 function initInterface()
 {
 	if($('formcontent'))
@@ -57,14 +115,6 @@ function initInterface()
 	{
 		SubmitButtonTextFade = new fx.Opacity('opensubmitbutton', {duration: 200});
 	}
-	if($('messagebox'))
-	{
-		$('messagebox').style.display = 'block';
-		MessageBoxFade = new fx.FadeSize('messagebox', {duration: 200});
-		MessageBoxFade.hide('height');
-		messageIsOn = false;
-		clearMessages();
-	}
 	if($('closeform'))
 	{
 		$('closeform').style.display = 'block';
@@ -75,46 +125,6 @@ function initInterface()
 function toggleForm()
 {
 	FormContentEffect.toggle('height');
-}
-function showMessages()
-{
-	// we need to do this the hard way until browsers support :empty correctly
-	if($('noticebox').childNodes.length == 0)
-		$('noticebox').style.display = 'none';
-	else
-		$('noticebox').style.display = 'block';
-	if($('warningbox').childNodes.length == 0)
-		$('warningbox').style.display = 'none';
-	else
-		$('warningbox').style.display = 'block';
-
-	if(messageIsOn) return;
-	MessageBoxFade.toggle('height');
-	messageIsOn = true;
-}
-function clearMessages()
-{
-	while((noticebox = $('noticebox')).childNodes.length > 0)
-		noticebox.removeChild(noticebox.childNodes[0]);
-	while((warningbox = $('warningbox')).childNodes.length > 0)
-		warningbox.removeChild(warningbox.childNodes[0]);
-	if(!messageIsOn) return;
-	MessageBoxFade.toggle('height');
-	messageIsOn = false;
-}
-function addNotice(noticeText)
-{
-	var liElem = document.createElementNS(xhtmlNS, 'li');
-	liElem.appendChild(document.createTextNode(noticeText));
-	$('noticebox').appendChild(liElem);
-	showMessages();
-}
-function addWarning(warningText)
-{
-	var liElem = document.createElementNS(xhtmlNS, 'li');
-	liElem.appendChild(document.createTextNode(warningText));
-	$('warningbox').appendChild(liElem);
-	showMessages();
 }
 
 function urlEncode(dataArray)
