@@ -136,8 +136,7 @@ function $duration(data, seconds){
 	var date = new Date();
 	for (var unit in data){
 		var fn = this.units[unit];
-		// date["get" + fn] is not a function WTF?!?
-		//if (fn) date['set' + fn](date['get' + fn]() + $pick(data[unit], 0));
+		if (fn) date['set' + fn](date['get' + fn]() + $pick(data[unit], 0));
 	}
 	return date.getTime() - $time();
 };
