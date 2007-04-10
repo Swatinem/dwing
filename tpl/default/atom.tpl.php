@@ -2,7 +2,7 @@
 header('Content-Type: application/atom+xml');
 echo '<?xml version="1.0" encoding="utf-8"?>'."\n";
 $webroot = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/';
-$newsall = News::getNews(10);
+$newsall = News::getNews(10, !empty($_GET['tag']) ? $_GET['tag'] : null);
 ?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 	<title>dWing News</title><?php /* l10n/customization?!? */ ?>
