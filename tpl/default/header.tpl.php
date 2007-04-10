@@ -11,9 +11,6 @@ if(empty($title))
 		<title><?php echo htmlspecialchars($title); ?> - dWing CMS</title>
 		<base href="<?php echo 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/'; ?>" />
 		<link rel="stylesheet" type="text/css" href="dwingcms.css" />
-		<script type="text/javascript" src="js/prototype.js"></script>
-		<script type="text/javascript" src="js/moo.fx.js"></script>
-		<script type="text/javascript" src="js/moo.fx.pack.js"></script>
 		<script type="text/javascript" src="js/mootools.js"></script>
 		<script type="text/javascript" src="js/interface.js"></script>
 		<script type="text/javascript" src="index.php?site=l10n"></script>
