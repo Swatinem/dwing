@@ -67,8 +67,7 @@ function deleteQuote(quote_id)
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
 		{
-			var fadeaway = new fx.FadeSize('quote'+quote_id, {duration: 400});
-			fadeaway.toggle('height');
+			$('quote'+quote_id).effects({duration: 400}).start({opacity: 0, height: 0});
 			Messages.addNotice(_('Quote deleted'));
 			window.setTimeout(function () {
 				Messages.clear();

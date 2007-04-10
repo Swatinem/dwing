@@ -43,8 +43,7 @@ function deleteEntry(gb_id)
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
 		{
-			var fadeaway = new fx.FadeSize('entry'+gb_id, {duration: 400});
-			fadeaway.toggle('height');
+			$('entry'+gb_id).effects({duration: 400}).start({opacity: 0, height: 0});
 			Messages.addNotice(_('Entry deleted'));
 			window.setTimeout(function () {
 				Messages.clear();

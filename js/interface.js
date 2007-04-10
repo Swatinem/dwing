@@ -43,7 +43,6 @@ var Throbber = {
 			this.on();
 	}
 }
-window.addEventListener('load', function () { Throbber.init(); }, false);
 
 var Messages = {
 	isOn: false,
@@ -60,7 +59,7 @@ var Messages = {
 		{
 			this.messageBox.style.display = 'block';
 			this.effect = this.messageBox.effects({duration: 200});
-			this.effect.set({'height': 0, 'opacity': 0});
+			this.effect.set({height: 0, opacity: 0});
 			this.clear();
 		}
 	},
@@ -70,7 +69,7 @@ var Messages = {
 		this.warningBox.style.display = (this.warningBox.childNodes.length == 0) ? 'none' : 'block';
 
 		this.effect.stop();
-		this.effect.start({'height': this.messageBox.scrollHeight, 'opacity': 1});
+		this.effect.start({height: this.messageBox.scrollHeight, opacity: 1});
 		this.isOn = true;
 	},
 	clear: function()
@@ -80,7 +79,7 @@ var Messages = {
 			this.noticeBox.removeChild(this.noticeBox.firstChild);
 		while(this.warningBox.firstChild)
 			this.warningBox.removeChild(this.warningBox.firstChild);
-		this.effect.start({'height': 0, 'opacity': 0});
+		this.effect.start({height: 0, opacity: 0});
 	},
 	addNotice: function(aText)
 	{
@@ -97,7 +96,6 @@ var Messages = {
 		this.show();
 	}
 }
-window.addEventListener('load', function () { Messages.init(); }, false);
 
 var DynamicForm = {
 	content: null,
@@ -112,7 +110,7 @@ var DynamicForm = {
 		{
 			this.content.style.display = 'block';
 			this.contentEffect = this.content.effects({duration: 400});
-			this.contentEffect.set({'opacity': 0, height: 0});
+			this.contentEffect.set({opacity: 0, height: 0});
 		}
 		
 		closeButton = $('closeform');
@@ -167,7 +165,12 @@ var DynamicForm = {
 		}, 200);
 	}
 }
-window.addEventListener('load', function () { DynamicForm.init(); }, false);
+
+window.addEventListener('load', function () {
+	Throbber.init();
+	Messages.init();
+	DynamicForm.init();
+}, false);
 
 function urlEncode(dataArray)
 {

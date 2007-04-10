@@ -1,21 +1,3 @@
-fx.ScrollMargin = Class.create();
-fx.ScrollMargin.prototype = Object.extend(new fx.Base(), {
-	initialize: function(el, options) {
-		this.el = $(el);
-		this.now = this.el.style.marginLeft;
-		//this.increase();
-		this.setOptions(options);
-	},
-
-	increase: function() {
-		this.el.style.marginLeft = this.now+'px';
-	},
-
-	scrollTo: function(to) {
-		this.custom(this.now, to);
-	}
-});
-
 var imagestripInner = null;
 var tagId = null;
 var currentImage = null;
@@ -71,7 +53,8 @@ function selectImage(screenNum)
 			updateImageInfo();
 	}, 310);
 	imageData[screenNum].aElem.className = 'selected';
-	imagestripScroll.scrollTo(-125*screenNum+outerWidth/2-62);
+	imagestripScroll.stop();
+	imagestripScroll.start(-125*screenNum+outerWidth/2-62);
 	selectedIndex = screenNum;
 	loadVisiblePics(selectedIndex);
 }
@@ -121,8 +104,7 @@ function updateImageInfo()
 
 function scrollLeft()
 {
-	imagestripScroll.now = (imagestripScroll.now+(100-PrevNextOffset)/2) > (outerWidth/2-62) ? (outerWidth/2-62) : (imagestripScroll.now+(100-PrevNextOffset)/2);
-	imagestripInner.style.marginLeft = imagestripScroll.now+'px';
+	imagestripScroll.set((imagestripScroll.now+(100-PrevNextOffset)/2) > (outerWidth/2-62) ? (outerWidth/2-62) : (imagestripScroll.now+(100-PrevNextOffset)/2));
 	if(preLoadCounter++ >= 10)
 	{
 		loadVisiblePics();
@@ -134,8 +116,7 @@ function scrollLeft()
 
 function scrollRight()
 {
-	imagestripScroll.now = (imagestripScroll.now-PrevNextOffset/2) < (-125*(imageData.length-1)+outerWidth/2-62) ? (-125*(imageData.length-1)+outerWidth/2-62) : (imagestripScroll.now-PrevNextOffset/2);
-	imagestripInner.style.marginLeft = imagestripScroll.now+'px';
+	imagestripScroll.set((imagestripScroll.now-PrevNextOffset/2) < (-125*(imageData.length-1)+outerWidth/2-62) ? (-125*(imageData.length-1)+outerWidth/2-62) : (imagestripScroll.now-PrevNextOffset/2));
 	if(preLoadCounter++ >= 10)
 	{
 		loadVisiblePics();
@@ -211,8 +192,7 @@ window.addEventListener('load', function() {
 	window.addEventListener('resize', function() {
 		var outerWidthOld = outerWidth;
 		outerWidth = $('imagestrip_outer').offsetWidth;
-		imagestripScroll.now+= (outerWidth-outerWidthOld)/2;
-		imagestripInner.style.marginLeft = imagestripScroll.now+'px';
+		imagestripScroll.set(imagestripScroll.now+(outerWidth-outerWidthOld)/2);
 	}, false);
 
 	ImageInfoEffect = new fx.FadeSize('imageinfoouter', {duration: 300});
@@ -221,7 +201,8 @@ window.addEventListener('load', function() {
 	outerWidth = $('imagestrip_outer').offsetWidth;
 	currentImage = $('imagestrip_image');
 	(imagestripInner = $('imagestrip_inner')).style.width = imageData.length*125+'px';
-	imagestripScroll = new fx.ScrollMargin(imagestripInner, {duration: 600});
+	
+	imagestripScroll = imagestripInner.effect('margin-left', {duration: 600});
 	for(var i = 0; i < imageData.length; i++)
 	{
 		var aElem = document.createElementNS(xhtmlNS, 'a');
