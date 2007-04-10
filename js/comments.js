@@ -1,18 +1,15 @@
 function submitComment()
 {
-	postData = Array();
-	postData['text'] = $F('commenttext');
-	postData['content_id'] = $F('content_id');
-	postData['content_type'] = $F('content_type');
+	postData = {text: $('commenttext').value, content_id: $('content_id').value,
+		content_type: $('content_type').value};
 	if(window.FCKeditorAPI)
 	{
 		var oEditor = FCKeditorAPI.GetInstance('commenttext');
 		if(oEditor)
-			postData['text'] = oEditor.GetXHTML();
+			postData.text = oEditor.GetXHTML();
 	}
 	Throbber.on();
-	new Ajax.Request('index.php?site=ajax_comment_add', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
-		xml = req.responseXML;
+	new XHR({onSuccess: function(text, xml) {
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
@@ -34,7 +31,7 @@ function submitComment()
 			if(inPreview)
 				previewComment();
 		}
-	}});
+	}}).send('index.php?site=ajax_comment_add', Object.toQueryString(postData));
 }
 function previewComment()
 {

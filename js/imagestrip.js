@@ -39,12 +39,11 @@ function selectImage(screenNum)
 		imageData[selectedIndex].aElem.className = '';
 		ImageInfoEffect.toggle('height');
 	}
-	new Ajax.Request('index.php', {method: 'get', parameters: 'site=ajax_registerimageview&pic_id='+imageData[screenNum].id, onComplete: function (req) {
-		xml = req.responseXML;
+	new XHR({method: 'get', onSuccess: function(text, xml) {
 		ajaxImageTags = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null);
 		if(hideAnimCompleted = true)
 			updateImageInfo();
-	}});
+	}}).send('index.php', 'site=ajax_registerimageview&pic_id='+imageData[screenNum].id);
 	imageData[screenNum].views++;
 
 	window.setTimeout(function () {

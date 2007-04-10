@@ -172,13 +172,11 @@ window.addEventListener('load', function () {
 	DynamicForm.init();
 }, false);
 
-function urlEncode(dataArray)
-{
-	var encodedData = String();
-	for(key in dataArray)
-	{
-		if(key == 'extend') continue; // prototype adds this function to arrays
-		encodedData+= encodeURIComponent(key)+'='+encodeURIComponent(dataArray[key])+'&'; // encodeURIComponent does treat UTF-8 correctly
-	}
-	return encodedData.substr(0,encodedData.length-1); // cut off the last &
-}
+/*
+ * This function comes from Mootools Remote.Ajax
+ */
+urlEncode = Object.toQueryString = function(source){
+	var queryString = [];
+	for (var property in source) queryString.push(encodeURIComponent(property) + '=' + encodeURIComponent(source[property]));
+	return queryString.join('&');
+};

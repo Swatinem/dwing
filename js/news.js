@@ -1,19 +1,17 @@
 function submitNews()
 {
-	postData = Array();
-	postData['title'] = $F('newstitle');
-	postData['tags'] = $F('newstags');
-	postData['text'] = $F('newstext');
+	postData = {text: $('newstext').value, tags: $('newstags').value,
+		title: $('newstitle').value};
 	if(window.FCKeditorAPI)
 	{
 		var oEditor = FCKeditorAPI.GetInstance('newstext') ;
 		if(oEditor)
-			postData['text'] = oEditor.GetXHTML();
+			postData.text = oEditor.GetXHTML();
 	}
 	Throbber.on();
 	$('newswarningbox').style.display = 'none';
 	new Ajax.Request('index.php?site=ajax_news_add', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
-		xml = req.responseXML;
+	new XHR({onSuccess: function(text, xml) {
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
@@ -44,7 +42,7 @@ function submitNews()
 			$('newswarningbox').style.display = 'block';
 			$('newswarning').textContent = result.textContent;
 		}
-	}});
+	}}).send('index.php?site=ajax_news_add', Object.toQueryString(postData));
 }
 
 function previewNews()

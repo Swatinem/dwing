@@ -6,13 +6,10 @@ function submitQuote()
 		submitEditQuote();
 		return;
 	}
-	postData = Array();
-	postData['quote'] = $F('quote');
-	postData['source'] = $F('source');
+	postData = {quote: $('quote').value, source: $('source').value};
 	Throbber.on();
 	Messages.clear();
-	new Ajax.Request('index.php?site=ajax_quote_add', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
-		xml = req.responseXML;
+	new XHR({onSuccess: function(text, xml) {
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
@@ -26,18 +23,15 @@ function submitQuote()
 		{
 			Messages.addWarning(result.firstChild.data);
 		}
-	}});
+	}}).send('index.php?site=ajax_quote_add', Object.toQueryString(postData));
 }
 function submitEditQuote()
 {
-	postData = Array();
-	postData['quote_id'] = editQuoteId;
-	postData['quote'] = $F('quote');
-	postData['source'] = $F('source');
+	postData = {quote: $('quote').value, source: $('source').value,
+		quote_id: editQuoteId};
 	Throbber.on();
 	Messages.clear();
-	new Ajax.Request('index.php?site=ajax_quote_edit', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
-		xml = req.responseXML;
+	new XHR({onSuccess: function(text, xml) {
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
@@ -51,18 +45,15 @@ function submitEditQuote()
 		{
 			Messages.addWarning(result.firstChild.data);
 		}
-	}});
+	}}).send('index.php?site=ajax_quote_edit', Object.toQueryString(postData));
 }
 function deleteQuote(quote_id)
 {
 	if(!confirm(_('Delete this Quote?')))
 		return;
-	postData = Array();
-	postData['quote_id'] = quote_id;
 	Throbber.on();
 	Messages.clear();
-	new Ajax.Request('index.php?site=ajax_quote_delete', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
-		xml = req.responseXML;
+	new XHR({onSuccess: function(text, xml) {
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
@@ -77,13 +68,12 @@ function deleteQuote(quote_id)
 		{
 			Messages.addWarning(result.firstChild.data);
 		}
-	}});
+	}}).send('index.php?site=ajax_quote_delete', Object.toQueryString({quote_id: quote_id}));
 }
 function editQuote(quote_id)
 {
 	editQuoteId = quote_id;
-	new Ajax.Request('index.php', {method: 'get', parameters: 'site=ajax_getquote&quote_id='+quote_id, onComplete: function (req) {
-		xml = req.responseXML;
+	new XHR({method: 'get', onSuccess: function(text, xml) {
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		$('quote').value = result.getAttribute('quote');
 		$('source').value = result.getAttribute('source');
@@ -94,7 +84,7 @@ function editQuote(quote_id)
 			$('opensubmitbutton').removeEventListener('click', openForm, false);
 			$('opensubmitbutton').addEventListener('click', submitQuote, false);
 		}, 200);
-	}});
+	}}).send('index.php', 'site=ajax_getquote&quote_id='+quote_id);
 }
 function openForm()
 {

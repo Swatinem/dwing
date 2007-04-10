@@ -1,15 +1,13 @@
 function submitPictures()
 {
-	postData = Array();
-	postData['directory'] = $F('directory');
-	postData['title'] = $F('title');
+	postData = {directory: $('directory').value, title: $('title').value,
+		tags: $('tags').value};
 	if($('delold').checked)
-		postData['delold'] = true;
-	postData['tags'] = $F('tags');
+		postData.delold = true;
+
 	Throbber.on();
 	Messages.clear();
-	new Ajax.Request('index.php?site=ajax_importpictures', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
-		xml = req.responseXML;
+	new XHR({onSuccess: function(text, xml) {
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
@@ -23,7 +21,7 @@ function submitPictures()
 		{
 			Messages.addWarning(result.firstChild.data);
 		}
-	}});
+	}}).send('index.php?site=ajax_importpictures', Object.toQueryString(postData));
 }
 function openForm()
 {

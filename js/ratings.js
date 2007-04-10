@@ -1,12 +1,10 @@
 function doRating(aWidgetId, aContentId, aContentType, aRating)
 {
-	postData = Array();
-	postData['content_id'] = aContentId;
-	postData['content_type'] = aContentType;
-	postData['rating'] = aRating;
+	postData = {rating: aRating, content_id: aContentId,
+		content_type: aContentType};
+
 	Throbber.on();
-	new Ajax.Request('index.php?site=ajax_rating', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
-		xml = req.responseXML;
+	new XHR({onSuccess: function(text, xml) {
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
@@ -19,5 +17,5 @@ function doRating(aWidgetId, aContentId, aContentType, aRating)
 		{
 			alert(_('Not logged in.'));
 		}
-	}});
+	}}).send('index.php?site=ajax_rating', Object.toQueryString(postData));
 }

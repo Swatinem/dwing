@@ -1,19 +1,16 @@
 function submitEntry()
 {
-	postData = Array();
-	postData['nick'] = $F('nick');
-	postData['email'] = $F('email');
-	postData['text'] = $F('text');
+	postData = {text: $('text').value, email: $('email').value,
+		nick: $('nick').value};
 	if(window.FCKeditorAPI)
 	{
 		var oEditor = FCKeditorAPI.GetInstance('text') ;
 		if(oEditor)
-			postData['text'] = oEditor.GetXHTML();
+			postData.text = oEditor.GetXHTML();
 	}
 	Throbber.on();
 	Messages.clear();
-	new Ajax.Request('index.php?site=ajax_guestbook', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
-		xml = req.responseXML;
+	new XHR({onSuccess: function(text, xml) {
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
@@ -27,18 +24,15 @@ function submitEntry()
 		{
 			Messages.addWarning(result.firstChild.data);
 		}
-	}});
+	}}).send('index.php?site=ajax_guestbook', Object.toQueryString(postData));
 }
 function deleteEntry(gb_id)
 {
 	if(!confirm(_('Delete this Entry?')))
 		return;
-	postData = Array();
-	postData['gb_id'] = gb_id;
 	Throbber.on();
 	Messages.clear();
-	new Ajax.Request('index.php?site=ajax_guestbook_delete', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
-		xml = req.responseXML;
+	new XHR({onSuccess: function(text, xml) {
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		Throbber.off();
 		if(result.getAttribute('success') > 0)
@@ -53,7 +47,7 @@ function deleteEntry(gb_id)
 		{
 			Messages.addWarning(result.firstChild.data);
 		}
-	}});
+	}}).send('index.php?site=ajax_guestbook_delete', Object.toQueryString({gb_id: gb_id}));
 }
 function openForm()
 {
