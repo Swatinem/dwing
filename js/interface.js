@@ -42,7 +42,7 @@ var Throbber = {
 		else
 			this.on();
 	}
-};
+}
 window.addEventListener('load', function () { Throbber.init(); }, false);
 
 var Messages = {
@@ -99,29 +99,75 @@ var Messages = {
 }
 window.addEventListener('load', function () { Messages.init(); }, false);
 
-function initInterface()
-{
-	if($('formcontent'))
+var DynamicForm = {
+	content: null,
+	submitButton: null,
+	contentEffect: null,
+	closeButtonEffect: null,
+	submitButtonEffect: null,
+	init: function()
 	{
-		$('formcontent').style.display = 'block';
-		FormContentEffect = new fx.FadeSize('formcontent', {duration: 400});
-		FormContentEffect.hide('height');
-	}
-	if($('opensubmitbutton'))
+		this.content = $('formcontent');
+		if(this.content)
+		{
+			this.content.style.display = 'block';
+			this.contentEffect = this.content.effects({duration: 400});
+			this.contentEffect.set({'opacity': 0, height: 0});
+		}
+		
+		closeButton = $('closeform');
+		if(closeButton)
+		{
+			closeButton.style.display = 'block';
+			this.closeButtonEffect = closeButton.effect('opacity', {duration: 400});
+			this.closeButtonEffect.set(0);
+		}
+		this.submitButton = $('opensubmitbutton');
+		if(this.submitButton)
+		{
+			this.submitButtonEffect = this.submitButton.effect('opacity', {duration: 200});
+		}
+	},
+	open: function(aSubmitButtonText)
 	{
-		SubmitButtonTextFade = new fx.Opacity('opensubmitbutton', {duration: 200});
-	}
-	if($('closeform'))
+		if(this.closeButtonEffect)
+		{
+			this.closeButtonEffect.stop();
+			this.closeButtonEffect.start(1);
+		}
+		this.contentEffect.stop();
+		this.contentEffect.start({opacity: 1, height: this.content.scrollHeight});
+
+		this.submitButtonEffect.stop();
+		this.submitButtonEffect.start(0);
+		window.setTimeout(function(){
+			if(aSubmitButtonText)
+				DynamicForm.submitButton.innerHTML = aSubmitButtonText;
+			DynamicForm.submitButtonEffect.stop();
+			DynamicForm.submitButtonEffect.start(1);
+		}, 200);
+	},
+	close: function(aSubmitButtonText)
 	{
-		$('closeform').style.display = 'block';
-		CloseFormButtonFade = new fx.Opacity('closeform', {duration: 400});
-		CloseFormButtonFade.hide();
+		if(this.closeButtonEffect)
+		{
+			this.closeButtonEffect.stop();
+			this.closeButtonEffect.start(0);
+		}
+		this.contentEffect.stop();
+		this.contentEffect.start({opacity: 0, height: 0});
+
+		this.submitButtonEffect.stop();
+		this.submitButtonEffect.start(0);
+		window.setTimeout(function(){
+			if(aSubmitButtonText)
+				DynamicForm.submitButton.innerHTML = aSubmitButtonText;
+			DynamicForm.submitButtonEffect.stop();
+			DynamicForm.submitButtonEffect.start(1);
+		}, 200);
 	}
 }
-function toggleForm()
-{
-	FormContentEffect.toggle('height');
-}
+window.addEventListener('load', function () { DynamicForm.init(); }, false);
 
 function urlEncode(dataArray)
 {
@@ -133,4 +179,3 @@ function urlEncode(dataArray)
 	}
 	return encodedData.substr(0,encodedData.length-1); // cut off the last &
 }
-window.addEventListener('load', initInterface, false);

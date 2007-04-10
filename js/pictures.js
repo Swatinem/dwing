@@ -27,15 +27,13 @@ function submitPictures()
 }
 function openForm()
 {
-	CloseFormButtonFade.toggle();
-	FormContentEffect.toggle('height');
+	DynamicForm.open();
 	$('opensubmitbutton').removeEventListener('click', openForm, false);
 	$('opensubmitbutton').addEventListener('click', submitPictures, false);
 }
 function closeForm()
 {
-	CloseFormButtonFade.toggle();
-	FormContentEffect.toggle('height');
+	DynamicForm.close();
 	$('opensubmitbutton').removeEventListener('click', submitPictures, false);
 	$('opensubmitbutton').addEventListener('click', openForm, false);
 }

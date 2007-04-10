@@ -89,42 +89,32 @@ function editQuote(quote_id)
 		$('quote').value = result.getAttribute('quote');
 		$('source').value = result.getAttribute('source');
 		$('legend').innerHTML = _('edit Quote');
-		CloseFormButtonFade.toggle();
-		FormContentEffect.toggle('height');
-		SubmitButtonTextFade.toggle();
+		
+		DynamicForm.open(_('save Quote'));
 		window.setTimeout(function() {
-			$('opensubmitbutton').innerHTML = _('save Quote');
-			SubmitButtonTextFade.toggle();
 			$('opensubmitbutton').removeEventListener('click', openForm, false);
 			$('opensubmitbutton').addEventListener('click', submitQuote, false);
-		}, 215);
+		}, 200);
 	}});
 }
 function openForm()
 {
 	$('legend').innerHTML = _('new Quote');
-	CloseFormButtonFade.toggle();
-	FormContentEffect.toggle('height');
-	SubmitButtonTextFade.toggle();
+
+	DynamicForm.open(_('save Quote'));
 	window.setTimeout(function() {
-		$('opensubmitbutton').innerHTML = _('save Quote');
-		SubmitButtonTextFade.toggle();
 		$('opensubmitbutton').removeEventListener('click', openForm, false);
 		$('opensubmitbutton').addEventListener('click', submitQuote, false);
-	}, 215);
+	}, 200);
 }
 function closeForm()
 {
-	CloseFormButtonFade.toggle();
-	FormContentEffect.toggle('height');
-	SubmitButtonTextFade.toggle();
+	DynamicForm.close(_('new Quote'));
 	window.setTimeout(function() {
-		$('opensubmitbutton').innerHTML = _('new Quote');
-		SubmitButtonTextFade.toggle();
 		$('opensubmitbutton').removeEventListener('click', submitQuote, false);
 		$('opensubmitbutton').addEventListener('click', openForm, false);
 		editQuoteId = null;
-	}, 215);
+	}, 200);
 }
 window.addEventListener('load', function () {
 	$('opensubmitbutton').addEventListener('click', openForm, false);

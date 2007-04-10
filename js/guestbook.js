@@ -58,27 +58,19 @@ function deleteEntry(gb_id)
 }
 function openForm()
 {
-	CloseFormButtonFade.toggle();
-	FormContentEffect.toggle('height');
-	SubmitButtonTextFade.toggle();
+	DynamicForm.open(_('send Entry'));
 	window.setTimeout(function() {
-		$('opensubmitbutton').innerHTML = _('send Entry');
-		SubmitButtonTextFade.toggle();
 		$('opensubmitbutton').removeEventListener('click', openForm, false);
 		$('opensubmitbutton').addEventListener('click', submitEntry, false);
-	}, 215);
+	}, 200);
 }
 function closeForm()
 {
-	CloseFormButtonFade.toggle();
-	FormContentEffect.toggle('height');
-	SubmitButtonTextFade.toggle();
+	DynamicForm.close(_('new Entry'));
 	window.setTimeout(function() {
-		$('opensubmitbutton').innerHTML = _('new Entry');
-		SubmitButtonTextFade.toggle();
 		$('opensubmitbutton').removeEventListener('click', submitEntry, false);
 		$('opensubmitbutton').addEventListener('click', openForm, false);
-	}, 215);
+	}, 200);
 }
 window.addEventListener('load', function () {
 	$('opensubmitbutton').addEventListener('click', openForm, false);
