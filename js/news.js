@@ -10,7 +10,6 @@ function submitNews()
 	}
 	Throbber.on();
 	$('newswarningbox').style.display = 'none';
-	new Ajax.Request('index.php?site=ajax_news_add', {method: 'post', parameters: urlEncode(postData), onComplete: function (req) {
 	new XHR({onSuccess: function(text, xml) {
 		result = xml.evaluate('//result', xml, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,null).iterateNext();
 		Throbber.off();
