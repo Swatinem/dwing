@@ -1064,9 +1064,8 @@ font-size: 0.75em;
 	background: rgba(238, 244, 248, 0.6);
 	border: 0.0625em solid rgba(154, 199, 241, 0.5);
 }
-
-/* new login page */
-div.openid
+/* just some box style */
+.box
 {
 	color: #2F960A;
 	border-radius: 0.625em;
@@ -1074,15 +1073,30 @@ div.openid
 	border: 0.0625em solid #d0ffd0;
 	background: #f0fff0;
 	margin: 0.625em 0;
-	border-radius: 0.625em;
-	-moz-border-radius: 0.625em;
 	padding: 0.3125em;
 }
-div.openid input
+.box.small
+{
+	border-radius: 0.3125em;
+	-moz-border-radius: 0.3125em;
+}
+.box p
+{
+	font-size: 0.75em;
+	margin: 0.3125em 0;
+}
+.box h3
+{
+	font-size: 0.8em;
+	margin: 0.3125em 0;
+}
+
+/* new login page */
+.openid input
 {
 	font-size: 1.25em;
 }
-div.openid input[type="text"]
+.openid input[type="text"]
 {
 	width: 15em;
 	margin-right: 0.5em;
@@ -1091,17 +1105,12 @@ div.openid input[type="text"]
 	background: url(images/openid-icon.png) white no-repeat;
 	padding-left: 28px;
 }
-div.openid h3
-{
-	font-size: 0.8em;
-	margin: 0.3125em 0;
-}
-div.openid ul
+.openid ul
 {
 	margin: 0;
 	padding-left: 1em;
 }
-div.openid li
+.openid li
 {
 	font-size: 0.8em;
 }

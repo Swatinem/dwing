@@ -20,15 +20,15 @@ if(empty($_GET['news_id'])):
 		$pages =  Utils::pages(Tags::getContentCount($_GET['tag'], ContentType::NEWS), 10, 'news/tags/'.$_GET['tag'].'?page=');
 ?>
 <h1><?php echo l10n::_('News').(!empty($_GET['tag']) ? ': '.htmlspecialchars($_GET['tag']) : ''); ?></h1>
-<div class="openid">
+<div class="box small">
 	<div style="float: right;">
 		<h3><a href="./"><?php echo l10n::_('Show all posts'); ?></a></h3>
-		<div style="font-size: 0.75em;">
+		<p>
 		<?php
 		if(!empty($pages))
 			echo $pages;
 		?>
-		</div>
+		</p>
 	</div>
 	<h3><?php echo l10n::_('Show only posts with this tag:'); ?></h3>
 	<div class="tagcloud">

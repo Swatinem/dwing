@@ -16,11 +16,13 @@ echo '<?xml version="1.0" encoding="utf-8"?>';
 		<div id="content">
 
 <?php if(!$user->authed || !$user->hasRight('admin')): ?>
-<div class="openid">
-<h3>Admin benötigt</h3>
-Es ist ein Update von der derzeit benutzen Version <?php echo $updater->oldversion; ?> 
-auf die Version <?php echo $updater->version; ?> verfügbar. Es werden allerdings
-Adminrechte benötigt um das Update zu starten.
+<div class="box small">
+	<h3>Admin benötigt</h3>
+	<p>
+		Es ist ein Update von der derzeit benutzen Version <?php echo $updater->oldversion; ?> 
+		auf die Version <?php echo $updater->version; ?> verfügbar. Es werden allerdings
+		Adminrechte benötigt um das Update zu starten.
+	</p>
 </div>
 <?php if($user->authed && !$user->hasRight('admin')): ?>
 <ul class="warning">
@@ -28,17 +30,17 @@ Adminrechte benötigt um das Update zu starten.
 </ul>
 <?php endif; ?>
 <form action="./" method="post">
-<h2>Anmeldung mit deiner OpenID</h2>
-<div class="openid">
-<input type="text" name="openid_url" /><input type="submit" value="Login"/>
-<h3>Beispiele:</h3>
-<ul>
-	<li>http://deineadresse.de</li>
-	<li>http://deinname.myopenid.com</li>
-	<li>http://deinname.livejournal.com</li>
-	<li>http://openid.aol.com/deinAIMname</li>
-</ul>
-</div>
+	<h2>Anmeldung mit deiner OpenID</h2>
+	<div class="openid box">
+		<input type="text" name="openid_url" /><input type="submit" value="Login"/>
+		<h3>Beispiele:</h3>
+		<ul>
+			<li>http://deineadresse.de</li>
+			<li>http://deinname.myopenid.com</li>
+			<li>http://deinname.livejournal.com</li>
+			<li>http://openid.aol.com/deinAIMname</li>
+		</ul>
+	</div>
 </form>
 <?php if(!empty($loginerror)): ?>
 <ul class="warning">
@@ -47,19 +49,23 @@ Adminrechte benötigt um das Update zu starten.
 <?php endif; ?>
 <?php else: ?>
 <?php if(empty($_GET['doupdate'])): ?>
-<div class="openid">
-<h3>Update verfügbar</h3>
-Es ist ein Update von der derzeit benutzen Version <?php echo $updater->oldversion; ?> 
-auf die Version <?php echo $updater->version; ?> verfügbar.<br />
-<a href="?doupdate=1">Update jetzt durchführen</a>
+<div class="box small">
+	<h3>Update verfügbar</h3>
+	<p>
+		Es ist ein Update von der derzeit benutzen Version <?php echo $updater->oldversion; ?> 
+		auf die Version <?php echo $updater->version; ?> verfügbar.<br />
+		<a href="?doupdate=1">Update jetzt durchführen</a>
+	</p>
 </div>
 <?php else: ?>
 <?php if($updater->update()): ?>
-<div class="openid">
-<h3>Update erfolgreich</h3>
-Das Update von Version <?php echo $updater->oldversion; ?> 
-auf die Version <?php echo $updater->version; ?> wurde erfolgreich durchgeführt.
-<br /><a href="./">Zurück zur Startseite</a>
+<div class="box small">
+	<h3>Update erfolgreich</h3>
+	<p>
+		Das Update von Version <?php echo $updater->oldversion; ?> 
+		auf die Version <?php echo $updater->version; ?> wurde erfolgreich durchgeführt.
+		<br /><a href="./">Zurück zur Startseite</a>
+	</p>
 </div>
 <?php endif; // update successful? ?>
 <?php endif; // doupdate? ?>
