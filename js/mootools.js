@@ -6,11 +6,11 @@ var MooTools = {
 
 var Class = function(properties){
 	var klass = function(){
-		if (arguments[0] !== null && this.initialize && $type(this.initialize) == 'function') return this.initialize.apply(this, arguments);
-		else return this;
+		return (arguments[0] !== null && this.initialize && $type(this.initialize) == 'function') ? this.initialize.apply(this, arguments) : this;
 	};
 	$extend(klass, this);
 	klass.prototype = properties;
+	klass.constructor = Class;
 	return klass;
 };
 
@@ -33,20 +33,31 @@ Class.prototype = {
 
 };
 
+function $defined(obj){
+	return (obj != undefined);
+};
+
 function $type(obj){
-	if (obj == undefined) return false;
+	if (!$defined(obj)) return false;
+	if (obj.htmlElement) return 'element';
 	var type = typeof obj;
-	if (type == 'object'){
-		if (obj.htmlElement) return 'element';
-		if (obj.push) return 'array';
-		if (obj.nodeName){
-			switch(obj.nodeType){
-				case 1: return 'element';
-				case 3: return obj.nodeValue.test(/\S/) ? 'textnode' : 'whitespace';
-			}
+	if (type == 'object' && obj.nodeName){
+		switch(obj.nodeType){
+			case 1: return 'element';
+			case 3: return /\S/.test(obj.nodeValue) ? 'textnode' : 'whitespace';
 		}
 	}
-	if ((type == 'object' || type == 'function') && obj.exec) return 'regexp';
+	if (type == 'object' || type == 'function'){
+		switch(obj.constructor){
+			case Array: return 'array';
+			case RegExp: return 'regexp';
+			case Class: return 'class';
+		}
+		if (typeof obj.length == 'number'){
+			if (obj.item) return 'collection';
+			if (obj.callee) return 'arguments';
+		}
+	}
 	return type;
 };
 
@@ -108,13 +119,14 @@ var Abstract = function(obj){
 
 var Window = new Abstract(window);
 var Document = new Abstract(document);
+document.head = document.getElementsByTagName('head')[0];
 
 function $chk(obj){
 	return !!(obj || obj === 0);
 };
 
 function $pick(obj, picked){
-	return (obj != undefined) ? obj : picked;
+	return $defined(obj) ? obj : picked;
 };
 
 function $random(min, max){
@@ -125,37 +137,21 @@ function $time(){
 	return new Date().getTime();
 };
 
-function $duration(data, seconds){
-	if ($type(data) != 'object'){
-		data = parseInt(data, 10);
-		data = seconds ? {seconds: data} : {milliseconds: data};
-	}
-	this.units = this.units || {
-		years: 'FullYear', months: 'Month', days: 'Date', hours: 'Hours', minutes: 'Minutes', seconds: 'Seconds', milliseconds: 'Milliseconds'
-	};
-	var date = new Date();
-	for (var unit in data){
-		var fn = this.units[unit];
-		if (fn) date['set' + fn](date['get' + fn]() + $pick(data[unit], 0));
-	}
-	return date.getTime() - $time();
-};
-
 function $clear(timer){
 	clearTimeout(timer);
 	clearInterval(timer);
 	return null;
 };
 
-if (window.ActiveXObject) window.ie = window[window.XMLHttpRequest ? 'ie7' : 'ie6'] = true;
-else if (document.childNodes && !document.all && !navigator.taintEnabled) window.khtml = true;
-else if (document.getBoxObjectFor != null) window.gecko = true;
 window.xpath = !!(document.evaluate);
+if (window.ActiveXObject) window.ie = window[window.XMLHttpRequest ? 'ie7' : 'ie6'] = true;
+else if (document.childNodes && !document.all && !navigator.taintEnabled) window.khtml = window.webkit = window[window.xpath ? 'webkit420' : 'webkit419'] = true;
+else if (document.getBoxObjectFor != null) window.gecko = true;
 
 if (typeof HTMLElement == 'undefined'){
 	var HTMLElement = Class.empty;
-	if (window.khtml) document.createElement("iframe");
-	HTMLElement.prototype = (window.khtml) ? window["[[DOMElement.prototype]]"] : {};
+	if (window.webkit) document.createElement("iframe");
+	HTMLElement.prototype = (window.webkit) ? window["[[DOMElement.prototype]]"] : {};
 }
 HTMLElement.prototype.htmlElement = true;
 
@@ -209,8 +205,7 @@ var Events = new Class({
 var Options = new Class({
 
 	setOptions: function(){
-		var args = (arguments.length == 1) ? [this.options, arguments[0]] : arguments;
-		this.options = $merge.apply(this, args);
+		this.options = $merge.apply(null, [this.options].extend(arguments));
 		if (this.addEvent){
 			for (var option in this.options){
 				if (($type(this.options[option]) == 'function') && option.test(/^on[A-Z]/)) this.addEvent(option, this.options[option]);
@@ -256,12 +251,9 @@ Array.extend({
 	},
 
 	indexOf: function(item, from){
-		from = from || 0;
 		var len = this.length;
-		if (from < 0) from = Math.max(0, len + from);
-		while (from < len){
-			if (this[from] === item) return from;
-			from++;
+		for (var i = (from < 0) ? Math.max(0, len + from) : from || 0; i < len; i++){
+			if (this[i] === item) return i;
 		}
 		return -1;
 	},
@@ -279,8 +271,12 @@ Array.extend({
 		var i = 0;
 		var len = this.length;
 		while (i < len){
-			if (this[i] && this[i] === item) this.splice(i, 1);
-			else i++;
+			if (this[i] === item){
+				this.splice(i, 1);
+				len--;
+			} else {
+				i++;
+			}
 		}
 		return this;
 	},
@@ -311,32 +307,31 @@ Array.extend({
 	},
 
 	getRandom: function(){
-		return this[$random(0, this.length - 1)];
+		return this[$random(0, this.length - 1)] || false;
 	},
 
 	getLast: function(){
-		return this[this.length - 1];
+		return this[this.length - 1] || false;
 	}
 
 });
 
 Array.prototype.each = Array.prototype.forEach;
 Array.prototype.test = Array.prototype.contains;
-Array.prototype.removeItem = Array.prototype.remove;
 
-function $A(array, start, length){
-	return Array.prototype.copy.call(array, start, length);
+function $A(array){
+	return Array.prototype.copy.call(array);
 };
 
 function $each(iterable, fn, bind){
-	if (iterable.length != undefined) Array.prototype.forEach.call(iterable, fn, bind);
+	if (iterable && typeof iterable.length == 'number' && $type(iterable) != 'object') Array.prototype.forEach.call(iterable, fn, bind);
 	else for (var name in iterable) fn.call(bind || iterable, iterable[name], name);
 };
 
 String.extend({
 
 	test: function(regex, params){
-		return ((typeof regex == 'string') ? new RegExp(regex, params) : regex).test(this);
+		return (($type(regex) == 'string') ? new RegExp(regex, params) : regex).test(this);
 	},
 
 	toInt: function(){
@@ -360,7 +355,7 @@ String.extend({
 	},
 
 	capitalize: function(){
-		return this.toLowerCase().replace(/\b[a-z]/g, function(match){
+		return this.replace(/\b[a-z]/g, function(match){
 			return match.toUpperCase();
 		});
 	},
@@ -447,14 +442,14 @@ Function.extend({
 			if (options.event){
 				event = event || window.event;
 				args = [(options.event === true) ? event : new options.event(event)];
-				if (options.arguments) args = args.concat(options.arguments);
+				if (options.arguments) args.extend(options.arguments);
 			}
 			else args = options.arguments || arguments;
 			var returns = function(){
 				return fn.apply($pick(options.bind, fn), args);
 			};
-			if (options.delay) return setTimeout(returns, $duration(options.delay));
-			if (options.periodical) return setInterval(returns, $duration(options.periodical));
+			if (options.delay) return setTimeout(returns, options.delay);
+			if (options.periodical) return setInterval(returns, options.periodical);
 			if (options.attempt) try {return returns();} catch(err){return false;};
 			return returns();
 		};
@@ -500,22 +495,18 @@ var Element = new Class({
 			el = document.createElement(el);
 		}
 		el = $(el);
-		if (!props || !el) return el;
-		for (var prop in props){
-			var val = props[prop];
-			switch(prop){
-				case 'styles': el.setStyles(val); break;
-				case 'events': if (el.addEvents) el.addEvents(val); break;
-				case 'properties': el.setProperties(val); break;
-				default: el.setProperty(prop, val);
-			}
-		}
-		return el;
+		return (!props || !el) ? el : el.set(props);
 	}
 
 });
 
-var Elements = new Class({});
+var Elements = new Class({
+
+	initialize: function(elements){
+		return (elements) ? $extend(elements, this) : this;
+	}
+
+});
 
 Elements.extend = Class.prototype.implement;
 
@@ -545,10 +536,10 @@ function $$(){
 		var selector = arguments[i];
 		switch($type(selector)){
 			case 'element': elements.push(selector);
-			case 'boolean':
+			case 'boolean': break;
 			case false: break;
 			case 'string': selector = document.getElementsBySelector(selector, true);
-			default: elements = elements.concat((selector.push) ? selector : $A(selector));
+			default: elements.extend(selector);
 		}
 	}
 	return $$.unique(elements);
@@ -565,7 +556,7 @@ $$.unique = function(array){
 		}
 	}
 	for (var i = 0, l = elements.length; i < l; i++) elements[i].$included = null;
-	return $extend(elements, new Elements);
+	return new Elements(elements);
 };
 
 Elements.Multi = function(property){
@@ -586,11 +577,25 @@ Element.extend = function(properties){
 	for (var property in properties){
 		HTMLElement.prototype[property] = properties[property];
 		Element.prototype[property] = properties[property];
-		Elements.prototype[property] = Elements.Multi(property);
+		var elementsProperty = (Array.prototype[property]) ? property + 'Elements' : property;
+		Elements.prototype[elementsProperty] = Elements.Multi(property);
 	}
 };
 
 Element.extend({
+
+	set: function(props){
+		for (var prop in props){
+			var val = props[prop];
+			switch(prop){
+				case 'styles': this.setStyles(val); break;
+				case 'events': if (this.addEvents) this.addEvents(val); break;
+				case 'properties': this.setProperties(val); break;
+				default: this.setProperty(prop, val);
+			}
+		}
+		return this;
+	},
 
 	inject: function(el, where){
 		el = $(el);
@@ -629,7 +634,11 @@ Element.extend({
 	},
 
 	adopt: function(){
-		$$.unique(arguments).injectInside(this);
+		var elements = [];
+		$each(arguments, function(argument){
+			elements = elements.concat(argument);
+		});
+		$$(elements).inject(this);
 		return this;
 	},
 
@@ -638,7 +647,15 @@ Element.extend({
 	},
 
 	clone: function(contents){
-		return $(this.cloneNode(contents !== false));
+		var el = $(this.cloneNode(contents !== false));
+		if (el.$events){
+			el.$events = {};
+			for (var type in this.$events){
+				el.$events[type] = {'keys': $A(this.$events[type].keys), 'values': $A(this.$events[type].values)};
+			}
+			el.removeEvents();
+		}
+		return el;
 	},
 
 	replaceWith: function(el){
@@ -706,63 +723,42 @@ Element.extend({
 		}
 		if (!this.currentStyle || !this.currentStyle.hasLayout) this.style.zoom = 1;
 		if (window.ie) this.style.filter = (opacity == 1) ? '' : "alpha(opacity=" + opacity * 100 + ")";
-		this.style.opacity = this.$.opacity = opacity;
+		this.style.opacity = this.$tmp.opacity = opacity;
 		return this;
 	},
 
 	getStyle: function(property){
 		property = property.camelCase();
-		var style = this.style[property];
-		if (!$chk(style)){
-			if (property == 'opacity') return this.$.opacity;
-			var dirs = ['top', 'right', 'bottom', 'left'];
+		var result = this.style[property];
+		if (!$chk(result)){
+			if (property == 'opacity') return this.$tmp.opacity;
 			var result = [];
-			if (['margin', 'padding'].contains(property)){
-				dirs.each(function(dir){
-					result.push(this.getStyle(property + '-' + dir));
-				}, this);
-			} else if (property.contains('border')){
-				var matches = property.hyphenate().split('-');
-				matches = matches.remove(matches[0]);
-				var recurse = function(el, property){
-					var temp = [];
-					['width', 'style', 'color'].each(function(prop, i){
-						temp.push(el.getStyle(property + '-' + prop));
-					});
-					return temp;
-				};
-				if (!matches[0]){
-					dirs.each(function(dir){
-						result.push(recurse(this, property + '-' + dir));
+			for (var style in Element.Styles){
+				if (property == style){
+					Element.Styles[style].each(function(s){
+						var style = this.getStyle(s);
+						result.push(parseInt(style) ? style : '0px');
 					}, this);
-				} else if (!matches[1]){
-					result = recurse(this, property);
+					if (property == 'border'){
+						var every = result.every(function(bit){
+							return (bit == result[0]);
+						});
+						return (every) ? result[0] : false;
+					}
+					return result.join(' ');
 				}
 			}
-			if (result.length){
-				var every = result.every(function(val){
-					return val.toString() == result[0].toString();
-				});
-				if (!every && property == 'border') return false;
-				if (every) result = result[0];
-				return result.toString().replace(/,/ig, ' ');
-			}
-			if (document.defaultView) style = document.defaultView.getComputedStyle(this, null).getPropertyValue(property.hyphenate());
-			else if (this.currentStyle) style = this.currentStyle[property];
-		}
-		if (window.ie && !$chk(parseInt(style))){
-			if (['height', 'width'].contains(property)){
-				var values = (property == 'width') ? ['left', 'right'] : ['top', 'bottom'];
-				var size = 0;
-				values.each(function(value){
-					size += this.getStyle('border-' + value + '-width').toInt() + this.getStyle('padding-' + value).toInt();
+			if (Element.Styles.border.contains(property)){
+				['Width', 'Color', 'Style'].each(function(p){
+					result.push(this.getStyle(property + p));
 				}, this);
-				return this['offset' + property.capitalize()] - size + 'px';
-			} else if (property.test(/border-[\w]-width/)){
-				return 0 + 'px';
+				return result.join(' ');
 			}
+			if (document.defaultView) result = document.defaultView.getComputedStyle(this, null).getPropertyValue(property.hyphenate());
+			else if (this.currentStyle) result = this.currentStyle[property];
 		}
-		return (style && property.test(/color/i) && style.contains('rgb')) ? style.rgbToHex() : style;
+		if (window.ie) result = Element.fixStyle(property, result, this);
+		return (result && property.test(/color/i) && result.contains('rgb')) ? result.rgbToHex() : result;
 	},
 
 	getStyles: function(){
@@ -847,6 +843,26 @@ Element.extend({
 
 });
 
+Element.fixStyle = function(property, result, element){
+	if ($chk(parseInt(result))) return result;
+	if (['height', 'width'].contains(property)){
+		var values = (property == 'width') ? ['left', 'right'] : ['top', 'bottom'];
+		var size = 0;
+		values.each(function(value){
+			size += element.getStyle('border-' + value + '-width').toInt() + element.getStyle('padding-' + value).toInt();
+		});
+		return element['offset' + property.capitalize()] - size + 'px';
+	} else if (property.test(/border(.+)Width|margin|padding/)){
+		return '0px';
+	}
+	return result;
+};
+
+Element.Styles = {'border': [], 'padding': [], 'margin': []};
+['Top', 'Right', 'Bottom', 'Left'].each(function(direction){
+	for (var style in Element.Styles) Element.Styles[style].push(style + direction);
+});
+
 Element.getMany = function(el, method, keys){
 	var result = {};
 	$each(keys, function(key){
@@ -861,64 +877,51 @@ Element.setMany = function(el, method, pairs){
 };
 
 Element.Properties = new Abstract({
-	'class': 'className',
-	'for': 'htmlFor',
-	'colspan': 'colSpan',
-	'rowspan': 'rowSpan',
-	'accesskey': 'accessKey',
-	'tabindex': 'tabIndex',
-	'maxlength': 'maxLength',
-	'readonly': 'readOnly',
-	'value': 'value',
-	'disabled': 'disabled',
-	'checked': 'checked',
-	'multiple': 'multiple'
+	'class': 'className', 'for': 'htmlFor', 'colspan': 'colSpan',
+	'rowspan': 'rowSpan', 'accesskey': 'accessKey', 'tabindex': 'tabIndex',
+	'maxlength': 'maxLength', 'readonly': 'readOnly', 'value': 'value',
+	'disabled': 'disabled', 'checked': 'checked', 'multiple': 'multiple'
 });
 
-Element.listenerMethods = {
+Element.Methods = {
+	Listeners: {
+		addListener: function(type, fn){
+			if (this.addEventListener) this.addEventListener(type, fn, false);
+			else this.attachEvent('on' + type, fn);
+			return this;
+		},
 
-	addListener: function(type, fn){
-		if (this.addEventListener) this.addEventListener(type, fn, false);
-		else this.attachEvent('on' + type, fn);
-		return this;
-	},
-
-	removeListener: function(type, fn){
-		if (this.removeEventListener) this.removeEventListener(type, fn, false);
-		else this.detachEvent('on' + type, fn);
-		return this;
+		removeListener: function(type, fn){
+			if (this.removeEventListener) this.removeEventListener(type, fn, false);
+			else this.detachEvent('on' + type, fn);
+			return this;
+		}
 	}
-
 };
 
-window.extend(Element.listenerMethods);
-document.extend(Element.listenerMethods);
-Element.extend(Element.listenerMethods);
-
-Element.Events = new Abstract({});
+window.extend(Element.Methods.Listeners);
+document.extend(Element.Methods.Listeners);
+Element.extend(Element.Methods.Listeners);
 
 var Garbage = {
 
 	elements: [],
 
 	collect: function(el){
-		if (!el.$){
+		if (!el.$tmp){
 			Garbage.elements.push(el);
-			el.$ = {'opacity': 1};
+			el.$tmp = {'opacity': 1};
 		}
 		return el;
 	},
 
 	trash: function(elements){
 		for (var i = 0, j = elements.length, el; i < j; i++){
-			if (!(el = elements[i]) || !el.$) return;
-			if (el.$events) {
-				el.fireEvent('onTrash');
-				el.removeEvents();
-			}
-			for (var p in el.$) el.$[p] = null;
+			if (!(el = elements[i]) || !el.$tmp) continue;
+			if (el.$events) el.fireEvent('trash').removeEvents();
+			for (var p in el.$tmp) el.$tmp[p] = null;
 			for (var p in Element.prototype) el[p] = null;
-			el.htmlElement = el.$ = null;
+			el.htmlElement = el.$tmp = el = null;
 			Garbage.elements.remove(el);
 		}
 	},
@@ -930,22 +933,11 @@ var Garbage = {
 	}
 
 };
-
-window.addListener('unload', Garbage.empty);
-
-var Fx = {};
-
-Fx.Transitions = new Abstract({
-
-	linear: function(t, b, c, d){
-		return c * t / d + b;
-	},
-
-	sineInOut: function(t, b, c, d){
-		return -c / 2 * (Math.cos(Math.PI * t / d) - 1) + b;
-	}
-
+window.addListener('beforeunload', function(){
+	window.addListener('unload', Garbage.empty);
 });
+
+var Fx = {Shared: {}};
 
 Fx.Base = new Class({
 
@@ -953,7 +945,9 @@ Fx.Base = new Class({
 		onStart: Class.empty,
 		onComplete: Class.empty,
 		onCancel: Class.empty,
-		transition: Fx.Transitions.sineInOut,
+		transition: function(p){
+			return -(Math.cos(Math.PI * p) - 1) / 2;
+		},
 		duration: 500,
 		unit: 'px',
 		wait: true,
@@ -969,13 +963,12 @@ Fx.Base = new Class({
 	step: function(){
 		var time = $time();
 		if (time < this.time + this.options.duration){
-			this.cTime = time - this.time;
+			this.delta = this.options.transition((time - this.time) / this.options.duration);
 			this.setNow();
 			this.increase();
 		} else {
 			this.stop(true);
-			this.now = this.to;
-			this.increase();
+			this.set(this.to);
 			this.fireEvent('onComplete', this.element, 10);
 			this.callChain();
 		}
@@ -992,7 +985,7 @@ Fx.Base = new Class({
 	},
 
 	compute: function(from, to){
-		return this.options.transition(this.cTime, from, (to - from), this.options.duration);
+		return (to - from) * this.delta + from;
 	},
 
 	start: function(from, to){
@@ -1000,6 +993,7 @@ Fx.Base = new Class({
 		else if (this.timer) return this;
 		this.from = from;
 		this.to = to;
+		this.change = this.to - this.from;
 		this.time = $time();
 		this.timer = this.step.periodical(Math.round(1000 / this.options.fps), this);
 		this.fireEvent('onStart', this.element);
@@ -1052,7 +1046,8 @@ Fx.CSS.Single = {
 		return fx.compute(from, to);
 	},
 
-	getValue: function(value, unit){
+	getValue: function(value, unit, property){
+		if (unit == 'px' && property != 'opacity') value = Math.round(value);
 		return value + unit;
 	}
 
@@ -1072,7 +1067,8 @@ Fx.CSS.Multi = {
 		return now;
 	},
 
-	getValue: function(value, unit){
+	getValue: function(value, unit, property){
+		if (unit == 'px' && property != 'opacity') value = value.map(Math.round);
 		return value.join(unit + ' ') + unit;
 	}
 
@@ -1125,7 +1121,7 @@ Fx.Style = Fx.Base.extend({
 	},
 
 	increase: function(){
-		this.element.setStyle(this.property, this.css.getValue(this.now, this.options.unit));
+		this.element.setStyle(this.property, this.css.getValue(this.now, this.options.unit, this.property));
 	}
 
 });
@@ -1174,7 +1170,7 @@ Fx.Styles = Fx.Base.extend({
 	},
 
 	increase: function(){
-		for (var p in this.now) this.element.setStyle(p, this.css[p].getValue(this.now[p], this.options.unit));
+		for (var p in this.now) this.element.setStyle(p, this.css[p].getValue(this.now[p], this.options.unit, p));
 	}
 
 });
@@ -1201,10 +1197,13 @@ var XHR = new Class({
 		headers: {}
 	},
 
-	initialize: function(options){
+	setTransport: function(){
 		this.transport = (window.XMLHttpRequest) ? new XMLHttpRequest() : (window.ie ? new ActiveXObject('Microsoft.XMLHTTP') : false);
-		if (!this.transport) return;
-		this.setOptions(options);
+		return this;
+	},
+
+	initialize: function(options){
+		this.setTransport().setOptions(options);
 		this.options.isSuccess = this.options.isSuccess || this.isSuccess;
 		this.headers = {};
 		if (this.options.urlEncoded && this.options.method == 'post'){
@@ -1251,15 +1250,13 @@ var XHR = new Class({
 		else if (this.running) return this;
 		this.running = true;
 		if (data && this.options.method == 'get') url = url + (url.contains('?') ? '&' : '?') + data, data = null;
-		(function(){
-			this.transport.open(this.options.method, url, this.options.async);
-			this.transport.onreadystatechange = this.onStateChange.bind(this);
-			if ((this.options.method == 'post') && this.transport.overrideMimeType) this.setHeader('Connection', 'close');
-			$extend(this.headers, this.options.headers);
-			for (var type in this.headers) try {this.transport.setRequestHeader(type, this.headers[type]);} catch(e){};
-			this.fireEvent('onRequest');
-			this.transport.send($pick(data, null));
-		}).delay(this.options.async ? 1 : false, this);
+		this.transport.open(this.options.method, url, this.options.async);
+		this.transport.onreadystatechange = this.onStateChange.bind(this);
+		if ((this.options.method == 'post') && this.transport.overrideMimeType) this.setHeader('Connection', 'close');
+		$extend(this.headers, this.options.headers);
+		for (var type in this.headers) try {this.transport.setRequestHeader(type, this.headers[type]);} catch(e){};
+		this.fireEvent('onRequest');
+		this.transport.send($pick(data, null));
 		return this;
 	},
 
@@ -1268,6 +1265,7 @@ var XHR = new Class({
 		this.running = false;
 		this.transport.abort();
 		this.transport.onreadystatechange = Class.empty;
+		this.setTransport();
 		this.fireEvent('onCancel');
 		return this;
 	}
