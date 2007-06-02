@@ -1,7 +1,8 @@
 /*
  * dWing uses the following mootools components:
- * Core.Moo, Core.Utility, Core.Commom
- * Native.Array, Native.String, Native.Function, Native.Element
+ * Core
+ * Class, Class.Extras
+ * Native.Array, Native.String, Native.Function, Native.Number, Native.Element
  * Fx.Base, Fx.CSS, Fx.Style, Fx.Styles
  * Remote.XHR
  * No Documentation Compression Type
