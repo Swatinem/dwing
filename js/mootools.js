@@ -4,8 +4,88 @@ var MooTools = {
 	version: '1.2dev'
 };
 
+function $extend(){
+	var args = arguments;
+	if (!args[1]) args = [this, args[0]];
+	for (var property in args[1]) args[0][property] = args[1][property];
+	return args[0];
+};
+
+function $native(){
+	for (var i = 0, l = arguments.length; i < l; i++){
+		arguments[i].extend = function(props){
+			for (var prop in props){
+				if (!this.prototype[prop]) this.prototype[prop] = props[prop];
+				if (!this[prop]) this[prop] = $native.generic(prop);
+			}
+		};
+	}
+};
+
+$native.generic = function(prop){
+	return function(bind){
+		return this.prototype[prop].apply(bind, Array.prototype.slice.call(arguments, 1));
+	};
+};
+
+$native(Array, Function, Number, String);
+
+function $chk(obj){
+	return !!(obj || obj === 0);
+};
+
+function $clear(timer){
+	clearTimeout(timer);
+	clearInterval(timer);
+	return null;
+};
+
 function $defined(obj){
 	return (obj != undefined);
+};
+
+function $empty(){};
+
+function $merge(){
+	var mix = {};
+	for (var i = 0; i < arguments.length; i++){
+		for (var property in arguments[i]){
+			var ap = arguments[i][property];
+			var mp = mix[property];
+			if (mp && $type(ap) == 'object' && $type(mp) == 'object') mix[property] = $merge(mp, ap);
+			else mix[property] = ap;
+		}
+	}
+	return mix;
+};
+
+function $pick(){
+	for (var i = 0, l = arguments.length; i < l; i++){
+		if ($defined(arguments[i])) return arguments[i];
+	}
+	return null;
+};
+
+function $random(min, max){
+	return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
+function $splat(obj){
+	var type = $type(obj);
+	if (type && type != 'array') obj = [obj];
+	return obj;
+};
+
+function $time(){
+	return new Date().getTime();
+};
+
+function $try(fn, bind, args){
+	try {
+		return fn.apply(bind || fn, $splat(args) || []);
+	} catch(e){
+		return false;
+	}
 };
 
 function $type(obj){
@@ -32,94 +112,43 @@ function $type(obj){
 	return type;
 };
 
-function $merge(){
-	var mix = {};
-	for (var i = 0; i < arguments.length; i++){
-		for (var property in arguments[i]){
-			var ap = arguments[i][property];
-			var mp = mix[property];
-			if (mp && $type(ap) == 'object' && $type(mp) == 'object') mix[property] = $merge(mp, ap);
-			else mix[property] = ap;
-		}
-	}
-	return mix;
-};
-
-var $extend = function(){
-	var args = arguments;
-	if (!args[1]) args = [this, args[0]];
-	for (var property in args[1]) args[0][property] = args[1][property];
-	return args[0];
-};
-
-var $native = function(){
-	for (var i = 0, l = arguments.length; i < l; i++){
-		arguments[i].extend = function(props){
-			for (var prop in props){
-				if (!this.prototype[prop]) this.prototype[prop] = props[prop];
-				if (!this[prop]) this[prop] = $native.generic(prop);
-			}
-		};
-	}
-};
-
-$native.generic = function(prop){
-	return function(bind){
-		return this.prototype[prop].apply(bind, Array.prototype.slice.call(arguments, 1));
-	};
-};
-
-$native(Function, Array, String, Number);
-
-function $chk(obj){
-	return !!(obj || obj === 0);
-};
-
-function $pick(obj, picked){
-	return $defined(obj) ? obj : picked;
-};
-
-function $random(min, max){
-	return Math.floor(Math.random() * (max - min + 1) + min);
-};
-
-function $time(){
-	return new Date().getTime();
-};
-
-function $clear(timer){
-	clearTimeout(timer);
-	clearInterval(timer);
-	return null;
-};
-
 var Abstract = function(obj){
 	obj = obj || {};
 	obj.extend = $extend;
 	return obj;
 };
-
 var Window = new Abstract(window);
 var Document = new Abstract(document);
 document.head = document.getElementsByTagName('head')[0];
 
-window.xpath = !!(document.evaluate);
-if (window.ActiveXObject) window.ie = window[window.XMLHttpRequest ? 'ie7' : 'ie6'] = true;
-else if (document.childNodes && !document.all && !navigator.taintEnabled) window.webkit = window[window.xpath ? 'webkit420' : 'webkit419'] = true;
-else if (document.getBoxObjectFor != null) window.gecko = true;
-
+var Client = new Abstract({
+	Engine: {'name': 'unknown', 'version': ''},
+	Platform: {},
+	Features: {}
+});
+Client.Features.xhr = !!(window.XMLHttpRequest);
+Client.Features.xpath = !!(document.evaluate);
+if (window.opera) Client.Engine.name = 'opera';
+else if (window.ActiveXObject) Client.Engine = {'name': 'ie', 'version': (Client.Features.xhr) ? 7 : 6};
+else if (!navigator.taintEnabled) Client.Engine = {'name': 'webkit', 'version': (Client.Features.xpath) ? 420 : 419};
+else if (document.getBoxObjectFor != null) Client.Engine.name = 'gecko';
+Client.Engine[Client.Engine.name] = Client.Engine[Client.Engine.name + Client.Engine.version] = true;
+Client.Platform.name = navigator.platform.match(/(mac)|(win)|(linux)|(nix)/i) || ['Other'];
+Client.Platform.name = Client.Platform.name[0].toLowerCase();
+Client.Platform[Client.Platform.name] = true;
 if (typeof HTMLElement == 'undefined'){
-	var HTMLElement = function(){};
-	if (window.webkit) document.createElement("iframe");
-	HTMLElement.prototype = (window.webkit) ? window["[[DOMElement.prototype]]"] : {};
+	var HTMLElement = $empty;
+	if (Client.Engine.webkit) document.createElement("iframe");
+	HTMLElement.prototype = (Client.Engine.webkit) ? window["[[DOMElement.prototype]]"] : {};
 }
-HTMLElement.prototype.htmlElement = function(){};
-
-if (window.ie6) try {document.execCommand("BackgroundImageCache", false, true);} catch(e){};
+HTMLElement.prototype.htmlElement = $empty;
+if (Client.Engine.ie6) $try(function(){
+	document.execCommand("BackgroundImageCache", false, true);
+});
 
 var Class = function(properties){
 	var klass = function(){
-		return (arguments[0] !== null && this.initialize && $type(this.initialize) == 'function') ? this.initialize.apply(this, arguments) : this;
+		return (arguments[0] !== $empty && this.initialize && $type(this.initialize) == 'function') ? this.initialize.apply(this, arguments) : this;
 	};
 	$extend(klass, this);
 	klass.prototype = properties;
@@ -127,12 +156,12 @@ var Class = function(properties){
 	return klass;
 };
 
-Class.empty = function(){};
+Class.empty = $empty;
 
 Class.prototype = {
 
 	extend: function(properties){
-		var proto = new this(null);
+		var proto = new this($empty);
 		for (var property in properties){
 			var pp = proto[property];
 			proto[property] = Class.Merge(pp, properties[property]);
@@ -185,7 +214,7 @@ var Chain = new Class({
 var Events = new Class({
 
 	addEvent: function(type, fn){
-		if (fn != Class.empty){
+		if (fn != $empty){
 			this.$events = this.$events || {};
 			this.$events[type] = this.$events[type] || [];
 			this.$events[type].include(fn);
@@ -314,11 +343,11 @@ Array.extend({
 	},
 
 	getRandom: function(){
-		return this[$random(0, this.length - 1)] || null;
+		return (this.length) ? this[$random(0, this.length - 1)] : null;
 	},
 
 	getLast: function(){
-		return this[this.length - 1] || null;
+		return (this.length) ? this[this.length - 1] : null;
 	}
 
 });
@@ -425,30 +454,24 @@ Array.extend({
 Function.extend({
 
 	create: function(options){
-		var fn = this;
+		var self = this;
 		options = $merge({
-			'bind': fn,
-			'event': false,
+			'bind': self,
 			'arguments': null,
 			'delay': false,
 			'periodical': false,
-			'attempt': false
+			'attempt': false,
+			'event': false
 		}, options);
-		if ($chk(options.arguments) && $type(options.arguments) != 'array') options.arguments = [options.arguments];
 		return function(event){
-			var args;
-			if (options.event){
-				event = event || window.event;
-				args = [(options.event === true) ? event : new options.event(event)];
-				if (options.arguments) args.extend(options.arguments);
-			}
-			else args = options.arguments || arguments;
+			var args = $splat(options.arguments) || arguments;
+			if (options.event) args = [event || window.event].extend(args);
 			var returns = function(){
-				return fn.apply($pick(options.bind, fn), args);
+				return self.apply($pick(options.bind, self), args);
 			};
 			if (options.delay) return setTimeout(returns, options.delay);
 			if (options.periodical) return setInterval(returns, options.periodical);
-			if (options.attempt) try {return returns();} catch(err){return false;};
+			if (options.attempt) return $try(returns);
 			return returns();
 		};
 	},
@@ -461,12 +484,8 @@ Function.extend({
 		return this.create({'arguments': args, 'bind': bind, 'attempt': true})();
 	},
 
-	bind: function(bind, args){
-		return this.create({'bind': bind, 'arguments': args});
-	},
-
-	bindAsEventListener: function(bind, args){
-		return this.create({'bind': bind, 'event': true, 'arguments': args});
+	bind: function(bind, args, evt){
+		return this.create({'bind': bind, 'arguments': args, 'event': evt});
 	},
 
 	delay: function(delay, bind, args){
@@ -478,6 +497,8 @@ Function.extend({
 	}
 
 });
+
+Function.empty = $empty;
 
 Number.extend({
 
@@ -508,7 +529,7 @@ var Element = new Class({
 
 	initialize: function(el, props){
 		if ($type(el) == 'string'){
-			if (window.ie && props && (props.name || props.type)){
+			if (Client.Engine.ie && props && (props.name || props.type)){
 				var name = (props.name) ? ' name="' + props.name + '"' : '';
 				var type = (props.type) ? ' type="' + props.type + '"' : '';
 				delete props.name;
@@ -549,9 +570,9 @@ function $(el){
 	}
 	if (type != 'element') return null;
 	if (el.htmlElement) return Garbage.collect(el);
-	if (['object', 'embed'].contains(el.tagName.toLowerCase())) return el;
+	if (Element.$badTags.contains(el.tagName.toLowerCase())) return el;
 	$extend(el, Element.prototype);
-	el.htmlElement = function(){};
+	el.htmlElement = $empty;
 	return Garbage.collect(el);
 };
 
@@ -582,7 +603,10 @@ $$.unique = function(array){
 			elements.push(element);
 		}
 	}
-	for (var n = 0, d = elements.length; n < d; n++) elements[n].$included = null;
+	for (var n = 0, d = elements.length; n < d; n++){
+		elements[n].$included = null;
+		if (Client.Engine.ie) elements[n].removeAttribute('$included');
+	}
 	return new Elements(elements);
 };
 
@@ -611,6 +635,14 @@ Element.extend = function(properties){
 };
 
 Element.extend({
+
+	getElement: function(tag){
+		return $(this.getElementsByTagName(tag)[0] || null);
+	},
+
+	getElements: function(tag){
+		return $$(this.getElementsByTagName(tag));
+	},
 
 	set: function(props){
 		for (var prop in props){
@@ -717,7 +749,7 @@ Element.extend({
 	setStyle: function(property, value){
 		switch(property){
 			case 'opacity': return this.setOpacity(parseFloat(value));
-			case 'float': property = (window.ie) ? 'styleFloat' : 'cssFloat';
+			case 'float': property = (Client.Engine.ie) ? 'styleFloat' : 'cssFloat';
 		}
 		property = property.camelCase();
 		switch($type(value)){
@@ -730,7 +762,7 @@ Element.extend({
 
 	setStyles: function(source){
 		switch($type(source)){
-			case 'object': Element.setMany(this, 'setStyle', source); break;
+			case 'object': Element.$setMany(this, 'setStyle', source); break;
 			case 'string': this.style.cssText = source;
 		}
 		return this;
@@ -743,7 +775,7 @@ Element.extend({
 			if (this.style.visibility != "visible") this.style.visibility = "visible";
 		}
 		if (!this.currentStyle || !this.currentStyle.hasLayout) this.style.zoom = 1;
-		if (window.ie) this.style.filter = (opacity == 1) ? '' : "alpha(opacity=" + opacity * 100 + ")";
+		if (Client.Engine.ie) this.style.filter = (opacity == 1) ? '' : "alpha(opacity=" + opacity * 100 + ")";
 		this.style.opacity = this.$tmp.opacity = opacity;
 		return this;
 	},
@@ -754,9 +786,9 @@ Element.extend({
 		if (!$chk(result)){
 			if (property == 'opacity') return this.$tmp.opacity;
 			result = [];
-			for (var style in Element.Styles){
+			for (var style in Element.$styles){
 				if (property == style){
-					Element.Styles[style].each(function(s){
+					Element.$styles[style].each(function(s){
 						var style = this.getStyle(s);
 						result.push(parseInt(style) ? style : '0px');
 					}, this);
@@ -770,11 +802,11 @@ Element.extend({
 				}
 			}
 			if (property.contains('border')){
-				if (Element.Styles.border.contains(property)){
+				if (Element.$styles.border.contains(property)){
 					return ['Width', 'Style', 'Color'].map(function(p){
 						return this.getStyle(property + p);
 					}, this).join(' ');
-				} else if (Element.borderShort.contains(property)){
+				} else if (Element.$borderShort.contains(property)){
 					return ['Top', 'Right', 'Bottom', 'Left'].map(function(p){
 						return this.getStyle('border' + p + property.replace('border', ''));
 					}, this).join(' ');
@@ -783,7 +815,7 @@ Element.extend({
 			if (document.defaultView) result = document.defaultView.getComputedStyle(this, null).getPropertyValue(property.hyphenate());
 			else if (this.currentStyle) result = this.currentStyle[property];
 		}
-		if (window.ie) result = Element.fixStyle(property, result, this);
+		if (Client.Engine.ie) result = Element.$fixStyle(property, result, this);
 		if (result && property.test(/color/i) && result.contains('rgb')){
 			return result.split('rgb').splice(1,4).map(function(color){
 				return color.rgbToHex();
@@ -793,7 +825,7 @@ Element.extend({
 	},
 
 	getStyles: function(){
-		return Element.getMany(this, 'getStyle', arguments);
+		return Element.$getMany(this, 'getStyle', arguments);
 	},
 
 	walk: function(brother, start){
@@ -832,34 +864,34 @@ Element.extend({
 	},
 
 	getProperty: function(property){
-		var index = Element.Properties[property];
+		var index = Element.$properties[property];
 		if (index) return this[index];
-		var flag = Element.PropertiesIFlag[property] || 0;
-		if (!window.ie || flag) return this.getAttribute(property, flag);
+		var flag = Element.$propertiesIFlag[property] || 0;
+		if (!Client.Engine.ie || flag) return this.getAttribute(property, flag);
 		var node = this.attributes[property];
 		return (node) ? node.nodeValue : null;
 	},
 
 	removeProperty: function(property){
-		var index = Element.Properties[property];
+		var index = Element.$properties[property];
 		if (index) this[index] = '';
 		else this.removeAttribute(property);
 		return this;
 	},
 
 	getProperties: function(){
-		return Element.getMany(this, 'getProperty', arguments);
+		return Element.$getMany(this, 'getProperty', arguments);
 	},
 
 	setProperty: function(property, value){
-		var index = Element.Properties[property];
+		var index = Element.$properties[property];
 		if (index) this[index] = value;
 		else this.setAttribute(property, value);
 		return this;
 	},
 
 	setProperties: function(source){
-		return Element.setMany(this, 'setProperty', source);
+		return Element.$setMany(this, 'setProperty', source);
 	},
 
 	setHTML: function(){
@@ -870,12 +902,12 @@ Element.extend({
 	setText: function(text){
 		var tag = this.getTag();
 		if (['style', 'script'].contains(tag)){
-			if (window.ie){
+			if (Client.Engine.ie){
 				if (tag == 'style') this.styleSheet.cssText = text;
 				else if (tag ==  'script') this.setProperty('text', text);
 				return this;
 			} else {
-				this.removeChild(this.firstChild);
+				if (this.firstChild) this.removeChild(this.firstChild);
 				return this.appendText(text);
 			}
 		}
@@ -886,14 +918,14 @@ Element.extend({
 	getText: function(){
 		var tag = this.getTag();
 		if (['style', 'script'].contains(tag)){
-			if (window.ie){
+			if (Client.Engine.ie){
 				if (tag == 'style') return this.styleSheet.cssText;
 				else if (tag ==  'script') return this.getProperty('text');
 			} else {
 				return this.innerHTML;
 			}
 		}
-		return (this.innerText || this.textContent);
+		return ($pick(this.innerText, this.textContent));
 	},
 
 	getTag: function(){
@@ -903,11 +935,16 @@ Element.extend({
 	empty: function(){
 		Garbage.trash(this.getElementsByTagName('*'));
 		return this.setHTML('');
+	},
+
+	destroy: function(){
+		Garbage.trash([this.empty().remove()]);
+		return null;
 	}
 
 });
 
-Element.fixStyle = function(property, result, element){
+Element.$fixStyle = function(property, result, element){
 	if ($chk(parseInt(result))) return result;
 	if (['height', 'width'].contains(property)){
 		var values = (property == 'width') ? ['left', 'right'] : ['top', 'bottom'];
@@ -922,14 +959,16 @@ Element.fixStyle = function(property, result, element){
 	return result;
 };
 
-Element.Styles = {'border': [], 'padding': [], 'margin': []};
+Element.$badTags = ['object', 'embed'];
+
+Element.$styles = {'border': [], 'padding': [], 'margin': []};
 ['Top', 'Right', 'Bottom', 'Left'].each(function(direction){
-	for (var style in Element.Styles) Element.Styles[style].push(style + direction);
+	for (var style in Element.$styles) Element.$styles[style].push(style + direction);
 });
 
-Element.borderShort = ['borderWidth', 'borderStyle', 'borderColor'];
+Element.$borderShort = ['borderWidth', 'borderStyle', 'borderColor'];
 
-Element.getMany = function(el, method, keys){
+Element.$getMany = function(el, method, keys){
 	var result = {};
 	$each(keys, function(key){
 		result[key] = el[method](key);
@@ -937,40 +976,41 @@ Element.getMany = function(el, method, keys){
 	return result;
 };
 
-Element.setMany = function(el, method, pairs){
+Element.$setMany = function(el, method, pairs){
 	for (var key in pairs) el[method](key, pairs[key]);
 	return el;
 };
 
-Element.Properties = new Abstract({
+Element.$properties = new Abstract({
 	'class': 'className', 'for': 'htmlFor', 'colspan': 'colSpan', 'rowspan': 'rowSpan',
 	'accesskey': 'accessKey', 'tabindex': 'tabIndex', 'maxlength': 'maxLength',
 	'readonly': 'readOnly', 'frameborder': 'frameBorder', 'value': 'value',
 	'disabled': 'disabled', 'checked': 'checked', 'multiple': 'multiple', 'selected': 'selected'
 });
-Element.PropertiesIFlag = {
+
+Element.$propertiesIFlag = {
 	'href': 2, 'src': 2
 };
 
-Element.Methods = {
-	Listeners: {
-		addListener: function(type, fn){
-			if (this.addEventListener) this.addEventListener(type, fn, false);
-			else this.attachEvent('on' + type, fn);
-			return this;
-		},
+Element.$listenerMethods = {
 
-		removeListener: function(type, fn){
-			if (this.removeEventListener) this.removeEventListener(type, fn, false);
-			else this.detachEvent('on' + type, fn);
-			return this;
-		}
+	addListener: function(type, fn){
+		if (this.addEventListener) this.addEventListener(type, fn, false);
+		else this.attachEvent('on' + type, fn);
+		return this;
+	},
+
+	removeListener: function(type, fn){
+		if (this.removeEventListener) this.removeEventListener(type, fn, false);
+		else this.detachEvent('on' + type, fn);
+		return this;
 	}
+
 };
 
-window.extend(Element.Methods.Listeners);
-document.extend(Element.Methods.Listeners);
-Element.extend(Element.Methods.Listeners);
+window.extend(Element.$listenerMethods);
+document.extend(Element.$listenerMethods);
+Element.extend(Element.$listenerMethods);
 
 var Garbage = {
 
@@ -987,6 +1027,7 @@ var Garbage = {
 	trash: function(elements){
 		for (var i = 0, j = elements.length, el; i < j; i++){
 			if (!(el = elements[i]) || !el.$tmp) continue;
+			if (el.tagName && Element.$badTags.contains(el.tagName.toLowerCase())) continue;
 			if (el.$events) el.fireEvent('trash').removeEvents();
 			for (var p in el.$tmp) el.$tmp[p] = null;
 			for (var d in Element.prototype) el[d] = null;
@@ -1006,7 +1047,7 @@ var Garbage = {
 
 window.addListener('beforeunload', function(){
 	window.addListener('unload', Garbage.empty);
-	if (window.ie) window.addListener('unload', CollectGarbage);
+	if (Client.Engine.ie) window.addListener('unload', CollectGarbage);
 });
 
 var Fx = {};
@@ -1014,9 +1055,9 @@ var Fx = {};
 Fx.Base = new Class({
 
 	options: {
-		onStart: Class.empty,
-		onComplete: Class.empty,
-		onCancel: Class.empty,
+		onStart: $empty,
+		onComplete: $empty,
+		onCancel: $empty,
 		transition: function(p){
 			return -(Math.cos(Math.PI * p) - 1) / 2;
 		},
@@ -1257,17 +1298,19 @@ var XHR = new Class({
 	options: {
 		method: 'post',
 		async: true,
-		onRequest: Class.empty,
-		onSuccess: Class.empty,
-		onFailure: Class.empty,
+		onRequest: $empty,
+		onSuccess: $empty,
+		onFailure: $empty,
+		onException: $empty,
 		urlEncoded: true,
 		encoding: 'utf-8',
 		autoCancel: false,
-		headers: {}
+		headers: {},
+		isSuccess: null
 	},
 
 	setTransport: function(){
-		this.transport = (window.XMLHttpRequest) ? new XMLHttpRequest() : (window.ie ? new ActiveXObject('Microsoft.XMLHTTP') : false);
+		this.transport = (window.XMLHttpRequest) ? new XMLHttpRequest() : (Client.Engine.ie ? new ActiveXObject('Microsoft.XMLHTTP') : false);
 		return this;
 	},
 
@@ -1285,21 +1328,23 @@ var XHR = new Class({
 	onStateChange: function(){
 		if (this.transport.readyState != 4 || !this.running) return;
 		this.running = false;
-		var status = 0;
-		try {status = this.transport.status;} catch(e){};
-		if (this.options.isSuccess.call(this, status)) this.onSuccess();
+		this.status = 0;
+		$try(function(){
+			this.status = this.transport.status;
+		}, this);
+		if (this.options.isSuccess.call(this, this.status)) this.onSuccess();
 		else this.onFailure();
-		this.transport.onreadystatechange = Class.empty;
+		this.transport.onreadystatechange = $empty;
 	},
 
-	isSuccess: function(status){
-		return ((status >= 200) && (status < 300));
+	isSuccess: function(){
+		return ((this.status >= 200) && (this.status < 300));
 	},
 
 	onSuccess: function(){
 		this.response = {
-			'text': this.transport.responseText,
-			'xml': this.transport.responseXML
+			text: this.transport.responseText,
+			xml: this.transport.responseXML
 		};
 		this.fireEvent('onSuccess', [this.response.text, this.response.xml]);
 		this.callChain();
@@ -1326,9 +1371,16 @@ var XHR = new Class({
 		this.transport.onreadystatechange = this.onStateChange.bind(this);
 		if ((this.options.method == 'post') && this.transport.overrideMimeType) this.setHeader('Connection', 'close');
 		$extend(this.headers, this.options.headers);
-		for (var type in this.headers) try {this.transport.setRequestHeader(type, this.headers[type]);} catch(e){};
+		for (var type in this.headers){
+			try{
+				this.transport.setRequestHeader(type, this.headers[type]);
+			} catch(e){
+				this.fireEvent('onException', [e, type, this.headers[type]]);
+			}
+		}
 		this.fireEvent('onRequest');
 		this.transport.send($pick(data, null));
+		if (!this.options.async) this.onStateChange();
 		return this;
 	},
 
@@ -1336,7 +1388,7 @@ var XHR = new Class({
 		if (!this.running) return this;
 		this.running = false;
 		this.transport.abort();
-		this.transport.onreadystatechange = Class.empty;
+		this.transport.onreadystatechange = $empty;
 		this.setTransport();
 		this.fireEvent('onCancel');
 		return this;
