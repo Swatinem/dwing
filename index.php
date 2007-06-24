@@ -24,7 +24,7 @@ session_start();
 $_debug = false;
 
 // show all errors
-error_reporting(E_ALL /*& E_STRICT*/); // first check if the included libs are compatible or not
+error_reporting(E_STRICT /*& E_STRICT*/); // first check if the included libs are compatible or not
 ini_set('display_errors', true);
 // check querys for indexes
 //mysqli_report(MYSQLI_REPORT_ALL);
@@ -108,7 +108,7 @@ Module::assignGlobals($_db, $_cfg);
 require_once('inc/user.class.php');
 $_user = new CurrentUser();
 $_tpl->assign('user', $_user);
-if(is_a($loginError = $_user->init(), 'Exception'))
+if(($loginError = $_user->init()) instanceof Exception)
 	$_tpl->assign('loginerror', $loginError->getMessage());
 
 Module::assignCurrentUser($_user);

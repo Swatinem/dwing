@@ -5,7 +5,7 @@ Admin::checkRight('news');
 ?>
 <results>
 <?php
-if(!is_a($newsId = News::addNews(), 'Exception')):
+if(!(($newsId = News::addNews()) instanceof Exception)):
 ?>
 	<result success="1">
 	<?php $news = News::getNewsAllDetails($newsId); ?>

@@ -5,7 +5,7 @@ Admin::checkRight('quotes');
 ?>
 <results>
 <?php
-if(!is_a($return = Quote::editQuote($_POST['quote_id'], 'Exception'))):
+if(!(($return = Quote::editQuote($_POST['quote_id'])) instanceof Exception)):
 ?>
 	<result success="1"></result>
 <?php

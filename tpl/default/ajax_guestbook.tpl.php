@@ -4,7 +4,7 @@ echo '<?xml version="1.0" encoding="utf-8"?>';
 ?>
 <results>
 <?php
-if(!is_a($entry_id = Guestbook::addEntry(), 'Exception')):
+if(!(($entry_id = Guestbook::addEntry()) instanceof Exception)):
 ?>
 	<result success="1"><?php echo $entry_id; ?></result>
 <?php

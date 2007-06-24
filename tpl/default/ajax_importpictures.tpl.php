@@ -5,7 +5,7 @@ Admin::checkRight('screenshots');
 ?>
 <results>
 <?php
-if(!is_a($importedPics = Screenshot::massAdd(), 'Exception')):
+if(!(($importedPics = Screenshot::massAdd()) instanceof Exception)):
 ?>
 	<result success="1"><?php echo sprintf(l10n::_('%d pictures imported'),$importedPics); ?></result>
 <?php

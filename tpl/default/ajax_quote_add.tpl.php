@@ -5,7 +5,7 @@ Admin::checkRight('quotes');
 ?>
 <results>
 <?php
-if(!is_a($quote_id = Quote::addQuote(), 'Exception')):
+if(!(($quote_id = Quote::addQuote()) instanceof Exception)):
 ?>
 	<result success="1"><?php echo $quote_id; ?></result>
 <?php
