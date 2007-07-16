@@ -73,6 +73,17 @@ class Database extends PDO
 		$this->pref = $aPrefix;
 	}
 	/**
+	 * getter for use with insert_id
+	 *
+	 * @param string $aAttr Attribute to get
+	 * @return mixed
+	 **/
+	private function __get($aAttr)
+	{
+		if($aAttr == 'insert_id')
+			return parent::lastInsertId();
+	}
+	/**
 	 * connect to the database
 	 *
 	 * @return void
@@ -83,7 +94,7 @@ class Database extends PDO
 		{
 			parent::__construct($this->mDSN, $this->mUser, $this->mPassword);
 			$this->mConnected = true;
-			$this->query('SET NAMES "utf8"');
+			$this->exec('SET NAMES "utf8"');
 		}
 	}
 	/**
@@ -95,8 +106,18 @@ class Database extends PDO
 	public function query($str)
 	{
 		$this->connectParent();
-		$result = parent::query($str);
-		return $result;
+		return parent::query($str);
+	}
+	/**
+	 * wrapper for prepare
+	 *
+	 * @param string $str
+	 * @return PDOStatement
+	 **/
+	public function prepare($str)
+	{
+		$this->connectParent();
+		return parent::prepare($str);
 	}
 	/**
 	 * query the first result
