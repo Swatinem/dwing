@@ -40,7 +40,7 @@ class Comments extends Module
 				content_type='.(int)$aContentType.'
 			ORDER BY time ASC;');
 		$comments = array();
-		while($commentRow = $commentsRes->fetch_assoc())
+		while($commentRow = $commentsRes->fetch(PDO::FETCH_ASSOC))
 		{
 			$commentRow['user'] = Users::getUser($commentRow['user_id']);
 			unset($commentRow['user_id']);

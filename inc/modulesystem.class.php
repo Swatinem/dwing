@@ -28,7 +28,7 @@ abstract class Module
 	/**
 	 * static reference to the database
 	 *
-	 * @var extmysqli $_db
+	 * @var Database $_db
 	 **/
 	protected static $_db;
 	/**
@@ -40,14 +40,13 @@ abstract class Module
 	/**
 	 * static reference to the current user
 	 *
-	 * @var user $_user
+	 * @var CurrentUser $_user
 	 **/
 	protected static $_user;
 	/**
 	 * assign the global objects to the static members
 	 *
-	 * @param extmysqli $aDb
-	 * @param tpl $aTpl
+	 * @param Database $aDb
 	 * @param array $aCfg
 	 * @param CurrentUser $aUser
 	 * @return void

@@ -24,10 +24,8 @@ session_start();
 $_debug = false;
 
 // show all errors
-error_reporting(E_STRICT /*& E_STRICT*/); // first check if the included libs are compatible or not
+error_reporting(E_ALL | E_STRICT);
 ini_set('display_errors', true);
-// check querys for indexes
-//mysqli_report(MYSQLI_REPORT_ALL);
 
 // include bench class
 require_once('inc/bench.class.php');
@@ -87,8 +85,8 @@ if(!file_exists('inc/settings.php'))
 // do we want dynamic settings at all?
 require_once("inc/settings.php");
 
-// extended mysqli class include. init in the config
-require_once('inc/mysqli.class.php');
+// Database class include. init in the config
+require_once('inc/database.class.php');
 require_once('inc/config.php');
 
 // autoload classes
@@ -166,7 +164,7 @@ if($_debug)
 {
 	echo '<!--'."\n".
 	'Parsed in '.$_bench->gettime().' Seconds'."\n";
-	$_db->printdebuginfo();
+	//$_db->printdebuginfo();
 	echo "\n".'-->';
 }
 ?>
