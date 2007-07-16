@@ -1,7 +1,8 @@
 //MooTools, My Object Oriented Javascript Tools. Copyright (c) 2006 Valerio Proietti, <http://mad4milk.net>, MIT Style License.
 
 var MooTools = {
-	version: '1.2dev'
+	'version': '1.2dev',
+	'build': '766'
 };
 
 function $extend(){
@@ -11,24 +12,38 @@ function $extend(){
 	return args[0];
 };
 
-function $native(){
+var Native = function(){
 	for (var i = 0, l = arguments.length; i < l; i++){
 		arguments[i].extend = function(props){
 			for (var prop in props){
 				if (!this.prototype[prop]) this.prototype[prop] = props[prop];
-				if (!this[prop]) this[prop] = $native.generic(prop);
+				if (!this[prop]) this[prop] = Native.generic(prop);
 			}
 		};
 	}
 };
 
-$native.generic = function(prop){
+Native.generic = function(prop){
 	return function(bind){
 		return this.prototype[prop].apply(bind, Array.prototype.slice.call(arguments, 1));
 	};
 };
 
-$native(Array, Function, Number, String);
+Native.setFamily = function(natives){
+	for (var type in natives) natives[type].prototype.$family = type;
+};
+
+Native(Array, Function, String, RegExp, Number);
+Native.setFamily({'array': Array, 'function': Function, 'string': String, 'regexp': RegExp});
+
+function $A(iterable, start, length){
+	start = start || 0;
+	if (start < 0) start = iterable.length + start;
+	length = length || (iterable.length - start);
+	var newArray = [];
+	for (var i = 0; i < length; i++) newArray[i] = iterable[start++];
+	return newArray;
+};
 
 function $chk(obj){
 	return !!(obj || obj === 0);
@@ -89,43 +104,32 @@ function $try(fn, bind, args){
 };
 
 function $type(obj){
-	if (!$defined(obj)) return false;
+	if (obj == undefined) return false;
+	if (obj.$family) return obj.$family;
 	if (obj.htmlElement) return 'element';
 	var type = typeof obj;
-	if (type == 'object' && obj.nodeName){
-		switch(obj.nodeType){
+	if (obj.nodeName){
+		switch (obj.nodeType){
 			case 1: return 'element';
 			case 3: return (/\S/).test(obj.nodeValue) ? 'textnode' : 'whitespace';
 		}
+	} else if (typeof obj.length == 'number'){
+		if (obj.item) return 'collection';
+		if (obj.callee) return 'arguments';
 	}
-	if (type == 'object' || type == 'function'){
-		switch(obj.constructor){
-			case Array: return 'array';
-			case RegExp: return 'regexp';
-			case Class: return 'class';
-		}
-		if (typeof obj.length == 'number'){
-			if (obj.item) return 'collection';
-			if (obj.callee) return 'arguments';
-		}
-	}
+	if (type == 'number' && !isFinite(obj)) return false;
 	return type;
 };
-
-var Abstract = function(obj){
-	obj = obj || {};
-	obj.extend = $extend;
-	return obj;
-};
-var Window = new Abstract(window);
-var Document = new Abstract(document);
+window.extend = document.extend = $extend;
+window.$family = 'window';
+document.$family = 'document';
 document.head = document.getElementsByTagName('head')[0];
 
-var Client = new Abstract({
+var Client = {
 	Engine: {'name': 'unknown', 'version': ''},
 	Platform: {},
 	Features: {}
-});
+};
 Client.Features.xhr = !!(window.XMLHttpRequest);
 Client.Features.xpath = !!(document.evaluate);
 if (window.opera) Client.Engine.name = 'opera';
@@ -142,17 +146,33 @@ if (typeof HTMLElement == 'undefined'){
 	HTMLElement.prototype = (Client.Engine.webkit) ? window["[[DOMElement.prototype]]"] : {};
 }
 HTMLElement.prototype.htmlElement = $empty;
+HTMLElement.prototype.$family = 'element';
 if (Client.Engine.ie6) $try(function(){
 	document.execCommand("BackgroundImageCache", false, true);
 });
 
 var Class = function(properties){
+	properties = properties || {};
 	var klass = function(){
-		return (arguments[0] !== $empty && this.initialize && $type(this.initialize) == 'function') ? this.initialize.apply(this, arguments) : this;
+		var self = (arguments[0] !== $empty && this.initialize && $type(this.initialize) == 'function') ? this.initialize.apply(this, arguments) : this;
+		if (this.options && this.options.initialize) this.options.initialize.call(this);
+		return self;
 	};
+
+	if (properties.Implements){
+		$extend(properties, Class.implement($splat(properties.Implements)));
+		delete properties.Implements;
+	}
+
+	if (properties.Extends){
+		properties = Class.extend(properties.Extends, properties);
+		delete properties.Extends;
+	}
+
 	$extend(klass, this);
 	klass.prototype = properties;
-	klass.constructor = Class;
+	klass.prototype.constructor = klass;
+	klass.$family = 'class';
 	return klass;
 };
 
@@ -160,26 +180,39 @@ Class.empty = $empty;
 
 Class.prototype = {
 
+	constructor: Class,
+
 	extend: function(properties){
-		var proto = new this($empty);
-		for (var property in properties){
-			var pp = proto[property];
-			proto[property] = Class.Merge(pp, properties[property]);
-		}
-		return new Class(proto);
+		return new Class(Class.extend(this, properties));
 	},
 
 	implement: function(){
-		for (var i = 0, l = arguments.length; i < l; i++) $extend(this.prototype, arguments[i]);
+		$extend(this.prototype, Class.implement($A(arguments)));
+		return this;
 	}
 
 };
 
-Class.Merge = function(previous, current){
-	if (previous && previous != current){
+Class.implement = function(sets){
+	var all = {};
+	for (var i = 0, l = sets.length; i < l; i++) $extend(all, ($type(sets[i]) == 'class') ? new sets[i]($empty) : sets[i]);
+	return all;
+};
+
+Class.extend = function(klass, properties){
+	var proto = new klass($empty);
+	for (var property in properties){
+		var pp = proto[property];
+		proto[property] = Class.merge(pp, properties[property]);
+	}
+	return proto;
+};
+
+Class.merge = function(previous, current){
+	if ($defined(previous) && previous != current){
 		var type = $type(current);
 		if (type != $type(previous)) return current;
-		switch(type){
+		switch (type){
 			case 'function':
 				var merged = function(){
 					this.parent = arguments.callee.parent;
@@ -193,32 +226,63 @@ Class.Merge = function(previous, current){
 	return current;
 };
 
-var Chain = new Class({
+var Abstract = function(obj){
+	return $extend(this, obj || {});
+};
+
+Native(Abstract);
+
+Abstract.extend({
+
+	each: function(fn, bind){
+		for (var property in this){
+			if (this.hasOwnProperty(property)) fn.call(this || bind, this[property], property);
+		}
+	},
+
+	remove: function(property){
+		delete this[property];
+		return this;
+	},
+
+	extend: $extend
+
+});
+
+Client = new Abstract(Client);
+
+Class.Chain = new Class({
 
 	chain: function(fn){
-		this.chains = this.chains || [];
-		this.chains.push(fn);
+		this.$chain = this.$chain || [];
+		this.$chain.push(fn);
 		return this;
 	},
 
 	callChain: function(){
-		if (this.chains && this.chains.length) this.chains.shift().delay(10, this);
+		if (this.$chain && this.$chain.length) this.$chain.shift().delay(10, this);
 	},
 
 	clearChain: function(){
-		this.chains = [];
+		if (this.$chain) this.$chain.empty();
 	}
 
 });
 
-var Events = new Class({
+Class.Events = new Class({
 
-	addEvent: function(type, fn){
+	addEvent: function(type, fn, internal){
 		if (fn != $empty){
 			this.$events = this.$events || {};
 			this.$events[type] = this.$events[type] || [];
 			this.$events[type].include(fn);
+			if (internal) fn.internal = true;
 		}
+		return this;
+	},
+
+	addEvents: function(events){
+		for (var type in events) this.addEvent(type, events[type]);
 		return this;
 	},
 
@@ -232,19 +296,31 @@ var Events = new Class({
 	},
 
 	removeEvent: function(type, fn){
-		if (this.$events && this.$events[type]) this.$events[type].remove(fn);
+		if (this.$events && this.$events[type]){
+			if (!fn.internal) this.$events[type].remove(fn);
+		}
+		return this;
+	},
+
+	removeEvents: function(type){
+		for (var e in this.$events){
+			if (type && type != e) continue;
+			this.$events[e].each(function(fn){
+				this.removeEvent(e, fn);
+			}, this);
+		}
 		return this;
 	}
 
 });
 
-var Options = new Class({
+Class.Options = new Class({
 
-	setOptions: function(){
-		this.options = $merge.apply(null, [this.options].extend(arguments));
+	setOptions: function(options){
+		this.options = $merge(this.options, options);
 		if (this.addEvent){
 			for (var option in this.options){
-				if ($type(this.options[option] == 'function') && (/^on[A-Z]/).test(option)) this.addEvent(option, this.options[option]);
+				if ((/^on[A-Z]/).test(option) && $type(this.options[option] == 'function')) this.addEvent(option, this.options[option]);
 			}
 		}
 		return this;
@@ -254,36 +330,23 @@ var Options = new Class({
 
 Array.extend({
 
-	forEach: function(fn, bind){
-		for (var i = 0, j = this.length; i < j; i++) fn.call(bind, this[i], i, this);
-	},
-
-	filter: function(fn, bind){
-		var results = [];
-		for (var i = 0, j = this.length; i < j; i++){
-			if (fn.call(bind, this[i], i, this)) results.push(this[i]);
-		}
-		return results;
-	},
-
-	map: function(fn, bind){
-		var results = [];
-		for (var i = 0, j = this.length; i < j; i++) results[i] = fn.call(bind, this[i], i, this);
-		return results;
-	},
-
 	every: function(fn, bind){
-		for (var i = 0, j = this.length; i < j; i++){
+		for (var i = 0, l = this.length; i < l; i++){
 			if (!fn.call(bind, this[i], i, this)) return false;
 		}
 		return true;
 	},
 
-	some: function(fn, bind){
-		for (var i = 0, j = this.length; i < j; i++){
-			if (fn.call(bind, this[i], i, this)) return true;
+	filter: function(fn, bind){
+		var results = [];
+		for (var i = 0, l = this.length; i < l; i++){
+			if (fn.call(bind, this[i], i, this)) results.push(this[i]);
 		}
-		return false;
+		return results;
+	},
+
+	forEach: function(fn, bind){
+		for (var i = 0, l = this.length; i < l; i++) fn.call(bind, this[i], i, this);
 	},
 
 	indexOf: function(item, from){
@@ -294,13 +357,76 @@ Array.extend({
 		return -1;
 	},
 
+	map: function(fn, bind){
+		var results = [];
+		for (var i = 0, l = this.length; i < l; i++) results[i] = fn.call(bind, this[i], i, this);
+		return results;
+	},
+
+	some: function(fn, bind){
+		for (var i = 0, l = this.length; i < l; i++){
+			if (fn.call(bind, this[i], i, this)) return true;
+		}
+		return false;
+	},
+
+	reduce: function(fn, value){
+		var i = 0;
+		if (arguments.length < 2 && this.length) value = this[i++];
+		for (l = this.length; i < l; i++) value = fn.call(null, value, this[i], i, this);
+		return value;
+	},
+
+	associate: function(obj){
+		var routed = {};
+		var objtype = $type(obj);
+		if (objtype == 'array'){
+			var temp = {};
+			for (var i = 0, j = obj.length; i < j; i++) temp[obj[i]] = true;
+			obj = temp;
+		}
+		for (var oname in obj) routed[oname] = null;
+		for (var k = 0, l = this.length; k < l; k++){
+			var res = (objtype == 'array') ? $defined(this[k]) : $type(this[k]);
+			for (var name in obj){
+				if (!$defined(routed[name]) && ((res && obj[name] === true) || obj[name].contains(res))){
+					routed[name] = this[k];
+					break;
+				}
+			}
+		}
+		return routed;
+	},
+
+	contains: function(item, from){
+		return this.indexOf(item, from) != -1;
+	},
+
 	copy: function(start, length){
-		start = start || 0;
-		if (start < 0) start = this.length + start;
-		length = length || (this.length - start);
-		var newArray = [];
-		for (var i = 0; i < length; i++) newArray[i] = this[start++];
-		return newArray;
+		return $A(this, start, length);
+	},
+
+	extend: function(array){
+		for (var i = 0, j = array.length; i < j; i++) this.push(array[i]);
+		return this;
+	},
+
+	getLast: function(){
+		return (this.length) ? this[this.length - 1] : null;
+	},
+
+	getRandom: function(){
+		return (this.length) ? this[$random(0, this.length - 1)] : null;
+	},
+
+	include: function(item){
+		if (!this.contains(item)) this.push(item);
+		return this;
+	},
+
+	merge: function(array){
+		for (var i = 0, l = array.length; i < l; i++) this.include(array[i]);
+		return this;
 	},
 
 	remove: function(item){
@@ -317,53 +443,22 @@ Array.extend({
 		return this;
 	},
 
-	contains: function(item, from){
-		return this.indexOf(item, from) != -1;
-	},
-
-	associate: function(keys){
-		var obj = {}, length = Math.min(this.length, keys.length);
-		for (var i = 0; i < length; i++) obj[keys[i]] = this[i];
-		return obj;
-	},
-
-	extend: function(array){
-		for (var i = 0, j = array.length; i < j; i++) this.push(array[i]);
+	empty: function(){
+		this.length = 0;
 		return this;
-	},
-
-	merge: function(array){
-		for (var i = 0, l = array.length; i < l; i++) this.include(array[i]);
-		return this;
-	},
-
-	include: function(item){
-		if (!this.contains(item)) this.push(item);
-		return this;
-	},
-
-	getRandom: function(){
-		return (this.length) ? this[$random(0, this.length - 1)] : null;
-	},
-
-	getLast: function(){
-		return (this.length) ? this[this.length - 1] : null;
 	}
 
 });
-
 Array.prototype.each = Array.prototype.forEach;
 Array.each = Array.forEach;
-
-function $A(array){
-	return Array.copy(array);
-};
 
 function $each(iterable, fn, bind){
 	if (iterable && typeof iterable.length == 'number' && $type(iterable) != 'object'){
 		Array.forEach(iterable, fn, bind);
 	} else {
-		 for (var name in iterable) fn.call(bind || iterable, iterable[name], name);
+		 for (var name in iterable){
+			if (iterable.hasOwnProperty(name)) fn.call(bind || iterable, iterable[name], name);
+		}
 	}
 };
 
@@ -373,30 +468,8 @@ String.extend({
 		return (($type(regex) == 'string') ? new RegExp(regex, params) : regex).test(this);
 	},
 
-	toInt: function(){
-		return parseInt(this, 10);
-	},
-
-	toFloat: function(){
-		return parseFloat(this);
-	},
-
-	camelCase: function(){
-		return this.replace(/-\D/g, function(match){
-			return match.charAt(1).toUpperCase();
-		});
-	},
-
-	hyphenate: function(){
-		return this.replace(/\w[A-Z]/g, function(match){
-			return (match.charAt(0) + '-' + match.charAt(1).toLowerCase());
-		});
-	},
-
-	capitalize: function(){
-		return this.replace(/\b[a-z]/g, function(match){
-			return match.toUpperCase();
-		});
+	contains: function(string, separator){
+		return (separator) ? (separator + this + separator).indexOf(separator + string + separator) > -1 : this.indexOf(string) > -1;
 	},
 
 	trim: function(){
@@ -407,9 +480,33 @@ String.extend({
 		return this.replace(/\s{2,}/g, ' ').trim();
 	},
 
-	rgbToHex: function(array){
-		var rgb = this.match(/\d{1,3}/g);
-		return (rgb) ? rgb.rgbToHex(array) : false;
+	camelCase: function(){
+		return this.replace(/-\D/g, function(match){
+			return match.charAt(1).toUpperCase();
+		});
+	},
+
+	hyphenate: function(){
+		return this.replace(/[A-Z]/g, function(match){
+			return ('-' + match.charAt(0).toLowerCase());
+		});
+	},
+
+	capitalize: function(){
+		return this.replace(/\b[a-z]/g, function(match){
+			return match.toUpperCase();
+		});
+	},
+
+	escapeRegExp: function(){
+		return this.replace(/([.*+?^${}()|[\]\/\\])/g, '\\$1');
+	},
+	toInt: function(base){
+		return parseInt(this, base || 10);
+	},
+
+	toFloat: function(){
+		return parseFloat(this);
 	},
 
 	hexToRgb: function(array){
@@ -417,17 +514,23 @@ String.extend({
 		return (hex) ? hex.slice(1).hexToRgb(array) : false;
 	},
 
-	contains: function(string, s){
-		return (s) ? (s + this + s).indexOf(s + string + s) > -1 : this.indexOf(string) > -1;
-	},
-
-	escapeRegExp: function(){
-		return this.replace(/([.*+?^${}()|[\]\/\\])/g, '\\$1');
+	rgbToHex: function(array){
+		var rgb = this.match(/\d{1,3}/g);
+		return (rgb) ? rgb.rgbToHex(array) : false;
 	}
 
 });
 
 Array.extend({
+
+	hexToRgb: function(array){
+		if (this.length != 3) return false;
+		var rgb = [];
+		for (var i = 0; i < 3; i++){
+			rgb.push(((this[i].length == 1) ? this[i] + this[i] : this[i]).toInt(16));
+		}
+		return array ? rgb : 'rgb(' + rgb.join(',') + ')';
+	},
 
 	rgbToHex: function(array){
 		if (this.length < 3) return false;
@@ -438,20 +541,15 @@ Array.extend({
 			hex.push((bit.length == 1) ? '0' + bit : bit);
 		}
 		return array ? hex : '#' + hex.join('');
-	},
-
-	hexToRgb: function(array){
-		if (this.length != 3) return false;
-		var rgb = [];
-		for (var i = 0; i < 3; i++){
-			rgb.push(parseInt((this[i].length == 1) ? this[i] + this[i] : this[i], 16));
-		}
-		return array ? rgb : 'rgb(' + rgb.join(',') + ')';
 	}
 
 });
 
 Function.extend({
+
+	extend: function(properties){
+		for (var property in properties) this[property] = properties[property];
+	},
 
 	create: function(options){
 		var self = this;
@@ -502,8 +600,8 @@ Function.empty = $empty;
 
 Number.extend({
 
-	toInt: function(){
-		return parseInt(this);
+	toInt: function(base){
+		return parseInt(this, base || 10);
 	},
 
 	toFloat: function(){
@@ -519,56 +617,51 @@ Number.extend({
 		return Math.round(this * precision) / precision;
 	},
 
-	times: function(fn){
-		for (var i = 0; i < this; i++) fn(i);
+	times: function(fn, bind){
+		for (var i = 0; i < this; i++) fn.call(bind, i, this);
 	}
 
 });
 
-var Element = new Class({
+var Element = function(el, props){
 
-	initialize: function(el, props){
-		if ($type(el) == 'string'){
-			if (Client.Engine.ie && props && (props.name || props.type)){
-				var name = (props.name) ? ' name="' + props.name + '"' : '';
-				var type = (props.type) ? ' type="' + props.type + '"' : '';
-				delete props.name;
-				delete props.type;
-				el = '<' + el + name + type + '>';
-			}
-			el = document.createElement(el);
+	if ($type(el) == 'string'){
+		if (Client.Engine.ie && props && (props.name || props.type)){
+			var name = (props.name) ? ' name="' + props.name + '"' : '';
+			var type = (props.type) ? ' type="' + props.type + '"' : '';
+			delete props.name;
+			delete props.type;
+			el = '<' + el + name + type + '>';
 		}
-		el = $(el);
-		return (!props || !el) ? el : el.set(props);
+		el = document.createElement(el);
 	}
+	el = $(el);
+	return (!props || !el) ? el : el.set(props);
+};
 
-});
-
-var Elements = new Class({
-
-	initialize: function(elements){
-		return (elements) ? $extend(elements, this) : this;
+var Elements = function(elements, nocheck){
+	elements = elements || [];
+	if (nocheck) return $extend(elements, this);
+	var uniques = {};
+	var returned = [];
+	for (var i = 0, j = elements.length; i < j; i++){
+		var el = $(elements[i]);
+		if (!el || uniques[el.$attributes.uid]) continue;
+		uniques[el.$attributes.uid] = true;
+		returned.push(el);
 	}
-
-});
-
-Elements.extend = function(props){
-	for (var prop in props){
-		this.prototype[prop] = props[prop];
-		this[prop] = $native.generic(prop);
-	}
+	return $extend(returned, this);
 };
 
 function $(el){
 	if (!el) return null;
 	if (el.htmlElement) return Garbage.collect(el);
-	if ([window, document].contains(el)) return el;
 	var type = $type(el);
 	if (type == 'string'){
 		el = document.getElementById(el);
 		type = (el) ? 'element' : false;
 	}
-	if (type != 'element') return null;
+	if (type != 'element') return (['window', 'document'].contains(type)) ? el : null;
 	if (el.htmlElement) return Garbage.collect(el);
 	if (Element.$badTags.contains(el.tagName.toLowerCase())) return el;
 	$extend(el, Element.prototype);
@@ -582,56 +675,43 @@ function $$(){
 	var elements = [];
 	for (var i = 0, j = arguments.length; i < j; i++){
 		var selector = arguments[i];
-		switch($type(selector)){
-			case 'element': elements.push(selector);
-			case 'boolean': break;
+		switch ($type(selector)){
+			case 'element': elements.push(selector); break;
 			case false: break;
 			case 'string': selector = document.getElementsBySelector(selector, true);
 			default: elements.extend(selector);
 		}
 	}
-	return $$.unique(elements);
-};
-
-$$.unique = function(array){
-	var elements = [];
-	for (var i = 0, l = array.length; i < l; i++){
-		if (array[i].$included) continue;
-		var element = $(array[i]);
-		if (element && !element.$included){
-			element.$included = true;
-			elements.push(element);
-		}
-	}
-	for (var n = 0, d = elements.length; n < d; n++){
-		elements[n].$included = null;
-		if (Client.Engine.ie) elements[n].removeAttribute('$included');
-	}
 	return new Elements(elements);
-};
-
-Elements.Multi = function(property){
-	return function(){
-		var args = arguments;
-		var items = [];
-		var elements = true;
-		for (var i = 0, j = this.length, returns; i < j; i++){
-			returns = this[i][property].apply(this[i], args);
-			if ($type(returns) != 'element') elements = false;
-			items.push(returns);
-		};
-		return (elements) ? $$.unique(items) : items;
-	};
 };
 
 Element.extend = function(properties){
 	for (var property in properties){
-		HTMLElement.prototype[property] = properties[property];
-		Element.prototype[property] = properties[property];
-		Element[property] = $native.generic(property);
-		var elementsProperty = (Array.prototype[property]) ? property + 'Elements' : property;
-		Elements.prototype[elementsProperty] = Elements.Multi(property);
+		HTMLElement.prototype[property] = Element.prototype[property] = properties[property];
+		Element[property] = Native.generic(property);
+		Elements.prototype[(Array.prototype[property]) ? property + 'Elements' : property] = Elements.$multiply(property);
 	}
+};
+
+Elements.extend = function(properties){
+	for (var property in properties){
+		Elements.prototype[property] = properties[property];
+		Elements[property] = Native.generic(property);
+	}
+};
+
+Elements.$multiply = function(property){
+	return function(){
+		var args = arguments;
+		var items = [];
+		var elements = true;
+		this.each(function(element){
+			var returns = element[property].apply(element, args);
+			items.push(returns);
+			if (elements) elements = ($type(returns) == 'element');
+		});
+		return (elements) ? new Elements(items) : items;
+	};
 };
 
 Element.extend({
@@ -647,7 +727,7 @@ Element.extend({
 	set: function(props){
 		for (var prop in props){
 			var val = props[prop];
-			switch(prop){
+			switch (prop){
 				case 'styles': this.setStyles(val); break;
 				case 'events': if (this.addEvents) this.addEvents(val); break;
 				case 'properties': this.setProperties(val); break;
@@ -659,7 +739,7 @@ Element.extend({
 
 	inject: function(el, where){
 		el = $(el);
-		switch(where){
+		switch (where){
 			case 'before': el.parentNode.insertBefore(this, el); break;
 			case 'after':
 				var next = el.getNext();
@@ -747,13 +827,13 @@ Element.extend({
 	},
 
 	setStyle: function(property, value){
-		switch(property){
+		switch (property){
 			case 'opacity': return this.setOpacity(parseFloat(value));
 			case 'float': property = (Client.Engine.ie) ? 'styleFloat' : 'cssFloat';
 		}
 		property = property.camelCase();
-		switch($type(value)){
-			case 'number': if (!['zIndex', 'zoom'].contains(property)) value += 'px'; break;
+		switch ($type(value)){
+			case 'number': if (!['zIndex', 'zoom', 'fontWeight'].contains(property)) value += 'px'; break;
 			case 'array': value = 'rgb(' + value.join(',') + ')';
 		}
 		this.style[property] = value;
@@ -761,7 +841,7 @@ Element.extend({
 	},
 
 	setStyles: function(source){
-		switch($type(source)){
+		switch ($type(source)){
 			case 'object': Element.$setMany(this, 'setStyle', source); break;
 			case 'string': this.style.cssText = source;
 		}
@@ -776,7 +856,7 @@ Element.extend({
 		}
 		if (!this.currentStyle || !this.currentStyle.hasLayout) this.style.zoom = 1;
 		if (Client.Engine.ie) this.style.filter = (opacity == 1) ? '' : "alpha(opacity=" + opacity * 100 + ")";
-		this.style.opacity = this.$tmp.opacity = opacity;
+		this.style.opacity = this.$attributes.opacity = opacity;
 		return this;
 	},
 
@@ -784,7 +864,7 @@ Element.extend({
 		property = property.camelCase();
 		var result = this.style[property];
 		if (!$chk(result)){
-			if (property == 'opacity') return this.$tmp.opacity;
+			if (property == 'opacity') return this.$attributes.opacity;
 			result = [];
 			for (var style in Element.$styles){
 				if (property == style){
@@ -981,12 +1061,12 @@ Element.$setMany = function(el, method, pairs){
 	return el;
 };
 
-Element.$properties = new Abstract({
+Element.$properties = {
 	'class': 'className', 'for': 'htmlFor', 'colspan': 'colSpan', 'rowspan': 'rowSpan',
 	'accesskey': 'accessKey', 'tabindex': 'tabIndex', 'maxlength': 'maxLength',
 	'readonly': 'readOnly', 'frameborder': 'frameBorder', 'value': 'value',
 	'disabled': 'disabled', 'checked': 'checked', 'multiple': 'multiple', 'selected': 'selected'
-});
+};
 
 Element.$propertiesIFlag = {
 	'href': 2, 'src': 2
@@ -1012,35 +1092,43 @@ window.extend(Element.$listenerMethods);
 document.extend(Element.$listenerMethods);
 Element.extend(Element.$listenerMethods);
 
+Element.UID = 0;
+
 var Garbage = {
 
-	elements: [],
+	elements: {},
 
 	collect: function(el){
-		if (!el.$tmp){
-			Garbage.elements.push(el);
-			el.$tmp = {'opacity': 1};
+		if (!el.$attributes){
+			el.$attributes = {'opacity': 1, 'uid': Element.UID++};
+			Garbage.elements[el.$attributes.uid] = el;
 		}
 		return el;
 	},
 
 	trash: function(elements){
 		for (var i = 0, j = elements.length, el; i < j; i++){
-			if (!(el = elements[i]) || !el.$tmp) continue;
+			if (!(el = elements[i]) || !el.$attributes) continue;
 			if (el.tagName && Element.$badTags.contains(el.tagName.toLowerCase())) continue;
-			if (el.$events) el.fireEvent('trash').removeEvents();
-			for (var p in el.$tmp) el.$tmp[p] = null;
-			for (var d in Element.prototype) el[d] = null;
-			Garbage.elements[Garbage.elements.indexOf(el)] = null;
-			el.htmlElement = el.$tmp = el = null;
+			Garbage.kill(el);
 		}
-		Garbage.elements.remove(null);
+	},
+
+	kill: function(el, isUnload){
+		delete Garbage.elements[String(el.$attributes.uid)];
+		if (el.$events){
+			el.fireEvent('trash', [isUnload]);
+			el.removeEvents();
+		}
+		for (var p in el.$attributes) el.$attributes[p] = null;
+		for (var d in Element.prototype) el[d] = null;
+		el.htmlElement = el.$attributes = el = null;
 	},
 
 	empty: function(){
 		Garbage.collect(window);
 		Garbage.collect(document);
-		Garbage.trash(Garbage.elements);
+		for (var uid in Garbage.elements) Garbage.kill(Garbage.elements[uid], true);
 	}
 
 };
@@ -1053,6 +1141,8 @@ window.addListener('beforeunload', function(){
 var Fx = {};
 
 Fx.Base = new Class({
+
+	Implements: [Class.Chain, Class.Events, Class.Options],
 
 	options: {
 		onStart: $empty,
@@ -1067,10 +1157,10 @@ Fx.Base = new Class({
 		fps: 50
 	},
 
-	initialize: function(options){
-		this.element = this.element || null;
-		this.setOptions(options);
-		if (this.options.initialize) this.options.initialize.call(this);
+	initialize: function(){
+		var params = $A(arguments).associate({'options': 'object', 'element': true});
+		this.element = this.element || params.element;
+		this.setOptions(params.options);
 	},
 
 	step: function(){
@@ -1121,8 +1211,6 @@ Fx.Base = new Class({
 	}
 
 });
-
-Fx.Base.implement(new Chain, new Events, new Options);
 
 Fx.CSS = {
 
@@ -1202,12 +1290,13 @@ Fx.CSS.Color = {
 
 };
 
-Fx.Style = Fx.Base.extend({
+Fx.Style = new Class({
 
-	initialize: function(el, property, options){
-		this.element = $(el);
+	Extends: Fx.Base,
+
+	initialize: function(element, property, options){
+		this.parent($(element), options);
 		this.property = property;
-		this.parent(options);
 	},
 
 	hide: function(){
@@ -1244,11 +1333,12 @@ Element.extend({
 
 });
 
-Fx.Styles = Fx.Base.extend({
+Fx.Styles = new Class({
 
-	initialize: function(el, options){
-		this.element = $(el);
-		this.parent(options);
+	Extends: Fx.Base,
+
+	initialize: function(element, options){
+		this.parent($(element), options);
 	},
 
 	setNow: function(){
@@ -1295,9 +1385,12 @@ Element.extend({
 
 var XHR = new Class({
 
+	Implements: [Class.Chain, Class.Events, Class.Options],
+
 	options: {
 		method: 'post',
 		async: true,
+		data: null,
 		onRequest: $empty,
 		onSuccess: $empty,
 		onFailure: $empty,
@@ -1311,18 +1404,20 @@ var XHR = new Class({
 
 	setTransport: function(){
 		this.transport = (window.XMLHttpRequest) ? new XMLHttpRequest() : (Client.Engine.ie ? new ActiveXObject('Microsoft.XMLHTTP') : false);
-		return this;
 	},
 
-	initialize: function(options){
-		this.setTransport().setOptions(options);
+	initialize: function(){
+		var params = $A(arguments).associate({'url': 'string', 'options': 'object'});
+		this.url = params.url;
+		this.setTransport();
+		this.setOptions(params.options);
 		this.options.isSuccess = this.options.isSuccess || this.isSuccess;
-		this.headers = {};
-		if (this.options.urlEncoded && this.options.method == 'post'){
+		this.headers = $merge(this.options.headers);
+		if (this.options.urlEncoded && this.options.method != 'get'){
 			var encoding = (this.options.encoding) ? '; charset=' + this.options.encoding : '';
 			this.setHeader('Content-type', 'application/x-www-form-urlencoded' + encoding);
 		}
-		if (this.options.initialize) this.options.initialize.call(this);
+		this.setHeader('X-Requested-With', 'XMLHttpRequest');
 	},
 
 	onStateChange: function(){
@@ -1359,6 +1454,12 @@ var XHR = new Class({
 		return this;
 	},
 
+	getHeader: function(name){
+		return $try(function(name){
+			return this.getResponseHeader(name);
+		}, this.transport, name) || null;
+	},
+
 	send: function(url, data){
 		if (this.options.autoCancel) this.cancel();
 		else if (this.running) return this;
@@ -1370,7 +1471,6 @@ var XHR = new Class({
 		this.transport.open(this.options.method.toUpperCase(), url, this.options.async);
 		this.transport.onreadystatechange = this.onStateChange.bind(this);
 		if ((this.options.method == 'post') && this.transport.overrideMimeType) this.setHeader('Connection', 'close');
-		$extend(this.headers, this.options.headers);
 		for (var type in this.headers){
 			try{
 				this.transport.setRequestHeader(type, this.headers[type]);
@@ -1384,6 +1484,10 @@ var XHR = new Class({
 		return this;
 	},
 
+	request: function(data){
+		return this.send(this.url, data || this.options.data);
+	},
+
 	cancel: function(){
 		if (!this.running) return this;
 		this.running = false;
@@ -1395,5 +1499,3 @@ var XHR = new Class({
 	}
 
 });
-
-XHR.implement(new Chain, new Events, new Options);
