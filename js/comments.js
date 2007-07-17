@@ -61,11 +61,12 @@ function previewComment()
 	}
 }
 window.addEventListener('load', function () {
-	if(!window.FCKeditor)
-		return;
-	var oFCKeditor = new FCKeditor('commenttext') ;
-	oFCKeditor.BasePath = './FCKeditor/';
-	oFCKeditor.ReplaceTextarea() ;
+	if(window.FCKeditor)
+	{
+		var oFCKeditor = new FCKeditor('commenttext');
+		oFCKeditor.BasePath = './FCKeditor/';
+		oFCKeditor.ReplaceTextarea();
+	}
 
 	inPreview = false;
 

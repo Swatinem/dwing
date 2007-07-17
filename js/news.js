@@ -89,11 +89,12 @@ window.addEventListener('load', function () {
 	if(!$('newsform'))
 		return; 
 
-	if(!window.FCKeditor)
-		return;
-	var oFCKeditor = new FCKeditor('newstext') ;
-	oFCKeditor.BasePath = './FCKeditor/';
-	oFCKeditor.ReplaceTextarea() ;
+	if(window.FCKeditor)
+	{
+		var oFCKeditor = new FCKeditor('newstext');
+		oFCKeditor.BasePath = './FCKeditor/';
+		oFCKeditor.ReplaceTextarea();
+	}
 
 	inNewsPreview = false;
 
