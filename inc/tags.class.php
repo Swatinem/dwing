@@ -51,16 +51,17 @@ class Tags extends Module
 	 **/
 	public static function getTagsForContent($aContentId, $aContentType)
 	{
-		$tagsRes = self::$_db->queryAll('
+		$statement = self::$_db->prepare('
 			SELECT tags.name
 			FROM '.self::$_db->pref.'tagstocontent AS tagstocontent
 			LEFT JOIN '.self::$_db->pref.'tags AS tags USING (tag_id)
-			WHERE tagstocontent.content_id='.(int)$aContentId.' AND tagstocontent.content_type='.(int)$aContentType.'
+			WHERE tagstocontent.content_id=:contentId AND
+				tagstocontent.content_type=:contentType
 			ORDER BY tags.name ASC;');
-		$tagNames = array();
-		foreach($tagsRes as $tagRow)
-			$tagNames[] = $tagRow['name'];
-		return $tagNames;
+		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
+		$statement->execute();
+		return $statement->fetchAll(PDO::FETCH_COLUMN);
 	}
 
 	/**
@@ -72,8 +73,11 @@ class Tags extends Module
 	 **/
 	public static function deleteTagsForContent($aContentId, $aContentType)
 	{
-		self::$_db->query('DELETE FROM '.self::$_db->pref.'tagstocontent
-			WHERE content_id='.(int)$aContentId.' AND content_type='.(int)$aContentType.';');
+		$statement = self::$_db->prepare('DELETE FROM '.self::$_db->pref.'tagstocontent
+			WHERE content_id=:contentId AND content_type=:contentType;');
+		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
+		$statement->execute();
 		return true;
 	}
 
@@ -98,15 +102,17 @@ class Tags extends Module
 		$tagNames = self::cleanTags($aTags);
 
 		// link the tags with the content item, adding new tags when necessary
-		$query = 'INSERT INTO '.self::$_db->pref.'tagstocontent (tag_id, content_id, content_type) VALUES ';
-		$insertRows = array();
+		$statement = self::$_db->prepare('
+			INSERT INTO '.self::$_db->pref.'tagstocontent
+			SET tag_id=:tagId, content_id=:contentId, content_type=:contentType;');
 		foreach($tagNames as $tagName)
 		{
 			$tagId = !empty($nameToIdMap[$tagName]) ? $nameToIdMap[$tagName] : self::addTag($tagName);
-			$insertRows[] = '('.(int)$tagId.','.(int)$aContentId.','.(int)$aContentType.')';
+			$statement->bindValue(':tagId', $tagId, PDO::PARAM_INT);
+			$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
+			$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
+			$statement->execute();
 		}
-		$query.= implode(',', $insertRows).';';
-		self::$_db->query($query);
 		return true;
 	}
 
@@ -117,11 +123,9 @@ class Tags extends Module
 	 **/
 	public static function getTags()
 	{
-		$tagsRes = self::$_db->queryAll('SELECT name FROM '.self::$_db->pref.'tags ORDER BY name ASC;');
-		$tagNames = array();
-		foreach($tagsRes as $tagRow)
-			$tagNames[] = $tagRow['name'];
-		return $tagNames;
+		$statement = self::$_db->prepare('SELECT name FROM '.self::$_db->pref.'tags ORDER BY name ASC;');
+		$statement->execute();
+		return $statement->fetchAll(PDO::FETCH_COLUMN);
 	}
 
 	/**
@@ -132,10 +136,11 @@ class Tags extends Module
 	 **/
 	private static function addTag($aTagName)
 	{
-		self::$_db->query('
+		$statement = self::$_db->prepare('
 			INSERT INTO '.self::$_db->pref.'tags SET
-			name="'.self::$_db->escape($aTagName).'";');
-		return self::$_db->insert_id;
+			name=:name;');
+		$statement->bindValue(':name', $aTagName, PDO::PARAM_STR);
+		return self::$_db->lastInsertId();
 	}
 
 	/**
@@ -146,13 +151,16 @@ class Tags extends Module
 	 **/
 	public static function getTagsWithContentOfType($aContentType)
 	{
-		return self::$_db->queryAll('
+		$statement = self::$_db->prepare('
 			SELECT DISTINCT tags.name, COUNT(tagstocontent.content_id) AS content
 			FROM '.self::$_db->pref.'tags AS tags
 			LEFT JOIN '.self::$_db->pref.'tagstocontent AS tagstocontent USING (tag_id)
-			WHERE tagstocontent.content_type='.(int)$aContentType.'
+			WHERE tagstocontent.content_type=:contentType
 			GROUP BY tag_id
 			ORDER BY tags.name ASC;');
+		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
+		$statement->execute();
+		return $statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 
 	/**
@@ -172,15 +180,15 @@ class Tags extends Module
 		{
 			$query.= ' WHERE ';
 			if($aTagName)
-				$query.= ' tags.name="'.self::$_db->escape($aTagName).'" ';
+				$query.= ' tags.name='.self::$_db->quote($aTagName).' ';
 			if($aTagName && $aContentType)
 				$query.= ' AND ';
 			if($aContentType)
 				$query.= ' content_type='.(int)$aContentType.' ';
 		}
 		$query.= ';';
-		$result = self::$_db->queryfirst($query);
-		return $result['count'];
+		$result = self::$_db->query($query);
+		return $result->fetchColumn();
 	}
 }
 ?>
