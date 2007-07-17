@@ -95,6 +95,7 @@ class News extends Module
 			if(empty($_POST['title'])) throw new Exception(l10n::_('No title defined.'));
 			$time = (empty($_POST['time']) || !strtotime($_POST['time'])) ? time() : strtotime($_POST['time']);
 
+			self::$_db->beginTransaction();
 			$fancyUrl = Utils::fancyUrl($_POST['title']);
 			$statement = self::$_db->prepare('
 				SELECT COUNT(news_id) FROM '.self::$_db->pref.'news
@@ -132,6 +133,7 @@ class News extends Module
 			// link with tags
 			Tags::setTagsForContent($insertId, ContentType::NEWS, $_POST['tags']);
 
+			self::$_db->commit();
 			return $insertId;
 		}
 		catch(Exception $e)
