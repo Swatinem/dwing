@@ -34,13 +34,16 @@ class Comments extends Module
 	 **/
 	public static function getComments($aContentId, $aContentType)
 	{
-		$commentsRes = self::$_db->query('
+		$statement = self::$_db->prepare('
 			SELECT comment_id, user_id, time, text FROM '.self::$_db->pref.'comments
-			WHERE content_id='.(int)$aContentId.' AND
-				content_type='.(int)$aContentType.'
+			WHERE content_id=:contentId AND content_type=:contentType
 			ORDER BY time ASC;');
+		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
+		$statement->execute();
+		
 		$comments = array();
-		while($commentRow = $commentsRes->fetch(PDO::FETCH_ASSOC))
+		while($commentRow = $statement->fetch(PDO::FETCH_ASSOC))
 		{
 			$commentRow['user'] = Users::getUser($commentRow['user_id']);
 			unset($commentRow['user_id']);
@@ -58,11 +61,13 @@ class Comments extends Module
 	 **/
 	public static function getCommentNum($aContentId, $aContentType)
 	{
-		$commentNum = self::$_db->queryFirst('
+		$statement = self::$_db->prepare('
 			SELECT COUNT(comment_id) as commentnum FROM '.self::$_db->pref.'comments
-			WHERE content_id='.(int)$aContentId.' AND
-				content_type='.(int)$aContentType.';');
-		return $commentNum['commentnum'];
+			WHERE content_id=:contentId AND content_type=:contentType;');
+		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
+		$statement->execute();
+		return $statement->fetchColumn();
 	}
 
 	/**
@@ -76,17 +81,20 @@ class Comments extends Module
 	{
 		if(empty($_POST['text']))
 			return;
-		self::$_db->query('
+		$statement = self::$_db->prepare('
 		INSERT INTO
 			'.self::$_db->pref.'comments
 		SET
-			user_id='.(int)self::$_user->user_id.',
-			time='.time().',
-			text="'.self::$_db->escape(Utils::purify($_POST['text'])).'",
-			content_id='.(int)$aContentId.',
-			content_type='.(int)$aContentType.';');
-		$insertId = self::$_db->insert_id;
-		return $insertId;
+			user_id=:userId, time=:time, text=:text, content_id=:contentId,
+			content_type=:contentType;');
+		
+		$statement->bindValue(':userId', (int)self::$_user->user_id, PDO::PARAM_INT);
+		$statement->bindValue(':time', time(), PDO::PARAM_INT);
+		$statement->bindValue(':text', Utils::purify($_POST['text']), PDO::PARAM_STR);
+		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
+		$statement->execute();
+		return self::$_db->lastInsertId();
 	}
 
 	/**
@@ -97,8 +105,10 @@ class Comments extends Module
 	 **/
 	public static function deleteComment($aCommentId)
 	{
-		self::$_db->query('DELETE FROM '.self::$_db->pref.'comments
-			WHERE comment_id='.(int)$aCommentId.';');
+		$statement = self::$_db->prepare('DELETE FROM '.self::$_db->pref.'comments
+			WHERE comment_id=:commentId;');
+		$statement->bindValue(':commentId', (int)$aCommentId, PDO::PARAM_INT);
+		$statement->execute();
 		return true;
 	}
 
@@ -111,9 +121,11 @@ class Comments extends Module
 	 **/
 	public static function deleteComments($aContentId, $aContentType)
 	{
-		self::$_db->query('DELETE FROM '.self::$_db->pref.'comments
-			WHERE content_id='.(int)$aContentId.' AND
-				content_type='.(int)$aContentType.';');
+		$statement = self::$_db->prepare('DELETE FROM '.self::$_db->pref.'comments
+			WHERE content_id=:contentId AND content_type=:contentType;');
+		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
+		$statement->execute();
 		return true;
 	}
 }
