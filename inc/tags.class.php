@@ -140,6 +140,7 @@ class Tags extends Module
 			INSERT INTO '.self::$_db->pref.'tags SET
 			name=:name;');
 		$statement->bindValue(':name', $aTagName, PDO::PARAM_STR);
+		$statement->execute();
 		return self::$_db->lastInsertId();
 	}
 
