@@ -35,11 +35,16 @@ class Ratings extends Module
 	 **/
 	public static function getRating($aContentId, $aContentType)
 	{
-		return self::$_db->queryfirst('
+		$statement = self::$_db->prepare('
 			SELECT COUNT(rating) as ratings, AVG(rating) as average,
-				SUM(user_id='.(int)self::$_user->user_id.') as voted
-			FROM `'.self::$_db->pref.'ratings` WHERE content_id='.(int)$aContentId.'
-				AND	content_type='.(int)$aContentType.';');
+				SUM(user_id=:userId) as voted
+			FROM `'.self::$_db->pref.'ratings`
+			WHERE content_id=:contentId AND	content_type=:contentType;');
+		$statement->bindValue(':userId', (int)self::$_user->user_id, PDO::PARAM_INT);
+		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
+		$statement->execute();
+		return $statement->fetch(PDO::FETCH_ASSOC);
 	}
 
 	/**
@@ -54,12 +59,15 @@ class Ratings extends Module
 	{
 		if($aRating > 5 || $aRating < 1 || !self::$_user->authed)
 			return false;
-		self::$_db->query('
+		$statement = self::$_db->prepare('
 			REPLACE INTO `'.self::$_db->pref.'ratings`
-			SET user_id='.(int)self::$_user->user_id.',
-				content_id='.(int)$aContentId.',
-				content_type='.(int)$aContentType.',
-				rating='.(int)$aRating.';');
+			SET user_id=:userId, content_id=:contentId, content_type=:contentType,
+				rating=:rating;');
+		$statement->bindValue(':userId', (int)self::$_user->user_id, PDO::PARAM_INT);
+		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
+		$statement->bindValue(':rating', (int)$aRating, PDO::PARAM_INT);
+		$statement->execute();
 		return true;
 	}
 }
