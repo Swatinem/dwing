@@ -56,13 +56,13 @@ class News extends Module
 
 		$news = array();
 		$news_res = self::$_db->query($query);
-		while($news_row = $news_res->fetch_assoc())
+		while($news_row = $news_res->fetch(PDO::FETCH_ASSOC))
 		{
 			$news_row['user'] = Users::getUser($news_row['user_id']);
 			unset($news_row['user_id']);
 			$news[] = $news_row;
 		}
-		$news_res->close();
+		unset($news_res);
 		return $news;
 	}
 
