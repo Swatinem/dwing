@@ -105,12 +105,12 @@ class Tags extends Module
 		$statement = self::$_db->prepare('
 			INSERT INTO '.self::$_db->pref.'tagstocontent
 			SET tag_id=:tagId, content_id=:contentId, content_type=:contentType;');
+		$statement->bindParam(':tagId', $tagId, PDO::PARAM_INT);
+		$statement->bindParam(':contentId', $aContentId, PDO::PARAM_INT);
+		$statement->bindParam(':contentType', $aContentType, PDO::PARAM_INT);
 		foreach($tagNames as $tagName)
 		{
 			$tagId = !empty($nameToIdMap[$tagName]) ? $nameToIdMap[$tagName] : self::addTag($tagName);
-			$statement->bindValue(':tagId', $tagId, PDO::PARAM_INT);
-			$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
-			$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
 			$statement->execute();
 		}
 		return true;
