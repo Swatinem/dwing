@@ -121,12 +121,12 @@ class CurrentUser extends GenericUser
 		{
 			return $this->beginLogin($_POST['openid_url']);
 		}
-		if(!empty($_GET['nonce'])) // catch the response from the OpenID server
+		if($_GET['site'] == 'completelogin') // catch the response from the OpenID server
 		{
 			return $this->completeLogin();
 		}
 		if(!empty($_COOKIE['openid_url']) && empty($_SESSION['uid']) &&
-			empty($_GET['nonce']))
+			$_GET['site'] != 'completelogin')
 		{
 			return $this->beginLogin($_COOKIE['openid_url'], true);
 		}
@@ -221,34 +221,39 @@ class CurrentUser extends GenericUser
 		set_include_path('./openid/' . PATH_SEPARATOR . get_include_path());
 		define('Auth_OpenID_RAND_SOURCE', null); // windows...
 
-		require_once "Auth/OpenID/Consumer.php";
-		require_once "Auth/OpenID/FileStore.php";
 		$oldErrorReporting = error_reporting();
 		error_reporting(0); // this throws a few notices
+		require_once "Auth/OpenID/Consumer.php";
+		require_once "Auth/OpenID/FileStore.php";
+		require_once "Auth/OpenID/SReg.php";
 
 		$store = new Auth_OpenID_FileStore('./openid/store/');
 		$consumer = new Auth_OpenID_Consumer($store);
 		$authRequest = $consumer->begin($aOpenID);
-		error_reporting($oldErrorReporting);
 
 		if(!$aImmediate)
 		{
 			$_GET['site'] = 'login'; // fake this get to display any login error
 			if(!$authRequest)
 			{
+				error_reporting($oldErrorReporting);
 				return new Exception(l10n::_('Authentication error: OpenId invalid'));
 			}
-
-			$authRequest->addExtensionArg('sreg', 'required', 'nickname');
+			$sregRequest = Auth_OpenID_SRegRequest::build(array('nickname'), array());
+			$authRequest->addExtension($sregRequest);
 			// do not request these vars if the user is logged in via cookie.
 		}
 		elseif(!$authRequest)
+		{
+			error_reporting($oldErrorReporting);
 			return;
-		
+		}
+
 		header("Location: ".$authRequest->redirectURL(
 			'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/',
-			'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/',
+			'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/completelogin',
 			$aImmediate));
+		error_reporting($oldErrorReporting);
 		exit;
 	}
 
@@ -268,12 +273,12 @@ class CurrentUser extends GenericUser
 
 		require_once "Auth/OpenID/Consumer.php";
 		require_once "Auth/OpenID/FileStore.php";
+		require_once "Auth/OpenID/SReg.php";
 
 		$store = new Auth_OpenID_FileStore('./openid/store/');
 		$consumer = new Auth_OpenID_Consumer($store);
-		$response = $consumer->complete($_GET);
-
-		error_reporting($oldErrorReporting);
+		$returnUrl = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/completelogin';
+		$response = $consumer->complete($returnUrl);
 
 		if($response->status == Auth_OpenID_SUCCESS)
 		{
@@ -297,7 +302,8 @@ class CurrentUser extends GenericUser
 				// on-the-fly account creation
 				$nickname = $response->identity_url;
 				
-				$sreg = $response->extensionResponse('sreg');
+				$sregResponse = Auth_OpenID_SRegResponse::fromSuccessResponse($response);
+				$sreg = $sregResponse->contents();
 				if(!empty($sreg['nickname']))
 				{
 					$checknick = self::$_db->queryFirst('SELECT user_id FROM '.self::$_db->pref.'user WHERE nick="'.self::$_db->escape($sreg['nickname']).'";');
@@ -325,6 +331,7 @@ class CurrentUser extends GenericUser
 		}
 		else // OpenID invalid -> no login!
 		{
+			error_reporting($oldErrorReporting);
 			if($response->status ==  Auth_OpenID_SETUP_NEEDED)
 			{
 				setcookie('openid_url', '', 1);
