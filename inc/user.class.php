@@ -121,12 +121,12 @@ class CurrentUser extends GenericUser
 		{
 			return $this->beginLogin($_POST['openid_url']);
 		}
-		if($_GET['site'] == 'completelogin') // catch the response from the OpenID server
+		if(!empty($_GET['site']) && $_GET['site'] == 'completelogin') // catch the response from the OpenID server
 		{
 			return $this->completeLogin();
 		}
 		if(!empty($_COOKIE['openid_url']) && empty($_SESSION['uid']) &&
-			$_GET['site'] != 'completelogin')
+			(empty($_GET['site']) || $_GET['site'] != 'completelogin'))
 		{
 			return $this->beginLogin($_COOKIE['openid_url'], true);
 		}
