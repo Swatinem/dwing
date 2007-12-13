@@ -33,27 +33,30 @@ require_once('inc/bench.class.php');
 $_bench = new bench;
 
 // gzip the output
-ini_set('zlib.output_compression_level', 3);
-ob_start('ob_gzhandler');
+if(!ini_get('zlib.output_compression'))
+	ob_start('ob_gzhandler');
 header('X-Powered-By: dWing cms/'.$_version.' (swatinemz.sourceforge.net)',false);
 
 // disable magic quotes
-set_magic_quotes_runtime(0);
-if(get_magic_quotes_gpc() == 1)
+if(function_exists('set_magic_quotes_runtime') && function_exists('get_magic_quotes_gpc'))
 {
-	function magicSlashes($element)
+	set_magic_quotes_runtime(0);
+	if(get_magic_quotes_gpc() == 1)
 	{
-		if(is_array($element))
-			return array_map('magicSlashes', $element);
-		else
-			return stripslashes($element);
+		function magicSlashes($element)
+		{
+			if(is_array($element))
+				return array_map('magicSlashes', $element);
+			else
+				return stripslashes($element);
+		}
+	
+		// strip slashes from all incoming GET/POST/COOKIE/REQUEST data.
+		$_GET = array_map('magicSlashes', $_GET);
+		$_POST = array_map('magicSlashes', $_POST);
+		$_COOKIE = array_map('magicSlashes', $_COOKIE);
+		$_REQUEST = array_map('magicSlashes', $_REQUEST);
 	}
-
-	// strip slashes from all incoming GET/POST/COOKIE/REQUEST data.
-	$_GET = array_map('magicSlashes', $_GET);
-	$_POST = array_map('magicSlashes', $_POST);
-	$_COOKIE = array_map('magicSlashes', $_COOKIE);
-	$_REQUEST = array_map('magicSlashes', $_REQUEST);
 }
 
 // init the translation system, this is independet from any module

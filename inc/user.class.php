@@ -280,6 +280,11 @@ class CurrentUser extends GenericUser
 		$consumer = new Auth_OpenID_Consumer($store);
 		$returnUrl = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/?site=completelogin';
 		$response = $consumer->complete($returnUrl);
+		if(!$response)
+		{
+			error_reporting($oldErrorReporting);
+			return new Exception(l10n::_('Consumer->complete failed'));
+		}
 
 		if($response->status == Auth_OpenID_SUCCESS)
 		{
