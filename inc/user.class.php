@@ -218,8 +218,8 @@ class CurrentUser extends GenericUser
 	 **/
 	private function beginLogin($aOpenID, $aImmediate = false)
 	{
-		set_include_path('./openid/' . PATH_SEPARATOR . get_include_path());
-		define('Auth_OpenID_RAND_SOURCE', null); // windows...
+		if(stripos($_ENV['OS'], 'win') !== false) // windows
+			define('Auth_OpenID_RAND_SOURCE', null);
 
 		$oldErrorReporting = error_reporting();
 		error_reporting(0); // this throws a few notices
@@ -227,7 +227,7 @@ class CurrentUser extends GenericUser
 		require_once "Auth/OpenID/FileStore.php";
 		require_once "Auth/OpenID/SReg.php";
 
-		$store = new Auth_OpenID_FileStore('./openid/store/');
+		$store = new Auth_OpenID_FileStore('./openidstore/');
 		$consumer = new Auth_OpenID_Consumer($store);
 		$authRequest = $consumer->begin($aOpenID);
 
@@ -266,8 +266,9 @@ class CurrentUser extends GenericUser
 	 **/
 	private function completeLogin()
 	{
-		set_include_path('./openid/' . PATH_SEPARATOR . get_include_path());
-		define('Auth_OpenID_RAND_SOURCE', null); // windows...
+		if(stripos($_ENV['OS'], 'win') !== false) // windows
+			define('Auth_OpenID_RAND_SOURCE', null);
+
 		$oldErrorReporting = error_reporting();
 		error_reporting(0); // this throws a few notices
 
@@ -275,7 +276,7 @@ class CurrentUser extends GenericUser
 		require_once "Auth/OpenID/FileStore.php";
 		require_once "Auth/OpenID/SReg.php";
 
-		$store = new Auth_OpenID_FileStore('./openid/store/');
+		$store = new Auth_OpenID_FileStore('./openidstore/');
 		$consumer = new Auth_OpenID_Consumer($store);
 		$returnUrl = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/completelogin';
 		$response = $consumer->complete($returnUrl);

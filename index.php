@@ -24,10 +24,8 @@ session_start();
 $_debug = false;
 
 // show all errors
-error_reporting(E_STRICT /*& E_STRICT*/); // first check if the included libs are compatible or not
+error_reporting(E_ALL);
 ini_set('display_errors', true);
-// check querys for indexes
-//mysqli_report(MYSQLI_REPORT_ALL);
 
 // include bench class
 require_once('inc/bench.class.php');

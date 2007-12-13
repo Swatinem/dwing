@@ -44,7 +44,6 @@ class Utils extends Module
 		if(is_null(self::$mPurifier))
 		{
 			// load HTMLPurifier
-			set_include_path('./htmlpurifier/library' . PATH_SEPARATOR . get_include_path());
 			require_once('HTMLPurifier.php');
 			$config = HTMLPurifier_Config::createDefault();
 			$config->set('HTML', 'Strict', true);
