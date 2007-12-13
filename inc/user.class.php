@@ -251,7 +251,7 @@ class CurrentUser extends GenericUser
 
 		header("Location: ".$authRequest->redirectURL(
 			'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/',
-			'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/completelogin',
+			'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/?site=completelogin',
 			$aImmediate));
 		error_reporting($oldErrorReporting);
 		exit;
@@ -278,7 +278,7 @@ class CurrentUser extends GenericUser
 
 		$store = new Auth_OpenID_FileStore('./openidstore/');
 		$consumer = new Auth_OpenID_Consumer($store);
-		$returnUrl = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/completelogin';
+		$returnUrl = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/?site=completelogin';
 		$response = $consumer->complete($returnUrl);
 
 		if($response->status == Auth_OpenID_SUCCESS)
@@ -327,6 +327,11 @@ class CurrentUser extends GenericUser
 			{
 				header('Location: '.$_SESSION['returnto']);
 				unset($_SESSION['returnto']);
+				exit;
+			}
+			else
+			{
+				header('Location: ./');
 				exit;
 			}
 		}
