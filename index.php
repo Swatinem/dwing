@@ -64,8 +64,8 @@ require_once('inc/translation.class.php');
 l10n::init();
 
 // initiate template engine
-require_once('inc/snntpl.class.php');
-$_tpl = new tpl();
+require_once('inc/template.class.php');
+$_tpl = new TemplateSystem();
 $_tpl->assign('_bench',$_bench);
 $_tpl->assign('_version',$_version);
 
@@ -80,7 +80,7 @@ if(!file_exists('inc/settings.php'))
 {
 	// not installed -> include install class, display install template
 	exit('not installed, installer currently disabled');
-	$_tpl->setPath('template', './tpl/install');
+	$_tpl->setPath('./tpl/install');
 	$_tpl->display('install.tpl.php');
 }
 // exit -> no else needed
@@ -126,13 +126,13 @@ if(version_compare($_version,$_cfg['version']) == 1)
 	$_updater = new Updater();
 	$_tpl->assign('updater', $_updater);
 	
-	$_tpl->setPath('template', './tpl/install');
+	$_tpl->setPath('./tpl/install');
 	$_tpl->display('update.tpl.php');
 	exit;
 }
 // exit -> no else needed
 
-$_tpl->setPath('template', './tpl/default'); // add the default theme as a fallback
+$_tpl->setPath('./tpl/default'); // add the default theme as a fallback
 if(!empty($_GET['settheme']) && preg_match('!^[_a-zA-Z0-9-.]+$!', $_GET['settheme']) && $_GET['settheme'] != 'install')
 {
 	$_theme = $_GET['settheme'];
@@ -145,7 +145,7 @@ if(!empty($_theme))
 	}
 }
 $_themedir = '/'.(!empty($_SESSION['theme']) ? $_SESSION['theme'] : $_cfg['default_theme']);
-$_tpl->addPath('template', './tpl'.$_themedir);
+$_tpl->addPath('./tpl'.$_themedir);
 
 if(!empty($_GET['site']))
 {
