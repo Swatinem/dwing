@@ -56,13 +56,13 @@ class News extends Module
 
 		$news = array();
 		$news_res = self::$_db->query($query);
-		while($news_row = $news_res->fetch_assoc())
+		while($news_row = $news_res->fetch(PDO::FETCH_ASSOC))
 		{
 			$news_row['user'] = Users::getUser($news_row['user_id']);
 			unset($news_row['user_id']);
 			$news[] = $news_row;
 		}
-		$news_res->close();
+		unset($news_res);
 		return $news;
 	}
 
@@ -74,7 +74,10 @@ class News extends Module
 	 **/
 	public static function getNewsAllDetails($aNewsId)
 	{
-		$news = self::$_db->queryfirst('SELECT * FROM '.self::$_db->pref.'news WHERE news_id='.(int)$aNewsId.';');
+		$statement = self::$_db->prepare('SELECT * FROM '.self::$_db->pref.'news WHERE news_id=:newsId;');
+		$statement->bindValue(':newsId', (int)$aNewsId, PDO::PARAM_INT);
+		$statement->execute();
+		$news = $statement->fetch(PDO::FETCH_ASSOC);
 		$news['user'] = Users::getUser($news['user_id']);
 		$news['tags'] = Tags::getTagsForContent($aNewsId, ContentType::NEWS);
 		return $news;
@@ -92,32 +95,45 @@ class News extends Module
 			if(empty($_POST['title'])) throw new Exception(l10n::_('No title defined.'));
 			$time = (empty($_POST['time']) || !strtotime($_POST['time'])) ? time() : strtotime($_POST['time']);
 
+			self::$_db->beginTransaction();
 			$fancyUrl = Utils::fancyUrl($_POST['title']);
-			$urlconflict = self::$_db->queryFirst('
-				SELECT news_id FROM '.self::$_db->pref.'news
-				WHERE fancyurl="'.self::$_db->escape($fancyUrl).'";');
+			$statement = self::$_db->prepare('
+				SELECT COUNT(news_id) FROM '.self::$_db->pref.'news
+				WHERE fancyurl=:fancyurl;');
+			$statement->bindValue(':fancyurl', $fancyUrl, PDO::PARAM_STR);
+			$statement->execute();
+			$urlconflict = $statement->fetchColumn();
 
 			// insert the news
-			self::$_db->query('
+			$statement = self::$_db->prepare('
 			INSERT INTO
 				'.self::$_db->pref.'news
 			SET
-				title="'.self::$_db->escape($_POST['title']).'",
-				time='.(int)$time.',
-				user_id='.(int)self::$_user->user_id.',
-				text="'.self::$_db->escape(Utils::purify($_POST['text'])).'",
-				fancyurl="'.(!empty($urlconflict) ? time() : self::$_db->escape($fancyUrl)).'";');
-			$insertId = self::$_db->insert_id;
+				title=:title, time=:time, user_id=:userId, text=:text,
+				fancyurl=:fancyurl;');
+			$statement->bindValue(':title', $_POST['title'], PDO::PARAM_STR);
+			$statement->bindValue(':time', (int)$time, PDO::PARAM_INT);
+			$statement->bindValue(':userId', (int)self::$_user->user_id, PDO::PARAM_INT);
+			$statement->bindValue(':text', Utils::purify($_POST['text']), PDO::PARAM_STR);
+			$statement->bindValue(':fancyurl', (!empty($urlconflict) ? time() : self::$_db->escape($fancyUrl)), PDO::PARAM_STR);
+			$statement->execute();
+			$insertId = self::$_db->lastInsertId();
 
 			if(!empty($urlconflict))
-				self::$_db->query('
+			{
+				$statement = self::$_db->prepare('
 				UPDATE '.self::$_db->pref.'news
-				SET fancyurl="'.self::$_db->escape($fancyUrl.'-'.$insertId).'"
-				WHERE news_id='.(int)$insertId.';');
+				SET fancyurl=:fancyurl
+				WHERE news_id=:newsId;');
+				$statement->bindValue(':fancyurl', $fancyUrl.'-'.$insertId, PDO::PARAM_STR);
+				$statement->bindValue(':newsId', (int)$insertId, PDO::PARAM_INT);
+				$statement->execute();
+			}
 
 			// link with tags
 			Tags::setTagsForContent($insertId, ContentType::NEWS, $_POST['tags']);
 
+			self::$_db->commit();
 			return $insertId;
 		}
 		catch(Exception $e)
@@ -146,7 +162,9 @@ class News extends Module
 	public static function deleteNews($aNewsId)
 	{
 		// delete the Db entries
-		self::$_db->query('DELETE FROM '.self::$_db->pref.'news WHERE news_id='.(int)$aNewsId.';');
+		$statement = self::$_db->prepare('DELETE FROM '.self::$_db->pref.'news WHERE news_id=:newsId;');
+		$statement->bindValue(':newsId', (int)$aNewsId, PDO::PARAM_INT);
+		$statement->execute();
 		// delete the associations with tags
 		Tags::deleteTagsForContent((int)$aNewsId, ContentType::NEWS);
 		return true;

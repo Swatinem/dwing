@@ -41,11 +41,11 @@ class Smilies extends Module
 	{
 		self::$mSmilies = array();
 		$smilies_res = self::$_db->query('SELECT code, file FROM '.self::$_db->pref.'smilies ORDER BY LENGTH(code) DESC');
-		while($smilies_row = $smilies_res->fetch_assoc())
+		while($smilies_row = $smilies_res->fetch(PDO::FETCH_ASSOC))
 		{
 			self::$mSmilies[$smilies_row['code']] = '<img src="images/smilies/'.$smilies_row['file'].'" alt="'.$smilies_row['code'].'" />';
 		}
-		$smilies_res->close();
+		unset($smilies_res);
 	}
 	/**
 	 * gets all the quotes
