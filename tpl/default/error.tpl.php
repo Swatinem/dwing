@@ -12,7 +12,7 @@
 </div>
 <script type="text/javascript"><![CDATA[
 window.addEventListener('load', function () {
-	addWarning('<?php echo $_error; ?>');
+	Messages.addWarning('<?php echo $_error; ?>');
 	$('opensubmitbutton').addEventListener('click', function () { history.go(-1) }, false);
 }, false);
 ]]></script>
