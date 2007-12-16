@@ -265,7 +265,6 @@ class CurrentUser extends GenericUser
 			$_GET['site'] = 'login'; // fake this get to display any login error
 			if(!$authRequest)
 			{
-				error_reporting($oldErrorReporting);
 				throw new Exception(l10n::_('Authentication error: OpenId invalid'));
 			}
 			$sregRequest = Auth_OpenID_SRegRequest::build(array('nickname'), array());
