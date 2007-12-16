@@ -37,6 +37,12 @@ class GenericUser extends Module
 	 * @var array $mUserData
 	 **/
 	protected $mUserData = null;
+	/**
+	 * the OpenIDs of the user
+	 *
+	 * @var array $mOpenIDs
+	 **/
+	protected $mOpenIDs = null;
 
 	/**
 	 * constructor
@@ -68,6 +74,22 @@ class GenericUser extends Module
 	}
 
 	/**
+	 * fetch the users OpenID URLs
+	 *
+	 * @return void
+	 **/
+	private function _fetchOpenIDs()
+	{
+		if($this->mOpenIDs == null)
+		{
+			$statement = self::$_db->prepare('SELECT openid FROM '.self::$_db->pref.'openids WHERE user_id=:userId ORDER BY openid ASC;');
+			$statement->bindParam(':userId', $this->mUserId, PDO::PARAM_INT);
+			$statement->execute();
+			$this->mOpenIDs = $statement->fetchAll(PDO::FETCH_COLUMN);
+		}
+	}
+
+	/**
 	 * getter
 	 *
 	 * @param int $aVarName what kind of info we want to get from the user
@@ -76,6 +98,11 @@ class GenericUser extends Module
 	public function __get($aVarName)
 	{
 		$this->_fetchData();
+		if($aVarName == 'openids')
+		{
+			$this->_fetchOpenIDs();
+			return $this->mOpenIDs;
+		}
 		return isset($this->mUserData[$aVarName]) ? $this->mUserData[$aVarName] : null;
 	}
 }
@@ -145,6 +172,11 @@ class CurrentUser extends GenericUser
 		{
 			return $this->mUserId != 0;
 		}
+		if($aVarName == 'openids')
+		{
+			$this->_fetchOpenIDs();
+			return $this->mOpenIDs;
+		}
 		return isset($this->mUserData[$aVarName]) ? $this->mUserData[$aVarName] : null;
 	}
 
@@ -201,7 +233,6 @@ class CurrentUser extends GenericUser
 		{
 			$this->mUserId = $_SESSION['uid'];
 		}
-		// is there a method to auto-login with OpenID?
 		else
 		{
 			$this->mUserId = 0;
@@ -288,10 +319,12 @@ class CurrentUser extends GenericUser
 
 		if($response->status == Auth_OpenID_SUCCESS)
 		{
+			$this->checkLogin();
 			// get the user ID from the DB or create a new user
 			// write the user id to the session for login
 			$userData = self::$_db->queryFirst('SELECT * FROM '.self::$_db->pref.'user
-				WHERE openid="'.self::$_db->escape($response->identity_url).'";');
+				LEFT JOIN '.self::$_db->pref.'openids as openids USING (user_id)
+				WHERE openids.openid="'.self::$_db->escape($response->identity_url).'";');
 			if(!empty($userData))
 			{
 				// user already exists
@@ -302,6 +335,15 @@ class CurrentUser extends GenericUser
 
 				if(empty($_COOKIE['openid_url']))
 					setcookie('openid_url', $response->identity_url, time()+3600*24*365);
+			}
+			elseif(!empty($this->mUserId))
+			{
+				// User was already logged in -> set this as a secondary OpenID
+				$statement = self::$_db->prepare('
+					INSERT INTO '.self::$_db->pref.'openids SET user_id=:userId, openid=:openID;');
+				$statement->bindParam(':userId', $this->mUserId, PDO::PARAM_INT);
+				$statement->bindParam(':openID', $response->identity_url, PDO::PARAM_STR);
+				$statement->execute();
 			}
 			else
 			{
@@ -317,14 +359,22 @@ class CurrentUser extends GenericUser
 						$nickname = $sreg['nickname'];
 				}
 
+				self::$_db->beginTransaction();
 				self::$_db->query('
 				INSERT INTO '.self::$_db->pref.'user
 				SET
 					nick="'.self::$_db->escape($nickname).'",
-					openid="'.self::$_db->escape($response->identity_url).'",
 					registered='.time().';');
-
+				
 				$this->mUserId = self::$_db->insert_id;;
+				
+				$statement = self::$_db->prepare('
+					INSERT INTO '.self::$_db->pref.'openid SET user_id=:userId, openid=:openID;');
+				$statement->bindParam(':userId', $this->mUserId, PDO::PARAM_INT);
+				$statement->bindParam(':openID', $response->identity_url, PDO::PARAM_STR);
+				$statement->execute();
+				self::$_db->commit();
+
 				$_SESSION['uid'] = $this->mUserId;
 				setcookie('openid_url', $response->identity_url, time()+3600*24*365);
 			}

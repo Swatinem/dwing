@@ -58,7 +58,8 @@ class Updater extends Module
 	 **/
 	public function __construct()
 	{
-		$this->_versions = array('0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6');
+		$this->_versions = array('0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5',
+			'0.0.6', '0.0.7');
 		$this->_langs = array('en', 'de');
 		$this->version = $this->_versions[count($this->_versions)-1];
 		$this->oldversion = self::$_cfg['version'];
@@ -184,12 +185,12 @@ class Updater extends Module
 			FROM '.self::$_db->pref.'news_news
 			LEFT JOIN '.self::$_db->pref.'news_links AS links USING (news_id)
 			GROUP BY news_id HAVING linknum > 0');
-		while($news = $newsRes->fetch_assoc())
+		while($news = $newsRes->fetch(PDO::FETCH_ASSOC))
 		{
 			// hardcode german...
 			$text = $news['text'].'<br /><br /><strong>Links zu dem Thema:</strong><ul>';
 			$linksRes = self::$_db->query('SELECT * FROM '.self::$_db->pref.'news_links WHERE news_id='.(int)$news['news_id'].';');
-			while($link = $linksRes->fetch_assoc())
+			while($link = $linksRes->fetch(PDO::FETCH_ASSOC))
 			{
 				$text.= '<li><a href="'.$link['url'].'">'.$link['name'].'</a></li>';
 			}
@@ -217,7 +218,7 @@ class Updater extends Module
 
 		$cleanTitles = array();
 		$newsRes = self::$_db->query('SELECT news_id, title FROM '.self::$_db->pref.'news;');
-		while($news = $newsRes->fetch_assoc())
+		while($news = $newsRes->fetch(PDO::FETCH_ASSOC))
 		{
 			$cleanTitle = Utils::fancyUrl($news['title']);
 			if(in_array($cleanTitle, $cleanTitles))
@@ -260,12 +261,32 @@ class Updater extends Module
 	private function _5to6()
 	{
 		$tagsRes = self::$_db->query('SELECT tag_id, name FROM '.self::$_db->pref.'tags;');
-		while($tagRow = $tagsRes->fetch_assoc())
+		while($tagRow = $tagsRes->fetch(PDO::FETCH_ASSOC))
 		{
 			self::$_db->query('
 				UPDATE `'.self::$_db->pref.'tags` SET name="'.self::$_db->escape(Utils::fancyUrl($tagRow['name'])).'"
 				WHERE tag_id='.(int)$tagRow['tag_id'].';');
 		}
+		return true;
+	}
+
+	/**
+	 * Update from 0.0.6 to 0.0.7
+	 * 
+	 * @return bool
+	 **/
+	private function _6to7()
+	{
+		// add comments table
+		self::$_db->query('CREATE TABLE `'.self::$_db->pref.'openids` (
+			`openid` VARCHAR( 255 ) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
+			`user_id` INT UNSIGNED NOT NULL ,
+			PRIMARY KEY ( `openid` ) ,
+			INDEX ( `user_id` )
+			) ENGINE = InnoDB;');
+		self::$_db->exec('INSERT INTO `'.self::$_db->pref.'openids` (SELECT 
+		openid, user_id FROM `'.self::$_db->pref.'user`);');
+		self::$_db->exec('ALTER TABLE `'.self::$_db->pref.'user` DROP openid;');
 		return true;
 	}
 }
