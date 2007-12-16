@@ -109,8 +109,14 @@ Module::assignGlobals($_db, $_cfg);
 require_once('inc/user.class.php');
 $_user = new CurrentUser();
 $_tpl->assign('user', $_user);
-if(($loginError = $_user->init()) instanceof Exception)
-	$_tpl->assign('loginerror', $loginError->getMessage());
+try
+{
+	$_user->init();
+}
+catch(Exception $e)
+{
+	$_tpl->assign('loginerror', $e->getMessage());
+}
 
 Module::assignCurrentUser($_user);
 

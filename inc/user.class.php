@@ -268,7 +268,7 @@ class CurrentUser extends GenericUser
 			if(!$authRequest)
 			{
 				error_reporting($oldErrorReporting);
-				return new Exception(l10n::_('Authentication error: OpenId invalid'));
+				throw new Exception(l10n::_('Authentication error: OpenId invalid'));
 			}
 			$sregRequest = Auth_OpenID_SRegRequest::build(array('nickname'), array());
 			$authRequest->addExtension($sregRequest);
@@ -314,7 +314,7 @@ class CurrentUser extends GenericUser
 		if(!$response)
 		{
 			error_reporting($oldErrorReporting);
-			return new Exception(l10n::_('Consumer->complete failed'));
+			throw new Exception(l10n::_('Consumer->complete failed'));
 		}
 
 		if($response->status == Auth_OpenID_SUCCESS)
@@ -403,7 +403,7 @@ class CurrentUser extends GenericUser
 			elseif($response->status == Auth_OpenID_FAILURE)
 				$error = sprintf(l10n::_('OpenID authentication failed: %s'), $response->message);
 			$_GET['site'] = 'login';
-			return new Exception($error);
+			throw new Exception($error);
 		}
 	}
 
