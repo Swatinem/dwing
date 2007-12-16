@@ -252,8 +252,6 @@ class CurrentUser extends GenericUser
 		if(stripos($_ENV['OS'], 'win') !== false) // windows
 			define('Auth_OpenID_RAND_SOURCE', null);
 
-		$oldErrorReporting = error_reporting();
-		error_reporting(0); // this throws a few notices
 		require_once "Auth/OpenID/Consumer.php";
 		require_once "Auth/OpenID/FileStore.php";
 		require_once "Auth/OpenID/SReg.php";
@@ -275,16 +273,12 @@ class CurrentUser extends GenericUser
 			// do not request these vars if the user is logged in via cookie.
 		}
 		elseif(!$authRequest)
-		{
-			error_reporting($oldErrorReporting);
 			return;
-		}
 
 		header("Location: ".$authRequest->redirectURL(
 			'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/',
 			'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/?site=completelogin',
 			$aImmediate));
-		error_reporting($oldErrorReporting);
 		exit;
 	}
 
@@ -300,9 +294,6 @@ class CurrentUser extends GenericUser
 		if(stripos($_ENV['OS'], 'win') !== false) // windows
 			define('Auth_OpenID_RAND_SOURCE', null);
 
-		$oldErrorReporting = error_reporting();
-		error_reporting(0); // this throws a few notices
-
 		require_once "Auth/OpenID/Consumer.php";
 		require_once "Auth/OpenID/FileStore.php";
 		require_once "Auth/OpenID/SReg.php";
@@ -312,10 +303,7 @@ class CurrentUser extends GenericUser
 		$returnUrl = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/?site=completelogin';
 		$response = $consumer->complete($returnUrl);
 		if(!$response)
-		{
-			error_reporting($oldErrorReporting);
 			throw new Exception(l10n::_('Consumer->complete failed'));
-		}
 
 		if($response->status == Auth_OpenID_SUCCESS)
 		{
@@ -392,7 +380,6 @@ class CurrentUser extends GenericUser
 		}
 		else // OpenID invalid -> no login!
 		{
-			error_reporting($oldErrorReporting);
 			if($response->status ==  Auth_OpenID_SETUP_NEEDED)
 			{
 				setcookie('openid_url', '', 1);
