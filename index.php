@@ -115,6 +115,7 @@ try
 }
 catch(Exception $e)
 {
+	$_GET['site'] = 'login'; // show the login error
 	$_tpl->assign('loginerror', $e->getMessage());
 }
 
