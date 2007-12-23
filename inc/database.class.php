@@ -88,13 +88,14 @@ class Database extends PDO
 	 *
 	 * @return void
 	 **/
-	private function connectParent()
+	public function connectParent()
 	{
 		if(!$this->mConnected)
 		{
 			parent::__construct($this->mDSN, $this->mUser, $this->mPassword);
 			$this->mConnected = true;
 			$this->exec('SET NAMES "utf8"');
+			$this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		}
 	}
 	/**

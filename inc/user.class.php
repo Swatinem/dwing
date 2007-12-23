@@ -253,12 +253,15 @@ class CurrentUser extends GenericUser
 			define('Auth_OpenID_RAND_SOURCE', null);
 
 		require_once "Auth/OpenID/Consumer.php";
-		require_once "Auth/OpenID/FileStore.php";
+		require_once "Auth/OpenID/MySQLStore.php";
 		require_once "Auth/OpenID/SReg.php";
 
-		$store = new Auth_OpenID_FileStore('./openidstore/');
+		self::$_db->connectParent();
+		$store = new Auth_OpenID_MySQLStore(self::$_db);
+		$store->createTables();
 		$consumer = new Auth_OpenID_Consumer($store);
 		$authRequest = $consumer->begin($aOpenID);
+		self::$_db->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
 
 		if(!$aImmediate)
 		{
@@ -294,13 +297,16 @@ class CurrentUser extends GenericUser
 			define('Auth_OpenID_RAND_SOURCE', null);
 
 		require_once "Auth/OpenID/Consumer.php";
-		require_once "Auth/OpenID/FileStore.php";
+		require_once "Auth/OpenID/MySQLStore.php";
 		require_once "Auth/OpenID/SReg.php";
 
-		$store = new Auth_OpenID_FileStore('./openidstore/');
+		self::$_db->connectParent();
+		$store = new Auth_OpenID_MySQLStore(self::$_db);
+		$store->createTables();
 		$consumer = new Auth_OpenID_Consumer($store);
 		$returnUrl = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/?site=completelogin';
 		$response = $consumer->complete($returnUrl);
+		self::$_db->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
 		if(!$response)
 			throw new Exception(l10n::_('Consumer->complete failed'));
 
