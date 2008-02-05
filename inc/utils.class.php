@@ -43,11 +43,10 @@ class Utils extends Module
 		if(is_null(self::$mPurifier))
 		{
 			// load HTMLPurifier
-			require_once('HTMLPurifier.php');
+			require_once('HTMLPurifier.auto.php');
 			$config = HTMLPurifier_Config::createDefault();
 			$config->set('HTML', 'Strict', true);
 			self::$mPurifier = new HTMLPurifier($config);
-			require_once 'HTMLPurifier/Filter/YouTube.php';
 			self::$mPurifier->addFilter(new HTMLPurifier_Filter_YouTube());
 		}
 		return self::$mPurifier->purify($aInput);

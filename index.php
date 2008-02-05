@@ -92,13 +92,14 @@ require_once('inc/database.class.php');
 require_once('inc/config.php');
 
 // autoload classes
-function __autoload($aClassName)
+function dWingAutoload($aClassName)
 {
 	if(file_exists('inc/'.strtolower($aClassName).'.class.php'))
 	{
 		require_once('inc/'.strtolower($aClassName).'.class.php');
 	}
 }
+spl_autoload_register('dWingAutoload');
 
 require_once('inc/modulesystem.class.php');
 
