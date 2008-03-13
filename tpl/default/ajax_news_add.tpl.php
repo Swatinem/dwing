@@ -11,7 +11,7 @@ if(!(($newsId = News::addNews()) instanceof Exception)):
 	<?php $news = News::getNewsAllDetails($newsId); ?>
 	<div xmlns="http://www.w3.org/1999/xhtml" class="post">
 		<div class="dateinfo">
-			<span class="month"><?php echo utf8_encode(strftime('%B', $news['time'])); ?></span>
+			<span class="month"><?php echo strftime('%B', $news['time']); ?></span>
 			<span class="day"><?php echo strftime('%d', $news['time']); ?></span>
 			<span class="year"><?php echo strftime('%Y', $news['time']); ?></span>
 		</div>

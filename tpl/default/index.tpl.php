@@ -59,7 +59,7 @@ endif; // empty(get news_id)
 <form action="" id="newsform">
 	<div class="post">
 		<div class="dateinfo">
-			<span class="month"><?php echo utf8_encode(strftime('%B', time())); ?></span>
+			<span class="month"><?php echo strftime('%B', time()); ?></span>
 			<span class="day"><?php echo strftime('%d', time()); ?></span>
 			<span class="year"><?php echo strftime('%Y', time()); ?></span>
 		</div>
@@ -95,7 +95,7 @@ foreach($newsall as $news):
 ?>
 	<div class="post">
 		<div class="dateinfo">
-			<span class="month"><?php echo utf8_encode(strftime('%B', $news['time'])); ?></span>
+			<span class="month"><?php echo strftime('%B', $news['time']); ?></span>
 			<span class="day"><?php echo strftime('%d', $news['time']); ?></span>
 			<span class="year"><?php echo strftime('%Y', $news['time']); ?></span>
 			<?php /*<span class="time"><?php echo strftime('%H:%M', $news['time']); ?></span>*/ ?>
@@ -142,7 +142,7 @@ foreach($comments as $comment):
 ?>
 	<div class="post">
 		<div class="dateinfo">
-			<span class="month"><?php echo utf8_encode(strftime('%B', $comment['time'])); ?></span>
+			<span class="month"><?php echo strftime('%B', $comment['time']); ?></span>
 			<span class="day"><?php echo strftime('%d', $comment['time']); ?></span>
 			<span class="year"><?php echo strftime('%Y', $comment['time']); ?></span>
 			<!--<span class="time"><?php echo strftime('%H:%M', $comment['time']); ?></span>-->
@@ -174,7 +174,7 @@ foreach($comments as $comment):
 	<input type="hidden" id="content_type" value="<?php echo ContentType::NEWS; ?>" />
 	<div class="post">
 		<div class="dateinfo">
-			<span class="month"><?php echo utf8_encode(strftime('%B', time())); ?></span>
+			<span class="month"><?php echo strftime('%B', time()); ?></span>
 			<span class="day"><?php echo strftime('%d', time()); ?></span>
 			<span class="year"><?php echo strftime('%Y', time()); ?></span>
 		</div>

@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/rss+xml');
 echo '<?xml version="1.0" encoding="utf-8"?>'."\n";
-$webroot = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/';
+$webroot = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).(dirname($_SERVER['PHP_SELF']) != '/') ? '/' : '';
 $newsall = News::getNews(10, !empty($_GET['tag']) ? $_GET['tag'] : null);
 /* do we need the date? <?php echo strftime('%Y/%m/%d', $news['start']); ?>: */
 ?>

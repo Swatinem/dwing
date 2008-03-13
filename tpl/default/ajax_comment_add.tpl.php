@@ -17,7 +17,7 @@ echo '<?xml version="1.0" encoding="utf-8"?>';
 <?php if(!empty($commentId)): ?>
 	<div xmlns="http://www.w3.org/1999/xhtml" class="post">
 		<div class="dateinfo">
-			<span class="month"><?php echo utf8_encode(strftime('%B', time())); ?></span>
+			<span class="month"><?php echo strftime('%B', time()); ?></span>
 			<span class="day"><?php echo strftime('%d', time()); ?></span>
 			<span class="year"><?php echo strftime('%Y', time()); ?></span>
 		</div>

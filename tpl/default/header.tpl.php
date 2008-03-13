@@ -1,4 +1,6 @@
 <?php
+$webroot = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).(dirname($_SERVER['PHP_SELF']) != '/') ? '/' : '';
+
 header('Content-Type: application/xhtml+xml');
 echo '<?xml version="1.0" encoding="utf-8"?>'."\n";
 $site = !empty($_GET['site']) ? $_GET['site'] : 'index';
@@ -9,7 +11,7 @@ if(empty($title))
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de">
 	<head>
 		<title><?php echo htmlspecialchars($title); ?> - dWing CMS</title>
-		<base href="<?php echo 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).'/'; ?>" />
+		<base href="<?php echo $webroot; ?>" />
 		<link rel="stylesheet" type="text/css" href="dwingcms.css" />
 		<script type="text/javascript" src="js/mootools.js"></script>
 		<script type="text/javascript" src="js/interface.js"></script>
