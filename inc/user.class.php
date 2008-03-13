@@ -276,7 +276,7 @@ class CurrentUser extends GenericUser
 		elseif(!$authRequest)
 			return;
 
-		$webroot = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).(dirname($_SERVER['PHP_SELF']) != '/') ? '/' : '';
+		$webroot = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).(dirname($_SERVER['PHP_SELF']) != '/' ? '/' : '');
 		header("Location: ".$authRequest->redirectURL(
 			$webroot,
 			$webroot.'?site=completelogin',
@@ -304,7 +304,7 @@ class CurrentUser extends GenericUser
 		$store = new Auth_OpenID_MySQLStore(self::$_db);
 		$store->createTables();
 		$consumer = new Auth_OpenID_Consumer($store);
-		$webroot = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).(dirname($_SERVER['PHP_SELF']) != '/') ? '/' : '';
+		$webroot = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).(dirname($_SERVER['PHP_SELF']) != '/' ? '/' : '');
 		$returnUrl = $webroot.'?site=completelogin';
 		$response = $consumer->complete($returnUrl);
 		self::$_db->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
