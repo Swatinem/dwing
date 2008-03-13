@@ -7,7 +7,7 @@ $newsall = News::getNews(10, !empty($_GET['tag']) ? $_GET['tag'] : null);
 <feed xmlns="http://www.w3.org/2005/Atom">
 	<title>dWing News</title><?php /* l10n/customization?!? */ ?>
 	<link href="<?php echo $webroot; ?>" />
-	<link rel="self" href="<?php echo $webroot; ?>index.php?site=atom" />
+	<link rel="self" href="<?php echo $webroot; ?>atom" />
 	<subtitle>Die Neuigkeiten von dWing.</subtitle><?php /* l10n/customization?!? */ ?>
 	<id><?php echo $webroot; ?></id>
 	<updated><?php echo strftime('%Y-%m-%dT%H:%M:%SZ', $newsall[0]['time']); ?></updated>
@@ -19,7 +19,7 @@ $newsall = News::getNews(10, !empty($_GET['tag']) ? $_GET['tag'] : null);
 		</author>
 		<link href="<?php echo $webroot.'news/'.$news['fancyurl']; ?>" />
 		<updated><?php echo strftime('%Y-%m-%dT%H:%M:%SZ', $news['time']); ?></updated>
-		<content type="html"><?php echo htmlspecialchars(nl2br($news['text'])); ?></content>
+		<content type="html"><?php echo htmlspecialchars($news['text']); ?></content>
 		<id><?php echo $webroot.'news/'.$news['fancyurl']; ?></id>
 	</entry>
 	<?php endforeach; ?>

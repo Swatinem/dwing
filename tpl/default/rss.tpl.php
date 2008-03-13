@@ -15,7 +15,7 @@ $newsall = News::getNews(10, !empty($_GET['tag']) ? $_GET['tag'] : null);
 			<title><?php echo htmlspecialchars($news['title']); ?></title>
 			<link><?php echo $webroot.'news/'.$news['fancyurl']; ?></link>
 			<guid><?php echo $webroot.'news/'.$news['fancyurl']; ?></guid>
-			<description><?php echo htmlspecialchars(nl2br($news['text'])); ?></description>
+			<description><?php echo htmlspecialchars($news['text']); ?></description>
 		</item>
 <?php endforeach; ?>
 	</channel>

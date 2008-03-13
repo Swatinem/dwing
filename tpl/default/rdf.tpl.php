@@ -24,7 +24,7 @@ xmlns="http://purl.org/rss/1.0/">
 	<item rdf:about="<?php echo $webroot.'news/'.$news['fancyurl']; ?>">
 		<title><?php echo htmlspecialchars($news['title']); ?></title>
 		<link><?php echo $webroot.'news/'.$news['fancyurl']; ?></link>
-		<description><?php echo htmlspecialchars(nl2br($news['text'])); ?></description>
+		<description><?php echo htmlspecialchars($news['text']); ?></description>
 	</item>
 	<?php endforeach; ?>
 </rdf:RDF>
