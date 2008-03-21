@@ -58,6 +58,39 @@ if(function_exists('set_magic_quotes_runtime') && function_exists('get_magic_quo
 	}
 }
 
+// URL Rewriting in PHP
+$requestURI = $_SERVER["REQUEST_URI"];
+$selfDir = dirname($_SERVER['PHP_SELF']).(dirname($_SERVER['PHP_SELF']) != '/' ? '/' : '');
+$webRoot = 'http://'.$_SERVER['SERVER_NAME'].$selfDir;
+
+// PHP already has all the querystring info
+$requestURI = preg_replace('!^'.$selfDir.'(.*)(\?.*)?$!', '\1', $requestURI);
+$requestFragments = explode('/', $requestURI);
+
+$GLOBALS['webRoot'] = $webRoot;
+$GLOBALS['requestURI'] = $requestURI;
+$GLOBALS['requestFragments'] = $requestFragments;
+
+if($requestFragments[0] == 'news')
+{
+	if($requestFragments[1] == 'tags')
+		$_GET['tag'] = $requestFragments[2];
+	else
+		$_GET['news_id'] = $requestFragments[1];
+}
+elseif(in_array($requestFragments[0],Array('atom', 'rdf', 'rss')) && !empty($requestFragments[1]))
+{
+	$_GET['site'] = $requestFragments[0];
+	$_GET['tag'] = $requestFragments[1];
+}
+elseif($requestFragments[0] == 'user' && !empty($requestFragments[1]))
+{
+	$_GET['site'] = $requestFragments[0];
+	$_GET['user_id'] = $requestFragments[1];
+}
+else
+	$_GET['site'] = $requestFragments[0];
+
 // init the translation system, this is independet from any module
 require_once('inc/translation.class.php');
 l10n::init();

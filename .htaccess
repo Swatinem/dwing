@@ -1,16 +1,9 @@
 RewriteEngine on
 
+RewriteCond %{REQUEST_FILENAME}  -d
+RewriteRule  ^.*$  -  [L]
 
-RewriteRule ^news/([a-z0-9-]+)/?$ index.php?news_id=$1&%{QUERY_STRING}
-RewriteRule ^news/tags/([a-z0-9-]+)/?$ index.php?tag=$1&%{QUERY_STRING}
-RewriteRule ^(atom|rdf|rss)/([a-z0-9-]+)/?$ index.php?site=$1&tag=$2&%{QUERY_STRING}
+RewriteCond %{REQUEST_FILENAME}  -f
+RewriteRule  ^.*$  -  [L]
 
-RewriteRule ^user/([0-9]+)/?$ index.php?site=user&user_id=$1
-
-RewriteRule ^imagestrip/([0-9]+)/?$ index.php?site=imagestrip&tag_id=$1
-
-RewriteRule ^([a-z0-9]+)/?$ index.php?site=$1&%{QUERY_STRING}
-
-# Todo: New picture system
-#RewriteCond %{REQUEST_FILENAME} !-f
-#RewriteRule ^images/([0-9]+)(x[0-9]+)?/picture([0-9]+)\.jpg$ index.php?site=picture&res=$1$2&picid=$3
+RewriteRule ^.*$	index.php [L]

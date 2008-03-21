@@ -1,5 +1,5 @@
 <?php
-$webroot = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['PHP_SELF']).(dirname($_SERVER['PHP_SELF']) != '/' ? '/' : '');
+$webroot = $GLOBALS['webRoot'];;
 
 header('Content-Type: application/xhtml+xml');
 echo '<?xml version="1.0" encoding="utf-8"?>'."\n";
