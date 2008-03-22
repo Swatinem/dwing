@@ -276,6 +276,9 @@ class CurrentUser extends GenericUser
 		elseif(!$authRequest)
 			return;
 
+		if(empty($_SESSION['returnto']))
+			$_SESSION['returnto'] = 'http://'.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'];
+
 		$webroot = $GLOBALS['webRoot'];
 		header("Location: ".$authRequest->redirectURL(
 			$webroot,
