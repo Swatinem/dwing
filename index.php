@@ -142,14 +142,18 @@ Module::assignGlobals($_db, $_cfg);
 require_once('inc/user.class.php');
 $_user = new CurrentUser();
 $_tpl->assign('user', $_user);
-try
+// don't try to log in the user when loading a feed, it causes the feed to fail.
+if(!in_array($_GET['site'],Array('atom', 'rdf', 'rss')))
 {
-	$_user->init();
-}
-catch(Exception $e)
-{
-	$_GET['site'] = 'login'; // show the login error
-	$_tpl->assign('loginerror', $e->getMessage());
+	try
+	{
+		$_user->init();
+	}
+	catch(Exception $e)
+	{
+		$_GET['site'] = 'login'; // show the login error
+		$_tpl->assign('loginerror', $e->getMessage());
+	}
 }
 
 Module::assignCurrentUser($_user);
