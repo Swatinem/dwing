@@ -143,7 +143,7 @@ require_once('inc/user.class.php');
 $_user = new CurrentUser();
 $_tpl->assign('user', $_user);
 // don't try to log in the user when loading a feed, it causes the feed to fail.
-if(!in_array($_GET['site'],Array('atom', 'rdf', 'rss')))
+if(empty($_GET['site']) || !in_array($_GET['site'],Array('atom', 'rdf', 'rss')))
 {
 	try
 	{
