@@ -248,7 +248,7 @@ class CurrentUser extends GenericUser
 	 **/
 	private function beginLogin($aOpenID, $aImmediate = false)
 	{
-		if(stripos($_ENV['OS'], 'win') !== false) // windows
+		if(!empty($_ENV['OS']) && stripos($_ENV['OS'], 'win') !== false) // windows
 			define('Auth_OpenID_RAND_SOURCE', null);
 
 		require_once "Auth/OpenID/Consumer.php";
