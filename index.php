@@ -88,7 +88,7 @@ elseif($requestFragments[0] == 'user' && !empty($requestFragments[1]))
 	$_GET['site'] = $requestFragments[0];
 	$_GET['user_id'] = $requestFragments[1];
 }
-else
+elseif(!empty($requestFragments[0]))
 	$_GET['site'] = $requestFragments[0];
 
 // init the translation system, this is independet from any module
