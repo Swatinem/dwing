@@ -64,7 +64,7 @@ $selfDir = dirname($_SERVER['PHP_SELF']).(dirname($_SERVER['PHP_SELF']) != '/' ?
 $webRoot = 'http://'.$_SERVER['SERVER_NAME'].$selfDir;
 
 // PHP already has all the querystring info
-$requestURI = preg_replace('!^'.$selfDir.'(.*)(\?.*)?$!', '\1', $requestURI);
+$requestURI = preg_replace('!^'.$selfDir.'([^?]*)(\?.*)?$!', '\1', $requestURI);
 $requestFragments = explode('/', $requestURI);
 
 $GLOBALS['webRoot'] = $webRoot;
