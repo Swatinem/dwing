@@ -19,6 +19,7 @@ if(!empty($_GET['returnto']) && !empty($_SERVER['HTTP_REFERER']))
 			<li>http://deinname.myopenid.com</li>
 			<li>http://deinname.livejournal.com</li>
 			<li>http://openid.aol.com/deinAIMname</li>
+			<li>http://yahoo.com</li>
 		</ul>
 	</div>
 </form>
