@@ -65,12 +65,17 @@ $webRoot = 'http://'.$_SERVER['SERVER_NAME'].$selfDir;
 
 // PHP already has all the querystring info
 $requestURI = preg_replace('!^'.$selfDir.'([^?]*)(\?.*)?$!', '\1', $requestURI);
-$requestFragments = explode('/', $requestURI);
+
+if(strpos($requestURI, basename($_SERVER['PHP_SELF'])) !== false)
+	$requestFragments = array();
+else
+	$requestFragments = explode('/', $requestURI);
 
 $GLOBALS['webRoot'] = $webRoot;
 $GLOBALS['requestURI'] = $requestURI;
 $GLOBALS['requestFragments'] = $requestFragments;
 
+if(!empty($requestFragments)):
 if($requestFragments[0] == 'news')
 {
 	if($requestFragments[1] == 'tags')
@@ -90,6 +95,7 @@ elseif($requestFragments[0] == 'user' && !empty($requestFragments[1]))
 }
 elseif(!empty($requestFragments[0]))
 	$_GET['site'] = $requestFragments[0];
+endif;
 
 // init the translation system, this is independet from any module
 require_once('inc/translation.class.php');
