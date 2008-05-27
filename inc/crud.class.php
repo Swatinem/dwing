@@ -36,6 +36,12 @@ class Comment extends CRUD
 		'time' => 'time', 'content_id' => 'required', 'content_type' => 'required');
 }
 */
+
+/*
+ * TODO:
+ * fetch data on __get and use IFNULL() to not overwrite the record with empty data
+ */
+
 abstract class CRUD
 {
 	private static $statements = array();
@@ -54,24 +60,29 @@ abstract class CRUD
 		
 		if(is_array($aData))
 		{
-			$this->data = $aData;
+			// primary key set: fetch the old record and overwrite the data with the new one
+			// problem: I want to create Objects from a fetchAll query that don't re-fetch
+			// themselves
 			if(!empty($aData[$this->primaryKey]))
 			{
-				$this->id = $aData[$this->primaryKey];
-				if(count($aData) == 1)
-					$this->data = array();
+				$this->id = (int)$aData[$this->primaryKey];
+				$this->fetchData();
+				$this->data = array_merge($this->data, $aData);
+				unset($this->data[$this->primaryKey]);
+			}
+			// else: write the data so it can be saved afterwards
+			else
+			{
+				$this->data = $aData;
 			}
 		}
 		if((string)(int)$aData == $aData)
 		{
-			$this->id = $aData;
+			$this->id = (int)$aData;
+			$this->fetchData();
 		}
 	}
-	public static function init($aDb)
-	{
-		self::$db = $aDb;
-	}
-	public function __get($aVarName)
+	protected function fetchData()
 	{
 		$childClass = $this->className;
 		if(empty(self::$statements[$childClass]['read']))
@@ -86,13 +97,28 @@ abstract class CRUD
 			$statement->bindValue(':id', $this->id, PDO::PARAM_INT);
 			$statement->execute();
 			$this->data = $statement->fetch(PDO::FETCH_ASSOC);
+			if(empty($this->data))
+				unset($this->id);
 		}
+	}
+	public function assignData($aData)
+	{
+		$this->data = array_merge($this->data, $aData);
+	}
+	public static function init($aDb)
+	{
+		self::$db = $aDb;
+	}
+	public function __get($aVarName)
+	{
 		return isset($this->data[$aVarName]) ? $this->data[$aVarName] : null;
+	}
+	public function __isset($aVarName)
+	{
+		return isset($this->data[$aVarName]);
 	}
 	public function __set($aVarName, $aValue)
 	{
-		if(empty($this->data))
-			$this->$aVarName; // fake a __get to get all data
 		$this->data[$aVarName] = $aValue;
 	}
 	public function save()
@@ -122,6 +148,7 @@ abstract class CRUD
 				foreach($this->definition as $column => $options)
 				{
 					$colDefs[] = $column.'=:'.$column;
+					//$colDefs[] = $column.'=IFNULL(:'.$column.','.$column.')';
 				}
 				$query.= implode(', ', $colDefs).' WHERE '.$this->primaryKey.'=:id;';
 				self::$statements[$childClass]['update'] = self::$db->prepare($query);
@@ -149,11 +176,11 @@ abstract class CRUD
 		if(!$statement->execute())
 			throw new Exception($statement->errorInfo[2]);
 		if(empty($this->id))
-			return self::$db->lastInsertId();
+			return ($this->id = self::$db->lastInsertId());
 		else
 			return true;
 	}
-	public function delete()
+	public function destroy()
 	{
 		$childClass = $this->className;
 		if(empty(self::$statements[$childClass]['delete']))
@@ -164,7 +191,12 @@ abstract class CRUD
 		}
 		$statement = self::$statements[$childClass]['delete'];
 		$statement->bindValue(':id', $this->id, PDO::PARAM_INT);
-		return $statement->execute();
+		if($return = $statement->execute())
+		{
+			$this->data = array();
+			unset($this->id);
+		}
+		return $return;
 	}
 }
 ?>
