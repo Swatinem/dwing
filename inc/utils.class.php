@@ -53,6 +53,38 @@ class Utils extends Module
 	}
 
 	/**
+	 * Converts the time into a relative forma, ie. "2 minutes ago"
+	 *
+	 * @param string $aTime the time in the past
+	 * @return string
+	 **/
+	public static function relativeTime($aTime)
+	{
+		$table = array(
+			60, l10n::_('%d seconds ago'),
+			60, l10n::_('%d minutes ago'),
+			24, l10n::_('%d hours ago'),
+			7,  l10n::_('%d days ago'),
+			2,  l10n::_('%d weeks ago')
+		);
+		$i = 0;
+		$diff = time()-$aTime;
+		while($diff > $table[$i])
+		{
+			if(isset($table[$i+2]))
+			{
+				$diff = round($diff/$table[$i]);
+				$i+= 2;
+			}
+			else // end of table -> use absolute format.
+			{
+				return strftime(l10n::_('on %x'), $aTime);
+			}
+		}
+		return sprintf($table[$i+1], $diff);
+	}
+
+	/**
 	 * converts a string to be used as a url
 	 *
 	 * @param string $aStr

@@ -1,5 +1,11 @@
 <?php
 $__LANG = array (
+  '%d seconds ago' => '%d seconds ago',
+  '%d minutes ago' => '%d minutes ago',
+  '%d hours ago' => '%d hours ago',
+  '%d days ago' => '%d days ago',
+  '%d weeks ago' => '%d weeks ago',
+  'on %x' => 'on %x',
   '%d pictures imported' => '%d pictures imported',
   '%d posts' => '%d posts',
   '%s ratings / %s average' => '%s ratings / %s average',
