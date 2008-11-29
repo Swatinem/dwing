@@ -1,5 +1,5 @@
 <?php
-$webroot = $GLOBALS['webRoot'];;
+$webroot = $GLOBALS['webRoot'];
 
 header('Content-Type: application/xhtml+xml');
 echo '<?xml version="1.0" encoding="utf-8"?>'."\n";
@@ -15,7 +15,7 @@ if(empty($title))
 		<link rel="stylesheet" type="text/css" href="dwingcms.css" />
 		<script type="text/javascript" src="js/mootools.js"></script>
 		<script type="text/javascript" src="js/interface.js"></script>
-		<script type="text/javascript" src="index.php?site=l10n"></script>
+		<script type="text/javascript" src="l10n"></script>
 		<link rel="alternate" type="application/atom+xml" title="dWing Atom 1.0" href="atom" />
 		<link rel="alternate" type="application/rss+xml" title="dWing RSS 2.0" href="rss" />
 		<link rel="alternate" type="application/xml" title="dWing RDF 1.0" href="rdf" />

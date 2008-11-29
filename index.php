@@ -59,20 +59,16 @@ if(function_exists('set_magic_quotes_runtime') && function_exists('get_magic_quo
 }
 
 // URL Rewriting in PHP
-$requestURI = $_SERVER["REQUEST_URI"];
-$selfDir = dirname($_SERVER['PHP_SELF']).(dirname($_SERVER['PHP_SELF']) != '/' ? '/' : '');
-$webRoot = 'http://'.$_SERVER['SERVER_NAME'].$selfDir;
+$webRoot = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['SCRIPT_NAME']);
+if($webRoot{strlen($webRoot)-1} != '/')
+	$webRoot.= '/';
 
-// PHP already has all the querystring info
-$requestURI = preg_replace('!^'.$selfDir.'([^?]*)(\?.*)?$!', '\1', $requestURI);
-
-if(strpos($requestURI, basename($_SERVER['PHP_SELF'])) !== false)
-	$requestFragments = array();
+if(!empty($_SERVER['PATH_INFO']))
+	$requestFragments = explode('/', trim($_SERVER['PATH_INFO'], '/'));
 else
-	$requestFragments = explode('/', $requestURI);
+	$requestFragments = array();
 
 $GLOBALS['webRoot'] = $webRoot;
-$GLOBALS['requestURI'] = $requestURI;
 $GLOBALS['requestFragments'] = $requestFragments;
 
 if(!empty($requestFragments)):
