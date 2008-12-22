@@ -20,4 +20,7 @@ $i++;
 
 <?php endforeach; ?>
 };
-<?php exit; ?>
+<?php
+// TODO: integrate all JS into a single file
+exit;
+?>

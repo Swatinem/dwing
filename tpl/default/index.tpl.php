@@ -10,10 +10,12 @@ else
 	$title = l10n::_('News');
 include($this->template('header.tpl.php'));
 ?>
-<script type="text/javascript" src="js/ratings.js"></script>
-<script type="text/javascript" src="./FCKeditor/fckeditor.js"></script>
+<!--<script type="text/javascript" src="js/ratings.js"></script>
+<script type="text/javascript" src="./FCKeditor/fckeditor.js"></script>-->
 <?php
-if(empty($_GET['news_id'])):
+// TODO: resurrect browsing using newer posts / older posts links
+// TODO: better tag cloud?
+/*if(empty($_GET['news_id'])):
 	if(empty($_GET['tag']))
 		$pages = Utils::pages(Tags::getContentCount(null, ContentType::NEWS), 10, '?page=');
 	else
@@ -89,85 +91,96 @@ endif; // empty(get news_id)
 </form>
 <?php endif; ?>
 <?php
+// TODO: resurrect posting
+// TODO: implement voting as first RESTful service
+*/
 if(empty($newsall))
 	$newsall = News::getNews(10, (!empty($_GET['tag']) ? $_GET['tag'] : null));
 foreach($newsall as $news):
 ?>
-	<div class="post">
-		<div class="dateinfo">
-			<span class="month"><?php echo strftime('%B', $news['time']); ?></span>
-			<span class="day"><?php echo strftime('%d', $news['time']); ?></span>
-			<span class="year"><?php echo strftime('%Y', $news['time']); ?></span>
-			<?php /*<span class="time"><?php echo strftime('%H:%M', $news['time']); ?></span>*/ ?>
-		</div>
-		<?php
-		$thisRating = Ratings::getRating($news['news_id'], ContentType::NEWS);
-		$idStr = 'rating-'.$news['news_id'].'-'.ContentType::NEWS;
-		$jsParams = '\''.$idStr.'\', '.$news['news_id'].', '.ContentType::NEWS;
-		?>
-		<div class="rating" id="<?php echo $idStr; ?>">
-			<div style="width: <?php echo round($thisRating['average']/5*100); ?>px;"></div>
-			<a href="javascript:doRating(<?php echo $jsParams; ?>, 1);">1</a>
-			<a href="javascript:doRating(<?php echo $jsParams; ?>, 2);">2</a>
-			<a href="javascript:doRating(<?php echo $jsParams; ?>, 3);">3</a>
-			<a href="javascript:doRating(<?php echo $jsParams; ?>, 4);">4</a>
-			<a href="javascript:doRating(<?php echo $jsParams; ?>, 5);">5</a>
-		</div>
-		<span class="ratingcaption"><?php printf(l10n::_('%s ratings / %s average'), $thisRating['ratings'], round($thisRating['average'], 1)); ?></span>
-		<h2><a href="news/<?php echo $news['fancyurl']; ?>"><?php echo htmlspecialchars($news['title']); ?></a></h2>
+<div class="post">
+	<div class="postheader">
+		<h1><a href="news/<?php echo $news['fancyurl']; ?>"><?php echo htmlspecialchars($news['title']); ?></a></h1>
 		<div class="postinfo">
-		<?php
-		$tags = Tags::getTagsForContent($news['news_id'], ContentType::NEWS);
-		foreach($tags as $tag):
-		?>
-		<a href="news/tags/<?php echo $tag; ?>"><?php echo $tag; ?></a>
-		<?php
-		endforeach;
-		$commentNum = Comments::getCommentNum($news['news_id'], ContentType::NEWS);
-		if($commentNum > 0):
-			printf(l10n::_('→ %d comments'), $commentNum);
-		endif;
-		?>
-		</div>
-		<div class="postbody">
-<?php echo Smilies::replace($news['text']); ?>
+			<span class="userinfo"><a href="user/<?php echo $news['user']->user_id; ?>">
+				<?php echo htmlspecialchars($news['user']->nick); ?>
+			</a></span>
+			<span class="dateinfo"><?php echo Utils::relativeTime($news['time']); ?></span>
+			<?php
+			$tags = Tags::getTagsForContent($news['news_id'], ContentType::NEWS);
+
+			$commentNum = Comments::getCommentNum($news['news_id'], ContentType::NEWS);
+
+			$thisRating = Ratings::getRating($news['news_id'], ContentType::NEWS);
+			$idStr = 'rating-'.$news['news_id'].'-'.ContentType::NEWS;
+			$jsParams = '\''.$idStr.'\', '.$news['news_id'].', '.ContentType::NEWS;
+			?>
+			<span class="tagsinfo">
+				<?php foreach($tags as $tag): ?>
+				<a href="news/tags/<?php echo $tag; ?>"><?php echo $tag; ?></a>
+				<?php endforeach; ?>
+			</span>
+			<?php if($commentNum > 0): ?>
+			<span class="commentinfo"><?php printf(l10n::_('%d comments'), $commentNum); ?></span>
+			<?php endif; ?>
+			<span class="rating score<?php echo round($thisRating['average']); ?>" id="<?php echo $idStr; ?>">
+				<a href="javascript:doRating(<?php echo $jsParams; ?>, 1);">1</a>
+				<a href="javascript:doRating(<?php echo $jsParams; ?>, 2);">2</a>
+				<a href="javascript:doRating(<?php echo $jsParams; ?>, 3);">3</a>
+				<a href="javascript:doRating(<?php echo $jsParams; ?>, 4);">4</a>
+				<a href="javascript:doRating(<?php echo $jsParams; ?>, 5);">5</a>
+				<span class="ratingcaption"><?php printf(l10n::_('%s ratings / %s average'), $thisRating['ratings'], round($thisRating['average'], 1)); ?></span>
+			</span>
 		</div>
 	</div>
+	<div class="postbody">
+<?php echo Smilies::replace($news['text']); ?>
+	</div>
+</div>
 <?php endforeach; ?>
+
 <?php if(!empty($_GET['news_id'])): ?>
+
+		<hr />
+		<div class="area">
 <h1><?php echo l10n::_('Comments'); ?></h1>
+		</div>
+		<hr />
+
 <?php
 $comments = Comments::getComments($news['news_id'], ContentType::NEWS);
 foreach($comments as $comment):
 ?>
-	<div class="post">
-		<div class="dateinfo">
-			<span class="month"><?php echo strftime('%B', $comment['time']); ?></span>
-			<span class="day"><?php echo strftime('%d', $comment['time']); ?></span>
-			<span class="year"><?php echo strftime('%Y', $comment['time']); ?></span>
-			<!--<span class="time"><?php echo strftime('%H:%M', $comment['time']); ?></span>-->
-		</div>
-		<?php
-		$thisRating = Ratings::getRating($comment['comment_id'], ContentType::COMMENT);
-		$idStr = 'rating-'.$comment['comment_id'].'-'.ContentType::COMMENT;
-		$jsParams = '\''.$idStr.'\', '.$comment['comment_id'].', '.ContentType::COMMENT;
-		?>
-		<div class="rating" id="<?php echo $idStr; ?>">
-			<div style="width: <?php echo round($thisRating['average']/5*100); ?>px;"></div>
-			<a href="javascript:doRating(<?php echo $jsParams; ?>, 1);">1</a>
-			<a href="javascript:doRating(<?php echo $jsParams; ?>, 2);">2</a>
-			<a href="javascript:doRating(<?php echo $jsParams; ?>, 3);">3</a>
-			<a href="javascript:doRating(<?php echo $jsParams; ?>, 4);">4</a>
-			<a href="javascript:doRating(<?php echo $jsParams; ?>, 5);">5</a>
-		</div>
-		<span class="ratingcaption"><?php printf(l10n::_('%s ratings / %s average'), $thisRating['ratings'], round($thisRating['average'], 1)); ?></span>
-		<h2><a href="user/<?php echo $comment['user']->user_id; ?>"><?php echo htmlspecialchars($comment['user']->nick); ?></a></h2>
-		<div class="postbody">
-<?php echo Smilies::replace($comment['text']); ?>
+<div class="post">
+	<div class="postheader">
+		<div class="postinfo">
+			<span class="userinfo"><a href="user/<?php echo $comment['user']->user_id; ?>">
+				<?php echo htmlspecialchars($comment['user']->nick); ?>
+			</a></span>
+			<span class="dateinfo"><?php echo Utils::relativeTime($comment['time']); ?></span>
+			<?php
+			$thisRating = Ratings::getRating($comment['comment_id'], ContentType::COMMENT);
+			$idStr = 'rating-'.$comment['comment_id'].'-'.ContentType::COMMENT;
+			$jsParams = '\''.$idStr.'\', '.$comment['comment_id'].', '.ContentType::COMMENT;
+			?>
+			<span class="rating score<?php echo round($thisRating['average']); ?>" id="<?php echo $idStr; ?>">
+				<a href="javascript:doRating(<?php echo $jsParams; ?>, 1);">1</a>
+				<a href="javascript:doRating(<?php echo $jsParams; ?>, 2);">2</a>
+				<a href="javascript:doRating(<?php echo $jsParams; ?>, 3);">3</a>
+				<a href="javascript:doRating(<?php echo $jsParams; ?>, 4);">4</a>
+				<a href="javascript:doRating(<?php echo $jsParams; ?>, 5);">5</a>
+				<span class="ratingcaption"><?php printf(l10n::_('%s ratings / %s average'), $thisRating['ratings'], round($thisRating['average'], 1)); ?></span>
+			</span>
 		</div>
 	</div>
+	<div class="postbody">
+<?php echo Smilies::replace($comment['text']); ?>
+	</div>
+</div>
 <?php endforeach; ?>
-<?php if($user->authed): ?>
+<?php
+// TODO: ressurect comment posting
+/*if($user->authed): ?>
 <script type="text/javascript" src="js/comments.js"></script>
 <form id="commentform" action="">
 	<input type="hidden" id="content_id" value="<?php echo $news['news_id']; ?>" />
@@ -194,6 +207,6 @@ foreach($comments as $comment):
 <ul class="warning">
 	<li><?php echo l10n::_('You need to <a href="login?returnto=1">sign in</a> first.'); ?></li>
 </ul>
-<?php endif; ?>
+<?php endif;*/ ?>
 <?php endif; ?>
 <?php include($this->template('footer.tpl.php')); ?>
