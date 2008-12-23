@@ -22,7 +22,8 @@
  */
 class News extends CRUD
 {
-	//protected $tableName = 'news';
+	const ContentType = 1;
+
 	protected $primaryKey = 'news_id';
 	protected $definition = array('title' => 'required', 'text' => 'html',
 		'user_id' => 'user', 'time' => 'time', 'fancyurl' => 'value');
@@ -37,7 +38,7 @@ class News extends CRUD
 			case 'tags':
 				if(!isset($this->data['tags']))
 					$this->data['tags'] = 
-						Tags::getTagsForContent($this->id, ContentType::NEWS);
+						Tags::getTagsForContent($this->id, self::ContentType);
 				return $this->data['tags'];
 			break;
 			case 'rating':
