@@ -22,8 +22,6 @@ foreach($iter as $news):
 			<span class="dateinfo"><?php echo Utils::relativeTime($news->time); ?></span>
 			<?php
 			// TODO: $news->tags, etc. accessors
-			$tags = Tags::getTagsForContent($news->id, ContentType::NEWS);
-
 			$commentNum = Comments::getCommentNum($news->id, ContentType::NEWS);
 
 			$thisRating = Ratings::getRating($news->id, ContentType::NEWS);
@@ -31,7 +29,7 @@ foreach($iter as $news):
 			$jsParams = '\''.$idStr.'\', '.$news->id.', '.ContentType::NEWS;
 			?>
 			<span class="tagsinfo">
-				<?php foreach($tags as $tag): ?>
+				<?php foreach($news->tags as $tag): ?>
 				<a href="news/tags/<?php echo $tag; ?>"><?php echo $tag; ?></a>
 				<?php endforeach; ?>
 			</span>

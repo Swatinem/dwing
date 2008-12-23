@@ -35,7 +35,10 @@ class News extends CRUD
 				throw new Exception('Not Implemented');
 			break;
 			case 'tags':
-				throw new Exception('Not Implemented');
+				if(!isset($this->data['tags']))
+					$this->data['tags'] = 
+						Tags::getTagsForContent($this->id, ContentType::NEWS);
+				return $this->data['tags'];
 			break;
 			case 'rating':
 				throw new Exception('Not Implemented');
