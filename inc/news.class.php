@@ -56,7 +56,6 @@ class News extends CRUD
 	}
 }
 
-// TODO: need something better than the Module parent class
 /*
  * News Iterator for a Range
  */
