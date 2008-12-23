@@ -22,7 +22,7 @@
  *
  * This class provides functions to handle usergroups and the usergroup cache
  */
-class UserGroup extends Module
+class Usergroup extends Module
 {
 	/**
 	 * cache for the usergroups
@@ -30,13 +30,6 @@ class UserGroup extends Module
 	 * @var array $mGroupCache
 	 **/
 	private static $mGroupCache = array();
-	/**
-	 * all the rights in the usergroup table
-	 *
-	 * @var array $_rights
-	 **/
-	//private static $_rights = array('admin', 'guestbook', 'news', 'templates', 'articles', 'users', 'downloads',
-	//	'screenshots', 'affiliates', 'quotes');
 
 	/**
 	 * returns the specified usergroup
@@ -53,107 +46,5 @@ class UserGroup extends Module
 		}
 		return self::$mGroupCache[$aGroupId];
 	}
-
-	/**
-	 * gets all the usergroups
-	 *
-	 * @return array
-	 **/
-	/* TODO: rewrite!
-	public static function getGroups()
-	{
-		$groups = array();
-		$groups_res = $GLOBALS['_db']->query('SELECT ugroup_id, name FROM '.$GLOBALS['_db']->pref.'usergroup;');
-		while($group = $groups_res->fetch_assoc())
-		{
-			$groups[$group['ugroup_id']] = $group['name'];
-		}
-		$groups_res->close();
-		return $groups;
-	}*/
-
-	/**
-	 * add a usergroup
-	 *
-	 * @return mixed false on failure, id on success
-	 **/
-	/* TODO: rewrite!
-	public function addgroup()
-	{
-		try
-		{
-			if(empty($_POST['name'])) throw new Exception('No name defined.');
-			$query = '
-			INSERT INTO '.$GLOBALS['_db']->pref.'usergroup SET ';
-			foreach($this->_rights as $right)
-			{
-				$query.= $right.'='.(!empty($_POST[$right]) ? 1 : 0).', ';
-			}
-			$query.= ' name="'.self::$_db->escape($_POST['name']).'";';
-			$GLOBALS['_db']->query($query);
-			$GLOBALS['_snntpl']->clear_cache_byobject('usergroup');
-			return $GLOBALS['_db']->insert_id;
-		}
-		catch(Exception $e)
-		{
-			$GLOBALS['_snntpl']->assignLang('error', $e->getMessage());
-			return false;
-		}
-	}*/
-
-	/**
-	 * edit a usergroup
-	 *
-	 * @param int $gid
-	 * @return bool
-	 **/
-	/* TODO: rewrite!
-	public function editgroup($gid)
-	{
-		try
-		{
-			if(empty($_POST['name'])) throw new Exception('No name defined.');
-			$query = '
-			UPDATE '.$GLOBALS['_db']->pref.'usergroup SET ';
-			foreach($this->_rights as $right)
-			{
-				$query.= $right.'='.(!empty($_POST[$right]) ? 1 : 0).', ';
-			}
-			$query.= ' name="'.self::$_db->escape($_POST['name']).'" WHERE ugroup_id='.(int)$gid.';';
-			$GLOBALS['_db']->query($query);
-			$GLOBALS['_snntpl']->clear_cache_byobject('usergroup');
-			return true;
-		}
-		catch(Exception $e)
-		{
-			$GLOBALS['_snntpl']->assignLang('error', $e->getMessage());
-			return false;
-		}
-	}*/
-
-	/**
-	 * delete a usergroup
-	 *
-	 * @param int $gid
-	 * @return bool
-	 **/
-	/* TODO: rewrite!
-	public function deletegroup($gid)
-	{
-		try
-		{
-			if((int)$gid < 3) throw new Exception('This is a internal usergroup and cannot be deleted.');
-			$users = $GLOBALS['_users']->gettotalbygroup($gid);
-			if($users > 0) throw new Exception('There are still users in this usergroup.');
-			$GLOBALS['_db']->query('DELETE FROM '.$GLOBALS['_db']->pref.'usergroup WHERE ugroup_id='.(int)$gid.';');
-			$GLOBALS['_snntpl']->clear_cache_byobject('usergroup');
-			return true;
-		}
-		catch(Exception $e)
-		{
-			$GLOBALS['_snntpl']->assignLang('error', $e->getMessage());
-			return false;
-		}
-	}*/
 }
 ?>

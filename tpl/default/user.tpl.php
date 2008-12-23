@@ -8,7 +8,7 @@ include($this->template('header.tpl.php'));
 	<div class="col2">
 		<h2><?php echo l10n::_('User details'); ?></h2>
 		<p>
-			<?php $group = UserGroup::getGroup($displayUser->ugroup_id); echo $group['name']; ?><br />
+			<?php $group = Usergroup::getGroup($displayUser->ugroup_id); echo $group['name']; ?><br />
 			<?php echo strftime(l10n::_('User since: %B %d %Y'), $displayUser->registered); ?>
 		</p>
 	</div>
