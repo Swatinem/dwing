@@ -111,7 +111,16 @@ abstract class CRUD
 	}
 	public function __get($aVarName)
 	{
-		return isset($this->data[$aVarName]) ? $this->data[$aVarName] : null;
+		if(!isset($this->definition[$aVarName]) || !isset($this->data[$aVarName]))
+			return null;
+		switch($this->definition[$aVarName])
+		{
+			case 'user':
+				return Users::getUser($this->data[$aVarName]);
+			break;
+			default:
+				return $this->data[$aVarName];
+		}
 	}
 	public function __isset($aVarName)
 	{
@@ -119,7 +128,12 @@ abstract class CRUD
 	}
 	public function __set($aVarName, $aValue)
 	{
-		$this->data[$aVarName] = $aValue;
+		if(!isset($this->definition[$aVarName]) && $aVarName != $this->primaryKey)
+			return;
+		if($aVarName == $this->primaryKey)
+			$this->id = $aValue;
+		else
+			$this->data[$aVarName] = $aValue;
 	}
 	public function save()
 	{
@@ -160,14 +174,23 @@ abstract class CRUD
 		{
 			switch($options)
 			{
-				case 'userId':
+				case 'user':
+					throw new Exception('Not Implemented');
+				break;
 				case 'time':
 					$statement->bindValue(':'.$column, isset($this->data[$column]) ? 
-						$this->data[$column] : 0, PDO::PARAM_INT);
+						$this->data[$column] : time(), PDO::PARAM_INT);
+				break;
+				case 'html':
+					$statement->bindValue(':'.$column, isset($this->data[$column]) ? 
+						Utils::purify($this->data[$column]) : '', PDO::PARAM_STR);
 				break;
 				case 'required':
 					if(empty($this->data[$column]))
 						throw new Exception($column.' was empty');
+					$statement->bindValue(':'.$column, isset($this->data[$column]) ? 
+						$this->data[$column] : '', PDO::PARAM_STR);
+				break;
 				default:
 					$statement->bindValue(':'.$column, isset($this->data[$column]) ? 
 						$this->data[$column] : '', PDO::PARAM_STR);
