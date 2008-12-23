@@ -18,8 +18,6 @@
  */
 
 /*
-Needs to be initialized with CRUD::init($db) first!
-
 Used like this:
 
 class News extends CRUD
@@ -27,7 +25,7 @@ class News extends CRUD
 	//protected $tableName = 'news';
 	protected $primaryKey = 'news_id';
 	protected $definition = array('title' => 'required', 'text' => 'html',
-		'user_id' => 'userId', 'time' => 'time', 'fancyurl' => true);
+		'user_id' => 'userId', 'time' => 'time', 'fancyurl' => 'value');
 }
 class Comment extends CRUD
 {
@@ -45,7 +43,6 @@ class Comment extends CRUD
 abstract class CRUD
 {
 	private static $statements = array();
-	private static $db;
 	protected $primaryKey = 'id';
 	protected $data = array();
 	protected $className;
@@ -88,7 +85,7 @@ abstract class CRUD
 		if(empty(self::$statements[$childClass]['read']))
 		{
 			self::$statements[$childClass]['read'] =
-				self::$db->prepare('SELECT * FROM '.$this->tableName.' WHERE '.
+				Core::$db->prepare('SELECT * FROM '.$this->tableName.' WHERE '.
 					$this->primaryKey.'=:id;');
 		}
 		if(empty($this->data))
@@ -104,10 +101,6 @@ abstract class CRUD
 	public function assignData($aData)
 	{
 		$this->data = array_merge($this->data, $aData);
-	}
-	public static function init($aDb)
-	{
-		self::$db = $aDb;
 	}
 	public function __get($aVarName)
 	{
@@ -149,7 +142,7 @@ abstract class CRUD
 					$colDefs[] = $column.'=:'.$column;
 				}
 				$query.= implode(', ', $colDefs).';';
-				self::$statements[$childClass]['create'] = self::$db->prepare($query);
+				self::$statements[$childClass]['create'] = Core::$db->prepare($query);
 			}
 			$statement = self::$statements[$childClass]['create'];
 		}
@@ -165,7 +158,7 @@ abstract class CRUD
 					//$colDefs[] = $column.'=IFNULL(:'.$column.','.$column.')';
 				}
 				$query.= implode(', ', $colDefs).' WHERE '.$this->primaryKey.'=:id;';
-				self::$statements[$childClass]['update'] = self::$db->prepare($query);
+				self::$statements[$childClass]['update'] = Core::$db->prepare($query);
 			}
 			$statement = self::$statements[$childClass]['update'];
 			$statement->bindValue(':id', $this->id, PDO::PARAM_INT);
@@ -199,7 +192,7 @@ abstract class CRUD
 		if(!$statement->execute())
 			throw new Exception($statement->errorInfo[2]);
 		if(empty($this->id))
-			return ($this->id = self::$db->lastInsertId());
+			return ($this->id = Core::$db->lastInsertId());
 		else
 			return true;
 	}
@@ -209,7 +202,7 @@ abstract class CRUD
 		if(empty(self::$statements[$childClass]['delete']))
 		{
 			self::$statements[$childClass]['delete'] =
-				self::$db->prepare('DELETE FROM '.$this->tableName.' WHERE '.
+				Core::$db->prepare('DELETE FROM '.$this->tableName.' WHERE '.
 					$this->primaryKey.'=:id;');
 		}
 		$statement = self::$statements[$childClass]['delete'];

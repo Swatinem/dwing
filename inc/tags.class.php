@@ -22,7 +22,7 @@
  *
  * This class provides functions to handle tags
  */
-class Tags extends Module
+class Tags
 {
 	/**
 	 * clean the incoming string and return an array of cleaned tag names
@@ -50,10 +50,10 @@ class Tags extends Module
 	 **/
 	public static function getTagsForContent($aContentId, $aContentType)
 	{
-		$statement = self::$_db->prepare('
+		$statement = Core::$db->prepare('
 			SELECT tags.name
-			FROM '.self::$_db->pref.'tagstocontent AS tagstocontent
-			LEFT JOIN '.self::$_db->pref.'tags AS tags USING (tag_id)
+			FROM '.Core::$db->pref.'tagstocontent AS tagstocontent
+			LEFT JOIN '.Core::$db->pref.'tags AS tags USING (tag_id)
 			WHERE tagstocontent.content_id=:contentId AND
 				tagstocontent.content_type=:contentType
 			ORDER BY tags.name ASC;');
@@ -72,7 +72,7 @@ class Tags extends Module
 	 **/
 	public static function deleteTagsForContent($aContentId, $aContentType)
 	{
-		$statement = self::$_db->prepare('DELETE FROM '.self::$_db->pref.'tagstocontent
+		$statement = Core::$db->prepare('DELETE FROM '.Core::$db->pref.'tagstocontent
 			WHERE content_id=:contentId AND content_type=:contentType;');
 		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
 		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
@@ -94,15 +94,15 @@ class Tags extends Module
 		self::deleteTagsForContent($aContentId, $aContentType);
 		// names to id mapping
 		$nameToIdMap = array();
-		$tagsRes = self::$_db->queryAll('SELECT tag_id, name FROM '.self::$_db->pref.'tags;');
+		$tagsRes = Core::$db->queryAll('SELECT tag_id, name FROM '.Core::$db->pref.'tags;');
 		foreach($tagsRes as $tagRow)
 			$nameToIdMap[$tagRow['name']] = $tagRow['tag_id'];
 		// filter the tag names out of the input string
 		$tagNames = self::cleanTags($aTags);
 
 		// link the tags with the content item, adding new tags when necessary
-		$statement = self::$_db->prepare('
-			INSERT INTO '.self::$_db->pref.'tagstocontent
+		$statement = Core::$db->prepare('
+			INSERT INTO '.Core::$db->pref.'tagstocontent
 			SET tag_id=:tagId, content_id=:contentId, content_type=:contentType;');
 		$statement->bindParam(':tagId', $tagId, PDO::PARAM_INT);
 		$statement->bindParam(':contentId', $aContentId, PDO::PARAM_INT);
@@ -122,7 +122,7 @@ class Tags extends Module
 	 **/
 	public static function getTags()
 	{
-		$statement = self::$_db->prepare('SELECT name FROM '.self::$_db->pref.'tags ORDER BY name ASC;');
+		$statement = Core::$db->prepare('SELECT name FROM '.Core::$db->pref.'tags ORDER BY name ASC;');
 		$statement->execute();
 		return $statement->fetchAll(PDO::FETCH_COLUMN);
 	}
@@ -135,12 +135,12 @@ class Tags extends Module
 	 **/
 	private static function addTag($aTagName)
 	{
-		$statement = self::$_db->prepare('
-			INSERT INTO '.self::$_db->pref.'tags SET
+		$statement = Core::$db->prepare('
+			INSERT INTO '.Core::$db->pref.'tags SET
 			name=:name;');
 		$statement->bindValue(':name', $aTagName, PDO::PARAM_STR);
 		$statement->execute();
-		return self::$_db->lastInsertId();
+		return Core::$db->lastInsertId();
 	}
 
 	/**
@@ -151,10 +151,10 @@ class Tags extends Module
 	 **/
 	public static function getTagsWithContentOfType($aContentType)
 	{
-		$statement = self::$_db->prepare('
+		$statement = Core::$db->prepare('
 			SELECT DISTINCT tags.name, COUNT(tagstocontent.content_id) AS content
-			FROM '.self::$_db->pref.'tags AS tags
-			LEFT JOIN '.self::$_db->pref.'tagstocontent AS tagstocontent USING (tag_id)
+			FROM '.Core::$db->pref.'tags AS tags
+			LEFT JOIN '.Core::$db->pref.'tagstocontent AS tagstocontent USING (tag_id)
 			WHERE tagstocontent.content_type=:contentType
 			GROUP BY tag_id
 			ORDER BY tags.name ASC;');
@@ -173,21 +173,21 @@ class Tags extends Module
 	public static function getContentCount($aTagName = null, $aContentType = null)
 	{
 		$query = '
-			SELECT COUNT(DISTINCT content_id) AS count FROM '.self::$_db->pref.'tagstocontent
-			LEFT JOIN '.self::$_db->pref.'tags as tags USING (tag_id)
+			SELECT COUNT(DISTINCT content_id) AS count FROM '.Core::$db->pref.'tagstocontent
+			LEFT JOIN '.Core::$db->pref.'tags as tags USING (tag_id)
 			';
 		if($aTagName || $aContentType)
 		{
 			$query.= ' WHERE ';
 			if($aTagName)
-				$query.= ' tags.name='.self::$_db->quote($aTagName).' ';
+				$query.= ' tags.name='.Core::$db->quote($aTagName).' ';
 			if($aTagName && $aContentType)
 				$query.= ' AND ';
 			if($aContentType)
 				$query.= ' content_type='.(int)$aContentType.' ';
 		}
 		$query.= ';';
-		$result = self::$_db->query($query);
+		$result = Core::$db->query($query);
 		return $result->fetchColumn();
 	}
 }

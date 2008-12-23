@@ -22,7 +22,7 @@
  *
  * Comment any type of content.
  */
-class Comments extends Module
+class Comments
 {
 	/**
 	 * get all the comments for a Content Item
@@ -33,8 +33,8 @@ class Comments extends Module
 	 **/
 	public static function getComments($aContentId, $aContentType)
 	{
-		$statement = self::$_db->prepare('
-			SELECT comment_id, user_id, time, text FROM '.self::$_db->pref.'comments
+		$statement = Core::$db->prepare('
+			SELECT comment_id, user_id, time, text FROM '.Core::$db->pref.'comments
 			WHERE content_id=:contentId AND content_type=:contentType
 			ORDER BY time ASC;');
 		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
@@ -60,8 +60,8 @@ class Comments extends Module
 	 **/
 	public static function getCommentNum($aContentId, $aContentType)
 	{
-		$statement = self::$_db->prepare('
-			SELECT COUNT(comment_id) as commentnum FROM '.self::$_db->pref.'comments
+		$statement = Core::$db->prepare('
+			SELECT COUNT(comment_id) as commentnum FROM '.Core::$db->pref.'comments
 			WHERE content_id=:contentId AND content_type=:contentType;');
 		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
 		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
@@ -80,9 +80,9 @@ class Comments extends Module
 	{
 		if(empty($_POST['text']))
 			return;
-		$statement = self::$_db->prepare('
+		$statement = Core::$db->prepare('
 		INSERT INTO
-			'.self::$_db->pref.'comments
+			'.Core::$db->pref.'comments
 		SET
 			user_id=:userId, time=:time, text=:text, content_id=:contentId,
 			content_type=:contentType;');
@@ -93,7 +93,7 @@ class Comments extends Module
 		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
 		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
 		$statement->execute();
-		return self::$_db->lastInsertId();
+		return Core::$db->lastInsertId();
 	}
 
 	/**
@@ -104,7 +104,7 @@ class Comments extends Module
 	 **/
 	public static function deleteComment($aCommentId)
 	{
-		$statement = self::$_db->prepare('DELETE FROM '.self::$_db->pref.'comments
+		$statement = Core::$db->prepare('DELETE FROM '.Core::$db->pref.'comments
 			WHERE comment_id=:commentId;');
 		$statement->bindValue(':commentId', (int)$aCommentId, PDO::PARAM_INT);
 		$statement->execute();
@@ -120,7 +120,7 @@ class Comments extends Module
 	 **/
 	public static function deleteComments($aContentId, $aContentType)
 	{
-		$statement = self::$_db->prepare('DELETE FROM '.self::$_db->pref.'comments
+		$statement = Core::$db->prepare('DELETE FROM '.Core::$db->pref.'comments
 			WHERE content_id=:contentId AND content_type=:contentType;');
 		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
 		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);

@@ -100,6 +100,15 @@ class Benchmark
 // start Benchmark
 $_bench = new Benchmark();
 
+abstract class Core
+{
+	public static $version;
+	public static $db;
+	public static $user;
+	public static $config;
+}
+Core::$version = $_version;
+
 // start session management
 session_start();
 
@@ -172,11 +181,9 @@ l10n::init();
 // initiate template engine
 require_once('inc/template.class.php');
 $_tpl = new TemplateSystem();
-$_tpl->assign('_bench',$_bench);
-$_tpl->assign('_version',$_version);
 
 /*
-Todo:
+TODO:
 - separate Install and Update classes
 - Install will be a standalone class
 - Update will be a Module to include references to the DB
@@ -193,10 +200,12 @@ if(!file_exists('inc/settings.php'))
 
 // do we want dynamic settings at all?
 require_once("inc/settings.php");
+Core::$config = $_cfg;
 
 // Database class include. init in the config
 require_once('inc/database.class.php');
 require_once('inc/config.php');
+Core::$db = $_db;
 
 // autoload classes
 function dWingAutoload($aClassName)
@@ -209,16 +218,12 @@ function dWingAutoload($aClassName)
 }
 spl_autoload_register('dWingAutoload');
 
-require_once('inc/modulesystem.class.php');
-
-Module::assignGlobals($_db, $_cfg);
-
 // init user
 require_once('inc/user.class.php');
-$_user = new CurrentUser();
-$_tpl->assign('user', $_user);
+Core::$user = new CurrentUser();
+// TODO: rework user login
 // don't try to log in the user when loading a feed, it causes the feed to fail.
-if(empty($_GET['site']) || !in_array($_GET['site'],Array('atom', 'rdf', 'rss')))
+/*if(empty($_GET['site']) || !in_array($_GET['site'],Array('atom', 'rdf', 'rss')))
 {
 	try
 	{
@@ -229,9 +234,7 @@ if(empty($_GET['site']) || !in_array($_GET['site'],Array('atom', 'rdf', 'rss')))
 		$_GET['site'] = 'login'; // show the login error
 		$_tpl->assign('loginerror', $e->getMessage());
 	}
-}
-
-Module::assignCurrentUser($_user);
+}*/
 
 /*
  * check if update is needed
@@ -240,8 +243,11 @@ Module::assignCurrentUser($_user);
  * process but it may cause problems if the update touches any user code that
  * needs updating.
  */
-if(version_compare($_version,$_cfg['version']) == 1)
+if(version_compare(Core::$version, Core::$config['version']) == 1)
 {
+	// outdated -> include updater class, display update template
+	exit('not installed, installer currently disabled');
+
 	$_updater = new Updater();
 	$_tpl->assign('updater', $_updater);
 	

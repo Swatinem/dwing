@@ -22,7 +22,7 @@
  *
  * This class provides functions to handle smilies
  */
-class Smilies extends Module
+class Smilies
 {
 	/**
 	 * static reference to the smilie table
@@ -39,7 +39,7 @@ class Smilies extends Module
 	private static function _loadSmilies()
 	{
 		self::$mSmilies = array();
-		$smilies_res = self::$_db->query('SELECT code, file FROM '.self::$_db->pref.'smilies ORDER BY LENGTH(code) DESC');
+		$smilies_res = Core::$db->query('SELECT code, file FROM '.Core::$db->pref.'smilies ORDER BY LENGTH(code) DESC');
 		while($smilies_row = $smilies_res->fetch(PDO::FETCH_ASSOC))
 		{
 			self::$mSmilies[$smilies_row['code']] = '<img src="images/smilies/'.$smilies_row['file'].'" alt="'.$smilies_row['code'].'" />';

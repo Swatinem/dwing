@@ -22,7 +22,7 @@
  *
  * This class provides functions to handle users who are displayed via the page
  */
-class GenericUser extends Module
+class GenericUser
 {
 	/**
 	 * the users id
@@ -63,7 +63,7 @@ class GenericUser extends Module
 	{
 		if(empty($this->mUserData))
 		{
-			$this->mUserData = self::$_db->queryFirst('SELECT * FROM '.self::$_db->pref.'user WHERE user_id='.$this->mUserId.';');
+			$this->mUserData = Core::$db->queryFirst('SELECT * FROM '.Core::$db->pref.'user WHERE user_id='.$this->mUserId.';');
 			// if the user does not exist, still fill in a nick
 			if(empty($this->mUserData))
 			{
@@ -81,7 +81,7 @@ class GenericUser extends Module
 	{
 		if($this->mOpenIDs == null)
 		{
-			$statement = self::$_db->prepare('SELECT openid FROM '.self::$_db->pref.'openids WHERE user_id=:userId ORDER BY openid ASC;');
+			$statement = Core::$db->prepare('SELECT openid FROM '.Core::$db->pref.'openids WHERE user_id=:userId ORDER BY openid ASC;');
 			$statement->bindParam(':userId', $this->mUserId, PDO::PARAM_INT);
 			$statement->execute();
 			$this->mOpenIDs = $statement->fetchAll(PDO::FETCH_COLUMN);
@@ -198,7 +198,7 @@ class CurrentUser extends GenericUser
 			}
 			else
 			{
-				$this->mUserData = self::$_db->queryFirst('SELECT * FROM '.self::$_db->pref.'user WHERE user_id='.$this->mUserId.';');
+				$this->mUserData = Core::$db->queryFirst('SELECT * FROM '.Core::$db->pref.'user WHERE user_id='.$this->mUserId.';');
 				// if the user does not exist, still fill in a nick
 				if(empty($this->mUserData))
 				{
@@ -255,12 +255,12 @@ class CurrentUser extends GenericUser
 		require_once "Auth/OpenID/MySQLStore.php";
 		require_once "Auth/OpenID/SReg.php";
 
-		self::$_db->connectParent();
-		$store = new Auth_OpenID_MySQLStore(self::$_db);
+		Core::$db->connectParent();
+		$store = new Auth_OpenID_MySQLStore(Core::$db);
 		$store->createTables();
 		$consumer = new Auth_OpenID_Consumer($store);
 		$authRequest = $consumer->begin($aOpenID);
-		self::$_db->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
+		Core::$db->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
 
 		if(!$aImmediate)
 		{
@@ -303,13 +303,13 @@ class CurrentUser extends GenericUser
 		require_once "Auth/OpenID/MySQLStore.php";
 		require_once "Auth/OpenID/SReg.php";
 
-		self::$_db->connectParent();
-		$store = new Auth_OpenID_MySQLStore(self::$_db);
+		Core::$db->connectParent();
+		$store = new Auth_OpenID_MySQLStore(Core::$db);
 		$store->createTables();
 		$consumer = new Auth_OpenID_Consumer($store);
 		$returnUrl = $GLOBALS['webRoot'].'?site=completelogin';
 		$response = $consumer->complete($returnUrl);
-		self::$_db->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
+		Core::$db->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
 		if(!$response)
 			throw new Exception(l10n::_('Consumer->complete failed'));
 
@@ -318,9 +318,9 @@ class CurrentUser extends GenericUser
 			$this->checkLogin();
 			// get the user ID from the DB or create a new user
 			// write the user id to the session for login
-			$userData = self::$_db->queryFirst('SELECT * FROM '.self::$_db->pref.'user
-				LEFT JOIN '.self::$_db->pref.'openids as openids USING (user_id)
-				WHERE openids.openid="'.self::$_db->escape($response->identity_url).'";');
+			$userData = Core::$db->queryFirst('SELECT * FROM '.Core::$db->pref.'user
+				LEFT JOIN '.Core::$db->pref.'openids as openids USING (user_id)
+				WHERE openids.openid="'.Core::$db->escape($response->identity_url).'";');
 			if(!empty($userData))
 			{
 				// user already exists
@@ -335,8 +335,8 @@ class CurrentUser extends GenericUser
 			elseif(!empty($this->mUserId))
 			{
 				// User was already logged in -> set this as a secondary OpenID
-				$statement = self::$_db->prepare('
-					INSERT INTO '.self::$_db->pref.'openids SET user_id=:userId, openid=:openID;');
+				$statement = Core::$db->prepare('
+					INSERT INTO '.Core::$db->pref.'openids SET user_id=:userId, openid=:openID;');
 				$statement->bindParam(':userId', $this->mUserId, PDO::PARAM_INT);
 				$statement->bindParam(':openID', $response->identity_url, PDO::PARAM_STR);
 				$statement->execute();
@@ -350,26 +350,26 @@ class CurrentUser extends GenericUser
 				$sreg = $sregResponse->contents();
 				if(!empty($sreg['nickname']))
 				{
-					$checknick = self::$_db->queryFirst('SELECT user_id FROM '.self::$_db->pref.'user WHERE nick="'.self::$_db->escape($sreg['nickname']).'";');
+					$checknick = Core::$db->queryFirst('SELECT user_id FROM '.Core::$db->pref.'user WHERE nick="'.Core::$db->escape($sreg['nickname']).'";');
 					if(empty($checknick))
 						$nickname = $sreg['nickname'];
 				}
 
-				self::$_db->beginTransaction();
-				self::$_db->query('
-				INSERT INTO '.self::$_db->pref.'user
+				Core::$db->beginTransaction();
+				Core::$db->query('
+				INSERT INTO '.Core::$db->pref.'user
 				SET
-					nick="'.self::$_db->escape($nickname).'",
+					nick="'.Core::$db->escape($nickname).'",
 					registered='.time().';');
 				
-				$this->mUserId = self::$_db->insert_id;;
+				$this->mUserId = Core::$db->insert_id;;
 				
-				$statement = self::$_db->prepare('
-					INSERT INTO '.self::$_db->pref.'openid SET user_id=:userId, openid=:openID;');
+				$statement = Core::$db->prepare('
+					INSERT INTO '.Core::$db->pref.'openid SET user_id=:userId, openid=:openID;');
 				$statement->bindParam(':userId', $this->mUserId, PDO::PARAM_INT);
 				$statement->bindParam(':openID', $response->identity_url, PDO::PARAM_STR);
 				$statement->execute();
-				self::$_db->commit();
+				Core::$db->commit();
 
 				$_SESSION['uid'] = $this->mUserId;
 				setcookie('openid_url', $response->identity_url, time()+3600*24*365);
@@ -413,6 +413,67 @@ class CurrentUser extends GenericUser
 		$this->mUserId = null;
 		unset($_SESSION['uid']);
 		setcookie('openid_url', '', 1);
+	}
+}
+
+/**
+ * Users class
+ *
+ * This class handles a cache of GenericUser objects
+ */
+class Users
+{
+	/**
+	 * cache for the users
+	 *
+	 * @var array $mUserCache
+	 **/
+	private static $mUserCache = array();
+
+	/**
+	 * return a GenericUser object for the specified user
+	 *
+	 * @param int $aUserId user id of the user we want to get
+	 * @return GenericUser
+	 **/
+	public static function getUser($aUserId)
+	{
+		if(empty(self::$mUserCache[$aUserId]))
+		{
+			self::$mUserCache[$aUserId] = new GenericUser($aUserId);
+		}
+		return self::$mUserCache[$aUserId];
+	}
+}
+
+/**
+ * Usergroup class
+ *
+ * This class provides functions to handle usergroups and the usergroup cache
+ */
+class Usergroup
+{
+	/**
+	 * cache for the usergroups
+	 *
+	 * @var array $mGroupCache
+	 **/
+	private static $mGroupCache = array();
+
+	/**
+	 * returns the specified usergroup
+	 *
+	 * @param int $aGroupId
+	 * @return array
+	 **/
+	public static function getGroup($aGroupId)
+	{
+		if(empty(self::$mGroupCache[$aGroupId]))
+		{
+			self::$mGroupCache[$aGroupId] = Core::$db->queryFirst(
+				'SELECT * FROM '.Core::$db->pref.'usergroup WHERE ugroup_id='.(int)$aGroupId.';');
+		}
+		return self::$mGroupCache[$aGroupId];
 	}
 }
 ?>

@@ -18,11 +18,11 @@
  */
 
 /**
- * Utils module
+ * Utils helper class
  *
- * This class provides some utility functions used in various modules
+ * This class provides some utility functions used in various other classes
  */
-class Utils extends Module
+class Utils
 {
 	/**
 	 * static reference to the purifier
@@ -167,7 +167,7 @@ class Utils extends Module
 		}
 		else
 		{
-			return $aFieldName.' LIKE "'.self::$_db->escape($_GET['letter']).'%"';
+			return $aFieldName.' LIKE "'.Core::$db->escape($_GET['letter']).'%"';
 		}
 	}
 

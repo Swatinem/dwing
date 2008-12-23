@@ -60,7 +60,7 @@ class News extends CRUD
 /*
  * News Iterator for a Range
  */
-class NewsRange extends Module implements Iterator, Countable
+class NewsRange implements Iterator, Countable
 {
 	protected $elements = array();
 	protected $position = 0;
@@ -72,8 +72,8 @@ class NewsRange extends Module implements Iterator, Countable
 	{
 		if(empty(self::$selectStmt))
 		{
-			self::$selectStmt = self::$_db->prepare(
-				'SELECT news.* FROM '.self::$_db->pref.'news AS news
+			self::$selectStmt = Core::$db->prepare(
+				'SELECT news.* FROM '.Core::$db->pref.'news AS news
 				ORDER BY news.time DESC LIMIT :start, :limit;');
 		}
 		$statement = self::$selectStmt;
@@ -82,7 +82,6 @@ class NewsRange extends Module implements Iterator, Countable
 		$statement->execute();
 		$statement->setFetchMode(PDO::FETCH_CLASS, 'News');
 		$this->elements = $statement->fetchAll();
-		//var_dump($this->elements);
 	}
 
 	// Countable Interface:

@@ -22,7 +22,7 @@
  *
  * rate any type of content.
  */
-class Ratings extends Module
+class Ratings
 {
 	/**
 	 * get the number of ratings and the average rating of a Content Item and
@@ -34,12 +34,12 @@ class Ratings extends Module
 	 **/
 	public static function getRating($aContentId, $aContentType)
 	{
-		$statement = self::$_db->prepare('
+		$statement = Core::$db->prepare('
 			SELECT COUNT(rating) as ratings, AVG(rating) as average,
 				SUM(user_id=:userId) as voted
-			FROM `'.self::$_db->pref.'ratings`
+			FROM `'.Core::$db->pref.'ratings`
 			WHERE content_id=:contentId AND	content_type=:contentType;');
-		$statement->bindValue(':userId', (int)self::$_user->user_id, PDO::PARAM_INT);
+		$statement->bindValue(':userId', (int)Core::$user->user_id, PDO::PARAM_INT);
 		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
 		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
 		$statement->execute();
@@ -56,13 +56,13 @@ class Ratings extends Module
 	 **/
 	public static function addRating($aContentId, $aContentType, $aRating)
 	{
-		if($aRating > 5 || $aRating < 1 || !self::$_user->authed)
+		if($aRating > 5 || $aRating < 1 || !Core::$user->authed)
 			return false;
-		$statement = self::$_db->prepare('
-			REPLACE INTO `'.self::$_db->pref.'ratings`
+		$statement = Core::$db->prepare('
+			REPLACE INTO `'.Core::$db->pref.'ratings`
 			SET user_id=:userId, content_id=:contentId, content_type=:contentType,
 				rating=:rating;');
-		$statement->bindValue(':userId', (int)self::$_user->user_id, PDO::PARAM_INT);
+		$statement->bindValue(':userId', (int)Core::$user->user_id, PDO::PARAM_INT);
 		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
 		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
 		$statement->bindValue(':rating', (int)$aRating, PDO::PARAM_INT);
