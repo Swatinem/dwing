@@ -1,7 +1,7 @@
 <?php
 /*
  * dWing - a cms aimed to be as bleeding edge as possible
- * Copyright (C) 2004-2008 Arpad Borsos <arpad.borsos@googlemail.com>
+ * Copyright (C) 2004-2009 Arpad Borsos <arpad.borsos@googlemail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,18 +18,90 @@
  */
 
 $_version = '0.0.7';
-
-session_start();
 $_debug = false;
 
 // show all errors
 error_reporting(E_ALL | E_STRICT);
 ini_set('display_errors', true);
 
-// include bench class
-require_once('inc/bench.class.php');
-// start bench
-$_bench = new bench;
+/**
+ * Benchmark class
+ * 
+ * This class provides functions for benchmarking
+ */
+class Benchmark
+{
+	/**
+	 * the start timestamp
+	 * 
+	 * @var float $start
+	 **/
+	private $start;
+	/**
+	 * the time elapsed
+	 * 
+	 * @var float $time
+	 **/
+	private $time;
+
+	/**
+	 * constructor, starts benchmark automatically
+	 * 
+	 * @return void
+	 **/
+	public function __construct()
+	{
+		$this->start();
+	}
+
+	/**
+	 * starts the benchmark, this gets called on construct
+	 * 
+	 * @return void
+	 **/
+	public function start()
+	{
+		$this->start = microtime(true);
+	}
+
+	/**
+	 * ends the benchmark
+	 * 
+	 * @return void
+	 **/
+	public function end()
+	{
+		$this->time = microtime(true)-$this->start;
+	}
+
+	/**
+	 * returns the seconds elapsed as a string
+	 * 
+	 * @return string
+	 **/
+	public function __toString()
+	{
+		if(empty($this->time)) $this->end();
+		return 'seconds elapsed: '.$this->time;
+	}
+
+	/**
+	 * returns the seconds elapsed as a float
+	 * 
+	 * @return float
+	 **/
+	public function getTime()
+	{
+		if(empty($this->time)) $this->end();
+		return $this->time;
+	}
+}
+
+// start Benchmark
+$_bench = new Benchmark();
+
+// start session management
+session_start();
 
 // gzip the output
 if(!ini_get('zlib.output_compression'))
