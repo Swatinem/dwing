@@ -7,7 +7,6 @@ include($this->template('header.tpl.php'));
 // TODO: implement voting as first RESTful service
 // TODO: ressurect comment posting
 
-require_once('inc/news.class.php');
 $iter = new NewsRange();
 
 foreach($iter as $news):

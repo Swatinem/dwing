@@ -129,9 +129,10 @@ require_once('inc/config.php');
 // autoload classes
 function dWingAutoload($aClassName)
 {
-	if(file_exists('inc/'.strtolower($aClassName).'.class.php'))
+	preg_match('!([A-Z]*[a-z]*)[A-Z]?!', $aClassName, $matches);
+	if(file_exists('inc/'.strtolower($matches[1]).'.class.php'))
 	{
-		require_once('inc/'.strtolower($aClassName).'.class.php');
+		require_once('inc/'.strtolower($matches[1]).'.class.php');
 	}
 }
 spl_autoload_register('dWingAutoload');
