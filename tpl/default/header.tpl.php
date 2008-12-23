@@ -1,6 +1,4 @@
 <?php
-setlocale(LC_ALL, 'de_DE.UTF-8'); // 65001
-
 $webroot = $GLOBALS['webRoot'];
 
 header('Content-Type: application/xhtml+xml');

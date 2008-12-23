@@ -40,7 +40,7 @@ class Comment extends CRUD
  * fetch data on __get and use IFNULL() to not overwrite the record with empty data
  */
 
-abstract class CRUD implements Serializable
+abstract class CRUD
 {
 	private static $statements = array();
 	protected $primaryKey = 'id';
@@ -213,16 +213,6 @@ abstract class CRUD implements Serializable
 			unset($this->id);
 		}
 		return $return;
-	}
-	// TODO: make this implement the Serializable interface and make it serialize
-	// to/from JSON
-	public function serialize()
-	{
-		throw new Exception('Not Implemented');
-	}
-	public function unserialize($aString)
-	{
-		throw new Exception('Not Implemented');
 	}
 }
 ?>
