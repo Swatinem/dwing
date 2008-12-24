@@ -1,13 +1,12 @@
 <?php
 include($this->template('header.tpl.php'));
 
-// TODO: resurrect browsing using newer posts / older posts links
 // TODO: better tag cloud?
 // TODO: resurrect posting
 // TODO: implement voting as first RESTful service
 // TODO: resurrect comment posting
 
-$displayPerPage = 10;
+$displayPerPage = 5;
 $page = Utils::getPage();
 
 $iter = new NewsRange(($page-1)*$displayPerPage, $displayPerPage);
@@ -22,12 +21,12 @@ if(($count = count($iter)) > $displayPerPage):
 <div class="area">
 	<div class="col2">
 		<?php if($page > 1): ?>
-		<a href="?page=<?php echo $page-1; ?>">neuere Einträge</a>
+		<a href="?page=<?php echo $page-1; ?>"><?php echo l10n::_('newer posts'); ?></a>
 		<?php endif; ?>
 	</div>
 	<div class="col2 right">
 		<?php if($count > $page*$displayPerPage): ?>
-		<a href="?page=<?php echo $page+1; ?>">ältere Einträge</a>
+		<a href="?page=<?php echo $page+1; ?>"><?php echo l10n::_('older posts'); ?></a>
 		<?php endif; ?>
 	</div>
 </div>
