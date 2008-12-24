@@ -65,7 +65,8 @@ class Utils
 			60, l10n::_('%d minutes ago'),
 			24, l10n::_('%d hours ago'),
 			7,  l10n::_('%d days ago'),
-			2,  l10n::_('%d weeks ago')
+			4,  l10n::_('%d weeks ago'),
+			2,  l10n::_('%d month ago')
 		);
 		$i = 0;
 		$diff = time()-$aTime;
