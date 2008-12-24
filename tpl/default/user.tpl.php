@@ -1,5 +1,5 @@
 <?php
-$displayUser = Users::getUser(!empty($_GET['user_id']) ? $_GET['user_id'] : 0);
+$displayUser = $object;
 $title = $displayUser->nick;
 include($this->template('header.tpl.php'));
 ?>

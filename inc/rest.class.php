@@ -54,14 +54,17 @@ class NotImplementedException extends Exception // 501
 	protected $message = 'Method not implemented';
 }
 
+class NoDispatcher extends Exception
+{
+	protected $message = 'No RESTful Dispatcher found';
+}
+
 interface RESTful
 {
 	public static function GET(RESTDispatcher $dispatcher);
 	public static function POST(RESTDispatcher $dispatcher);
 	public static function PUT(RESTDispatcher $dispatcher);
 	public static function DELETE(RESTDispatcher $dispatcher);
-	public function exists(); // wether the object points to a existing resource
-	public function toJSON(); // return a JSON representation
 }
 
 class RESTDispatcher
@@ -72,11 +75,13 @@ class RESTDispatcher
 	
 	public function __construct()
 	{
-		$requestURI = $_SERVER["REQUEST_URI"];
-		$selfDir = dirname($_SERVER['PHP_SELF']).(dirname($_SERVER['PHP_SELF']) != '/' ? '/' : '');
-		$webRoot = 'http://'.$_SERVER['SERVER_NAME'].$selfDir;
+		$webRoot = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['SCRIPT_NAME']);
+		if($webRoot{strlen($webRoot)-1} != '/')
+			$webRoot.= '/';
+		$GLOBALS['webRoot'] = $webRoot;
 
-		$url = preg_replace('!^'.$selfDir.'([^?]*)(\?.*)?$!', '\1', $requestURI);
+		$url = !empty($_SERVER['PATH_INFO']) ? trim($_SERVER['PATH_INFO'], '/') : '';
+
 		$frags = explode('.', $url);
 		if(!empty($frags[1]))
 			$this->requestedType = $frags[1];
@@ -90,8 +95,53 @@ class RESTDispatcher
 				$temp['id'] = $frags[$i+1];
 			array_push($this->resources, $temp);
 		}
+		// do initial dispatching here
+		//var_dump($this->resources);
+		try
+		{
+			if(empty($this->resources))
+			{
+				// no resource requested -> display index
+				Core::$tpl->display('index.tpl.php');
+				return;
+			}
+			$obj = $this->dispatch();
+			$res = $this->resources[$this->current]['resource'];
+			if(Core::$tpl->template_exists($res.'.tpl.php'))
+			{
+				// we have a template named like the resource -> the template knows how
+				// to display it
+				Core::$tpl->assign('object', $obj);
+				Core::$tpl->display($res.'.tpl.php');
+			}
+			else
+			{
+				if(!method_exists($obj, 'toJSON'))
+					throw new NotImplementedException();
+				echo $obj->toJSON();
+			}
+		}
+		catch(Exception $e)
+		{
+			if($e instanceof NoDispatcher && $this->current == 0)
+			{
+				// no RESTful class found -> maybe we have a template with this name?
+				unset($e);
+				$res = $this->resources[$this->current]['resource'];
+				if(Core::$tpl->template_exists($res.'.tpl.php'))
+					Core::$tpl->display($res.'.tpl.php');
+				else
+					$e = new NotFoundException();
+			}
+			// error occured -> display error page
+			if(isset($e))
+			{
+				Core::$tpl->assign('error', $e);
+				Core::$tpl->display('error.tpl.php');
+			}
+		}
 	}
-	public function assignObject(/* REST ? */$aObj)
+	public function assignObject($aObj)
 	{
 		$this->resources[$this->current]['obj'] = $aObj;
 	}
@@ -118,53 +168,17 @@ class RESTDispatcher
 	}
 	public function dispatch()
 	{
-		if(empty($this->resources[$this->current]))
-			return;
-		try
+		$className = $this->resources[$this->current]['resource'].'Dispatcher';
+		if(!class_exists($className) || !in_array('RESTful',
+			class_implements($className)))
 		{
-			$className = $this->resources[$this->current]['resource'];
-			if(!class_exists($className) || !in_array('RESTful', class_implements($className)))
-				throw new NotFoundException();
-
-			$obj = call_user_func(array($className, $_SERVER['REQUEST_METHOD']), $this);
-			if(is_null($obj))
-				return;
-			if($obj instanceof RESTful)
-			{
-				//var_dump($obj);
-				$str = (string)$obj;
-				if($str == 'false')
-					throw new NotFoundException();
-				echo $str;
-				exit;
-			}
-			else
-			{
-				echo $obj;
-				exit;
-			}
+			throw new NoDispatcher();
 		}
-		catch(Exception $e)
-		{
-			if(!empty($e->httpCode))
-			{
-				// 401, 404 or 501...
-				header(' ', true, $e->httpCode);
-				echo $e->getMessage();
-				exit;
-			}
-			else
-			{
-				// 500, internal error?
-				header(' ', true, 500);
-				echo $e->getMessage();
-				exit;
-			}
-		}
+		return call_user_func(array($className, $_SERVER['REQUEST_METHOD']), $this);
 	}
 }
 
-abstract class REST extends CRUD implements RESTful
+abstract class REST implements RESTful
 {
 	/*
 	 * the abstract class cannot deal with parent-resources and fails.
@@ -248,25 +262,11 @@ abstract class REST extends CRUD implements RESTful
 		$child = $dispatcher->next();
 		if(!$child) // destroy the current resource
 		{
-			$obj->destroy();
+			$obj->delete();
 			return true;
 		}
 		// have $child
 		return $dispatcher->dispatch(); // dispatch to child
-	}
-	public function exists()
-	{
-		// resource should exist if it has an ID
-		return !empty($this->id);
-	}
-	public function toJSON()
-	{
-		if(empty($this->id))
-			return 'false';
-		$displayArray = array($this->primaryKey => $this->id);
-		foreach($this->definition as $column => $unused)
-			$displayArray[$column] = $this->$column;
-		return json_encode($displayArray);
 	}
 }
 ?>

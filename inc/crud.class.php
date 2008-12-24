@@ -196,7 +196,7 @@ abstract class CRUD
 		else
 			return true;
 	}
-	public function destroy()
+	public function delete()
 	{
 		$childClass = $this->className;
 		if(empty(self::$statements[$childClass]['delete']))
@@ -213,6 +213,16 @@ abstract class CRUD
 			unset($this->id);
 		}
 		return $return;
+	}
+	// Maybe this is not the best place for toJSON()
+	public function toJSON()
+	{
+		if(empty($this->id))
+			return 'false';
+		$displayArray = array($this->primaryKey => $this->id);
+		foreach($this->definition as $column => $unused)
+			$displayArray[$column] = $this->$column; // triggers __get()
+		return json_encode($displayArray);
 	}
 }
 ?>

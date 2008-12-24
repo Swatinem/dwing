@@ -476,4 +476,43 @@ class Usergroup
 		return self::$mGroupCache[$aGroupId];
 	}
 }
+
+class UserDispatcher implements RESTful
+{
+	public static function GET(RESTDispatcher $dispatcher)
+	{
+		$current = $dispatcher->current();
+		if($parent = $dispatcher->previous())
+		{
+			// parent resource may have a user assigned
+			if($parent['obj']->user != null)
+				return $parent['obj']->user;
+			else
+				throw new NotImplementedException();
+		}
+		if(empty($current['id']))
+			throw new NotImplementedException(); // listing not implemented
+		$obj = Users::getUser($current['id']);
+		$dispatcher->assignObject($obj);
+
+		$child = $dispatcher->next();
+		if(!$child)
+			return $obj;
+		else
+			throw new NotImplementedException(); // no subresources allowed
+			//return $dispatcher->dispatch();
+	}
+	public static function POST(RESTDispatcher $dispatcher)
+	{
+		throw new NotImplementedException();
+	}
+	public static function PUT(RESTDispatcher $dispatcher)
+	{
+		throw new NotImplementedException();
+	}
+	public static function DELETE(RESTDispatcher $dispatcher)
+	{
+		throw new NotImplementedException();
+	}
+}
 ?>

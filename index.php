@@ -106,6 +106,7 @@ abstract class Core
 	public static $db;
 	public static $user;
 	public static $config;
+	public static $tpl;
 }
 Core::$version = $_version;
 
@@ -139,41 +140,6 @@ if(function_exists('set_magic_quotes_runtime') && function_exists('get_magic_quo
 	}
 }
 
-// URL Rewriting in PHP
-$webRoot = 'http://'.$_SERVER['SERVER_NAME'].dirname($_SERVER['SCRIPT_NAME']);
-if($webRoot{strlen($webRoot)-1} != '/')
-	$webRoot.= '/';
-
-if(!empty($_SERVER['PATH_INFO']))
-	$requestFragments = explode('/', trim($_SERVER['PATH_INFO'], '/'));
-else
-	$requestFragments = array();
-
-$GLOBALS['webRoot'] = $webRoot;
-$GLOBALS['requestFragments'] = $requestFragments;
-
-if(!empty($requestFragments)):
-if($requestFragments[0] == 'news')
-{
-	if($requestFragments[1] == 'tags')
-		$_GET['tag'] = $requestFragments[2];
-	else
-		$_GET['news_id'] = $requestFragments[1];
-}
-elseif(in_array($requestFragments[0],Array('atom', 'rdf', 'rss')) && !empty($requestFragments[1]))
-{
-	$_GET['site'] = $requestFragments[0];
-	$_GET['tag'] = $requestFragments[1];
-}
-elseif($requestFragments[0] == 'user' && !empty($requestFragments[1]))
-{
-	$_GET['site'] = $requestFragments[0];
-	$_GET['user_id'] = $requestFragments[1];
-}
-elseif(!empty($requestFragments[0]))
-	$_GET['site'] = $requestFragments[0];
-endif;
-
 // init the translation system, this is independet from any module
 require_once('inc/translation.class.php');
 l10n::init();
@@ -181,7 +147,7 @@ l10n::init();
 // initiate template engine
 require_once('inc/template.class.php');
 $_tpl = new TemplateSystem();
-
+Core::$tpl = $_tpl;
 /*
 TODO:
 - separate Install and Update classes
@@ -219,6 +185,7 @@ function dWingAutoload($aClassName)
 spl_autoload_register('dWingAutoload');
 
 // init user
+require_once('inc/rest.class.php'); // RESTful Interface
 require_once('inc/user.class.php');
 Core::$user = new CurrentUser();
 // TODO: rework user login
@@ -272,21 +239,8 @@ if(!empty($_theme))
 $_themedir = '/'.(!empty($_SESSION['theme']) ? $_SESSION['theme'] : $_cfg['default_theme']);
 $_tpl->addPath('./tpl'.$_themedir);
 
-if(!empty($_GET['site']))
-{
-	if(preg_match('!^[_a-zA-Z0-9-.]+$!', $_GET['site']) && $_tpl->template_exists($_GET['site'].'.tpl.php'))
-	{
-		$_tpl->display($_GET['site'].'.tpl.php');
-	}
-	else
-	{
-		$_tpl->display('nosite.tpl.php');
-	}
-}
-else
-{
-	$_tpl->display('index.tpl.php');
-}
+$dispatcher = new RESTDispatcher();
+
 // do we still want this?
 if($_debug)
 {
