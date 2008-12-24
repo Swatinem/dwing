@@ -26,7 +26,7 @@ class News extends CRUD
 
 	protected $primaryKey = 'news_id';
 	protected $definition = array('title' => 'required', 'text' => 'html',
-		'user_id' => 'user', 'time' => 'time', 'fancyurl' => 'value');
+		'user_id' => 'user', 'time' => 'time', 'fancyurl' => 'fancyurl');
 
 	public function __get($aVarName)
 	{
@@ -122,6 +122,28 @@ class NewsRange implements Iterator, Countable
 	public function valid()
 	{
 		return isset($this->elements[$this->position]);
+	}
+}
+
+// TODO: new NewsWithTags Iterator
+
+class NewsDispatcher extends REST
+{
+	// other REST method should be sufficient
+	public static function GET(RESTDispatcher $dispatcher)
+	{
+		$current = $dispatcher->current();
+		if(empty($current['id']))
+			throw new UseTemplateException('index'); // listing per index page
+		else if($current['id'] == 'tags')
+			// TODO: assign tags as a template var and use a new template for that
+			throw new NotImplementedException();
+		return parent::GET($dispatcher); // make parent handle the rest
+	}
+	public static function POST(RESTDispatcher $dispatcher)
+	{
+		// this method will implement rating
+		throw new NotImplementedException();
 	}
 }
 ?>

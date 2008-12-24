@@ -26,7 +26,7 @@ class Comment extends CRUD
 
 	protected $tableName = 'comments';
 	protected $primaryKey = 'comment_id';
-	protected $definition = array('text' => 'html', 'user_id' => 'userId',
+	protected $definition = array('text' => 'html', 'user_id' => 'user',
 		'time' => 'time', 'content_id' => 'required', 'content_type' => 'required');
 	public function __get($aVarName)
 	{

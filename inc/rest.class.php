@@ -59,6 +59,9 @@ class NoDispatcher extends Exception
 	protected $message = 'No RESTful Dispatcher found';
 }
 
+class UseTemplateException extends Exception
+{}
+
 interface RESTful
 {
 	public static function GET(RESTDispatcher $dispatcher);
@@ -118,12 +121,23 @@ class RESTDispatcher
 			{
 				if(!method_exists($obj, 'toJSON'))
 					throw new NotImplementedException();
+				header('Content-Type: text/javascript; charset=utf-8');
 				echo $obj->toJSON();
 			}
 		}
 		catch(Exception $e)
 		{
-			if($e instanceof NoDispatcher && $this->current == 0)
+			if($e instanceof UseTemplateException)
+			{
+				// Use the template inside the Exception to display the page
+				$tpl = $e->getMessage();
+				unset($e);
+				if(Core::$tpl->template_exists($tpl.'.tpl.php'))
+					Core::$tpl->display($tpl.'.tpl.php');
+				else
+					$e = new NotFoundException();
+			}
+			else if($e instanceof NoDispatcher && $this->current == 0)
 			{
 				// no RESTful class found -> maybe we have a template with this name?
 				unset($e);

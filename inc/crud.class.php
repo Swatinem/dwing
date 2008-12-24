@@ -54,6 +54,10 @@ abstract class CRUD
 		$this->className = get_class($this);
 		if(empty($this->tableName))
 			$this->tableName = strtolower($this->className);
+		$this->tableName = Core::$db->pref.$this->tableName;
+		
+		if($aData == null)
+			return;
 		
 		if(is_array($aData))
 		{
@@ -73,10 +77,29 @@ abstract class CRUD
 				$this->data = $aData;
 			}
 		}
-		if((string)(int)$aData == $aData)
+		if((string)(int)$aData == (string)$aData) // We have an Id
 		{
 			$this->id = (int)$aData;
 			$this->fetchData();
+		}
+		else if(in_array('fancyurl', $this->definition)) // We have a fancyurl
+		{
+			$childClass = $this->className;
+			if(empty(self::$statements[$childClass]['fancyurl']))
+			{
+				self::$statements[$childClass]['fancyurl'] =
+					Core::$db->prepare('SELECT * FROM '.$this->tableName.' WHERE
+						fancyurl=:fancyurl;'); // TODO: do not hardcore the fancyurl name
+			}
+			$statement = self::$statements[$childClass]['fancyurl'];
+			$statement->bindValue(':fancyurl', Utils::fancyUrl($aData), PDO::PARAM_STR);
+			$statement->execute();
+			$this->data = $statement->fetch(PDO::FETCH_ASSOC);
+			if(!empty($this->data))
+			{
+				$this->id = $this->data[$this->primaryKey];
+				unset($this->data[$this->primaryKey]);
+			}
 		}
 	}
 	protected function fetchData()
