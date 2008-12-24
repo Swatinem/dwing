@@ -33,7 +33,10 @@ class News extends CRUD
 		switch($aVarName)
 		{
 			case 'comments':
-				throw new Exception('Not Implemented');
+				if(!isset($this->data['comments']))
+					$this->data['comments'] =
+						new CommentIterator($this->id, self::ContentType);
+				return $this->data['comments'];
 			break;
 			case 'tags':
 				if(!isset($this->data['tags']))

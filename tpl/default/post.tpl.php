@@ -18,8 +18,6 @@ if(empty($post))
 			<?php endif; ?>
 			<?php
 			// TODO: $news->tags, etc. accessors
-			$commentNum = Comments::getCommentNum($post->id, News::ContentType);
-
 			$thisRating = Ratings::getRating($post->id, News::ContentType);
 			$idStr = 'rating-'.$post->id.'-'.News::ContentType;
 			$jsParams = '\''.$idStr.'\', '.$post->id.', '.News::ContentType;
@@ -32,7 +30,7 @@ if(empty($post))
 				<?php endforeach; ?>
 			</span>
 			<?php endif; ?>
-			<?php if($commentNum > 0): ?>
+			<?php if(($commentNum = count($post->comments)) > 0): ?>
 			<span class="commentinfo"><?php printf(l10n::_('%d comments'), $commentNum); ?></span>
 			<?php endif; ?>
 			<span class="rating score<?php echo round($thisRating['average']); ?>" id="<?php echo $idStr; ?>">

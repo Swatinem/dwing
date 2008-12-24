@@ -25,12 +25,12 @@ class News extends CRUD
 	//protected $tableName = 'news';
 	protected $primaryKey = 'news_id';
 	protected $definition = array('title' => 'required', 'text' => 'html',
-		'user_id' => 'userId', 'time' => 'time', 'fancyurl' => 'value');
+		'user_id' => 'user', 'time' => 'time', 'fancyurl' => 'value');
 }
 class Comment extends CRUD
 {
 	protected $tableName = 'comments';
-	protected $definition = array('text' => 'html', 'user_id' => 'userId',
+	protected $definition = array('text' => 'html', 'user_id' => 'user',
 		'time' => 'time', 'content_id' => 'required', 'content_type' => 'required');
 }
 */
