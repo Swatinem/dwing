@@ -45,7 +45,10 @@ class News extends CRUD
 				return $this->data['tags'];
 			break;
 			case 'rating':
-				throw new Exception('Not Implemented');
+				if(!isset($this->data['rating']))
+					$this->data['rating'] =
+						Ratings::getRating($this->id, self::ContentType);
+				return $this->data['rating'];
 			break;
 			case 'user':
 				return parent::__get('user_id');

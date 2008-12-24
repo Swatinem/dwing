@@ -35,6 +35,11 @@ class Comment extends CRUD
 			case 'user':
 				return parent::__get('user_id');
 			break;
+			case 'rating':
+				if(!isset($this->data['rating']))
+					$this->data['rating'] =
+						Ratings::getRating($this->id, self::ContentType);
+				return $this->data['rating'];
 			case 'user_id':
 				return null;
 			break;

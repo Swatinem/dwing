@@ -12,15 +12,13 @@ if(empty($post))
 			<span class="userinfo"><a href="user/<?php echo $user->user_id; ?>">
 				<?php echo htmlspecialchars($user->nick); ?>
 			</a></span>
-			<?php endif; ?>
-			<?php if(!empty($post->time)): ?>
-			<span class="dateinfo"><?php echo Utils::relativeTime($post->time); ?></span>
-			<?php endif; ?>
 			<?php
-			// TODO: $news->tags, etc. accessors
-			$thisRating = Ratings::getRating($post->id, News::ContentType);
-			$idStr = 'rating-'.$post->id.'-'.News::ContentType;
-			$jsParams = '\''.$idStr.'\', '.$post->id.', '.News::ContentType;
+			endif;
+			if(!empty($post->time)):
+			?>
+			<span class="dateinfo"><?php echo Utils::relativeTime($post->time); ?></span>
+			<?php
+			endif;
 			$tags = $post->tags;
 			if(!empty($tags)):
 			?>
@@ -29,18 +27,24 @@ if(empty($post))
 				<a href="news/tags/<?php echo $tag; ?>"><?php echo $tag; ?></a>
 				<?php endforeach; ?>
 			</span>
-			<?php endif; ?>
-			<?php if(($commentNum = count($post->comments)) > 0): ?>
+			<?php
+			endif;
+			if(($commentNum = count($post->comments)) > 0):
+			?>
 			<span class="commentinfo"><?php printf(l10n::_('%d comments'), $commentNum); ?></span>
-			<?php endif; ?>
-			<span class="rating score<?php echo round($thisRating['average']); ?>" id="<?php echo $idStr; ?>">
-				<a href="javascript:doRating(<?php echo $jsParams; ?>, 1);">1</a>
-				<a href="javascript:doRating(<?php echo $jsParams; ?>, 2);">2</a>
-				<a href="javascript:doRating(<?php echo $jsParams; ?>, 3);">3</a>
-				<a href="javascript:doRating(<?php echo $jsParams; ?>, 4);">4</a>
-				<a href="javascript:doRating(<?php echo $jsParams; ?>, 5);">5</a>
-				<span class="ratingcaption"><?php printf(l10n::_('%s ratings / %s average'), $thisRating['ratings'], round($thisRating['average'], 1)); ?></span>
+			<?php
+			endif;
+			if(($rating = $post->rating) != null):
+			?>
+			<span class="rating score<?php echo round($rating['average']); ?>">
+				<a href="">1</a>
+				<a href="">2</a>
+				<a href="">3</a>
+				<a href="">4</a>
+				<a href="">5</a>
+				<span class="ratingcaption"><?php printf(l10n::_('%s ratings / %s average'), $rating['ratings'], round($rating['average'], 1)); ?></span>
 			</span>
+			<?php endif; ?>
 		</div>
 	</div>
 	<div class="postbody">
