@@ -243,6 +243,10 @@ h1 + ol, h2 + ol, h3 + ol
 {
 	margin-right: 0;
 }
+.right
+{
+	text-align: right;
+}
 
 /* post style */
 

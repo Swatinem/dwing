@@ -81,6 +81,11 @@ class NewsRange implements Iterator, Countable
 				'SELECT news.* FROM '.Core::$db->pref.'news AS news
 				ORDER BY news.time DESC LIMIT :start, :limit;');
 		}
+		if(empty(self::$countStmt))
+		{
+			self::$countStmt = Core::$db->prepare('
+				SELECT COUNT(*) as num FROM '.Core::$db->pref.'news;');
+		}
 		$statement = self::$selectStmt;
 		$statement->bindValue(':start', (int)$aStart, PDO::PARAM_INT);
 		$statement->bindValue(':limit', (int)$aLimit, PDO::PARAM_INT);
@@ -92,7 +97,9 @@ class NewsRange implements Iterator, Countable
 	// Countable Interface:
 	public function count()
 	{
-		// TODO: count the total news available
+		$statement = self::$countStmt;
+		$statement->execute();
+		return $statement->fetchColumn();
 	}
 
 	// Iterator Interface:
