@@ -142,8 +142,19 @@ class NewsDispatcher extends REST
 	}
 	public static function POST(RESTDispatcher $dispatcher)
 	{
-		// this method will implement rating
-		throw new NotImplementedException();
+		$current = $dispatcher->current();
+		$child = $dispatcher->next();
+		if($child && $child['resource'] == 'rating')
+		{
+			$obj = new News($current['id']);
+			if(!Ratings::addRating($obj->id, News::ContentType,
+				(int)file_get_contents('php://input')))
+				throw new UnauthorizedException();
+			return json_encode(Ratings::getRating($obj->id, News::ContentType));
+		}
+		if($child)
+			$dispatcher->previous(); // so the parent can handle other resources
+		return parent::POST($dispatcher);
 	}
 }
 ?>

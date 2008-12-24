@@ -119,10 +119,18 @@ class RESTDispatcher
 			}
 			else
 			{
-				if(!method_exists($obj, 'toJSON'))
+				if(!is_object($obj))
+				{
+					header('Content-Type: text/javascript; charset=utf-8');
+					echo $obj;
+				}
+				else if(!method_exists($obj, 'toJSON'))
 					throw new NotImplementedException();
-				header('Content-Type: text/javascript; charset=utf-8');
-				echo $obj->toJSON();
+				else
+				{
+					header('Content-Type: text/javascript; charset=utf-8');
+					echo $obj->toJSON();
+				}
 			}
 		}
 		catch(Exception $e)

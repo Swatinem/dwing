@@ -35,13 +35,14 @@ if(empty($post))
 			<?php
 			endif;
 			if(($rating = $post->rating) != null):
+			$resource = strtolower(get_class($post)).'/'.$post->id.'/rating';
 			?>
-			<span class="rating score<?php echo round($rating['average']); ?>">
-				<a href="">1</a>
-				<a href="">2</a>
-				<a href="">3</a>
-				<a href="">4</a>
-				<a href="">5</a>
+			<span class="rating score<?php echo round($rating['average']); ?>" id="<?php echo $resource; ?>">
+				<a href="javascript:vote('<?php echo $resource; ?>', 1);">1</a>
+				<a href="javascript:vote('<?php echo $resource; ?>', 2);">2</a>
+				<a href="javascript:vote('<?php echo $resource; ?>', 3);">3</a>
+				<a href="javascript:vote('<?php echo $resource; ?>', 4);">4</a>
+				<a href="javascript:vote('<?php echo $resource; ?>', 5);">5</a>
 				<span class="ratingcaption"><?php printf(l10n::_('%s ratings / %s average'), $rating['ratings'], round($rating['average'], 1)); ?></span>
 			</span>
 			<?php endif; ?>

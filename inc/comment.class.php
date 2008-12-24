@@ -130,4 +130,24 @@ class CommentIterator implements Iterator, Countable
 		return isset($this->elements[$this->position]);
 	}
 }
+
+class CommentDispatcher extends REST
+{
+	public static function POST(RESTDispatcher $dispatcher)
+	{
+		$current = $dispatcher->current();
+		$child = $dispatcher->next();
+		if($child && $child['resource'] == 'rating')
+		{
+			$obj = new Comment($current['id']);
+			if(!Ratings::addRating($obj->id, Comment::ContentType,
+				(int)file_get_contents('php://input')))
+				throw new UnauthorizedException();
+			return json_encode(Ratings::getRating($obj->id, Comment::ContentType));
+		}
+		if($child)
+			$dispatcher->previous(); // so the parent can handle other resources
+		return parent::POST($dispatcher);
+	}
+}
 ?>
