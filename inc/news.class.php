@@ -22,7 +22,9 @@
  */
 class News extends CRUD
 {
+	// TODO: $object::const only works in PHP5.3 -> use public var as alternative
 	const ContentType = 1;
+	public $ContentType = 1;
 
 	protected $primaryKey = 'news_id';
 	protected $definition = array('title' => 'required', 'text' => 'html',

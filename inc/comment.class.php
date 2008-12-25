@@ -22,12 +22,25 @@
  */
 class Comment extends CRUD
 {
+	// TODO: $object::const only works in PHP5.3 -> use public var as alternative
 	const ContentType = 4;
+	public $ContentType = 4;
 
 	protected $tableName = 'comments';
 	protected $primaryKey = 'comment_id';
 	protected $definition = array('text' => 'html', 'user_id' => 'user',
 		'time' => 'time', 'content_id' => 'required', 'content_type' => 'required');
+
+	public function __construct($obj = null)
+	{
+		// TODO: start using $obj::ContentType only we switch to PHP5.3
+		if(is_object($obj) && isset($obj->id) && isset($obj->ContentType))
+		{
+			$this->data['content_id'] = $obj->id;
+			$this->data['content_type'] = $obj->ContentType;
+		}
+		parent::__construct($obj);
+	}
 	public function __get($aVarName)
 	{
 		switch($aVarName)
@@ -145,8 +158,17 @@ class CommentDispatcher extends REST
 				throw new UnauthorizedException();
 			return json_encode(Ratings::getRating($obj->id, Comment::ContentType));
 		}
-		if($child)
-			$dispatcher->previous(); // so the parent can handle other resources
+		$parent = $dispatcher->previous();
+		if($parent && !$child)
+		{
+			$dispatcher->next(); // we return so make sure the dispatcher has the
+			// right current object
+			$obj = new Comment($parent['obj']); // so the Comment has info about the
+			// parent Id and ContentType
+			$obj->assignData(json_decode(file_get_contents('php://input'), true));
+			$obj->save();
+			return $obj;
+		}
 		return parent::POST($dispatcher);
 	}
 }

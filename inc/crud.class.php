@@ -64,9 +64,12 @@ abstract class CRUD
 			// primary key set: fetch the old record and overwrite the data with the new one
 			// problem: I want to create Objects from a fetchAll query that don't re-fetch
 			// themselves
-			if(!empty($aData[$this->primaryKey]))
+			if(!empty($aData[$this->primaryKey]) || !empty($aData['id']))
 			{
-				$this->id = (int)$aData[$this->primaryKey];
+				if(!empty($aData[$this->primaryKey]))
+					$this->id = (int)$aData[$this->primaryKey];
+				else if(!empty($aData['id']))
+					$this->id = (int)$aData['id'];
 				$this->fetchData();
 				$this->data = array_merge($this->data, $aData);
 				unset($this->data[$this->primaryKey]);
@@ -77,7 +80,7 @@ abstract class CRUD
 				$this->data = $aData;
 			}
 		}
-		if((string)(int)$aData == (string)$aData) // We have an Id
+		if(is_numeric($aData)) // We have an Id
 		{
 			$this->id = (int)$aData;
 			$this->fetchData();
@@ -191,25 +194,29 @@ abstract class CRUD
 			switch($options)
 			{
 				case 'user':
-					throw new Exception('Not Implemented');
+					if(!isset($this->data[$column]))
+						$this->data[$column] = Core::$user->id;
+					$statement->bindValue(':'.$column, $this->data[$column], PDO::PARAM_INT);
 				break;
 				case 'time':
-					$statement->bindValue(':'.$column, isset($this->data[$column]) ? 
-						$this->data[$column] : time(), PDO::PARAM_INT);
+					if(!isset($this->data[$column]))
+						$this->data[$column] = time();
+					$statement->bindValue(':'.$column, $this->data[$column], PDO::PARAM_INT);
 				break;
 				case 'html':
-					$statement->bindValue(':'.$column, isset($this->data[$column]) ? 
-						Utils::purify($this->data[$column]) : '', PDO::PARAM_STR);
+					$this->data[$column] = isset($this->data[$column]) ? 
+						Utils::purify($this->data[$column]) : '';
+					$statement->bindValue(':'.$column, $this->data[$column], PDO::PARAM_STR);
 				break;
 				case 'required':
 					if(empty($this->data[$column]))
-						throw new Exception($column.' was empty');
-					$statement->bindValue(':'.$column, isset($this->data[$column]) ? 
-						$this->data[$column] : '', PDO::PARAM_STR);
+						throw new Exception(printf(l10n::_('%s was empty'), $column));
+					$statement->bindValue(':'.$column, $this->data[$column], PDO::PARAM_STR);
 				break;
 				default:
-					$statement->bindValue(':'.$column, isset($this->data[$column]) ? 
-						$this->data[$column] : '', PDO::PARAM_STR);
+					if(!isset($this->data[$column]))
+						$this->data[$column] = '';
+					$statement->bindValue(':'.$column, $this->data[$column], PDO::PARAM_STR);
 			}
 		}
 		if(!$statement->execute())
@@ -242,9 +249,9 @@ abstract class CRUD
 	{
 		if(empty($this->id))
 			return 'false';
-		$displayArray = array($this->primaryKey => $this->id);
+		$displayArray = array('id' => $this->id);
 		foreach($this->definition as $column => $unused)
-			$displayArray[$column] = $this->$column; // triggers __get()
+			$displayArray[$column] = $this->data[$column];
 		return json_encode($displayArray);
 	}
 }

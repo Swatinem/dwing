@@ -35,7 +35,8 @@ if(empty($post))
 			<?php
 			endif;
 			if(($rating = $post->rating) != null):
-			$resource = strtolower(get_class($post)).'/'.$post->id.'/rating';
+				$resource = strtolower(get_class($post)).'/'.$post->id.'/rating';
+				// TODO: rating using js events, not hardlinked href="javascript" links
 			?>
 			<span class="rating score<?php echo round($rating['average']); ?>" id="<?php echo $resource; ?>">
 				<a href="javascript:vote('<?php echo $resource; ?>', 1);">1</a>
