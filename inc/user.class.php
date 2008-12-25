@@ -102,6 +102,10 @@ class GenericUser
 			$this->_fetchOpenIDs();
 			return $this->mOpenIDs;
 		}
+		if($aVarName == 'id')
+		{
+			return $this->mUserId;
+		}
 		return isset($this->mUserData[$aVarName]) ? $this->mUserData[$aVarName] : null;
 	}
 }
@@ -147,12 +151,11 @@ class CurrentUser extends GenericUser
 		{
 			return $this->beginLogin($_POST['openid_url']);
 		}
-		if(!empty($_GET['site']) && $_GET['site'] == 'completelogin') // catch the response from the OpenID server
+		if(!empty($_GET['completelogin'])) // catch the response from the OpenID server
 		{
 			return $this->completeLogin();
 		}
-		if(!empty($_COOKIE['openid_url']) && empty($_SESSION['uid']) &&
-			(empty($_GET['site']) || $_GET['site'] != 'completelogin'))
+		if(!empty($_COOKIE['openid_url']) && empty($_SESSION['uid']))
 		{
 			return $this->beginLogin($_COOKIE['openid_url'], true);
 		}
@@ -175,6 +178,10 @@ class CurrentUser extends GenericUser
 		{
 			$this->_fetchOpenIDs();
 			return $this->mOpenIDs;
+		}
+		if($aVarName == 'id')
+		{
+			return $this->mUserId;
 		}
 		return isset($this->mUserData[$aVarName]) ? $this->mUserData[$aVarName] : null;
 	}
@@ -264,14 +271,13 @@ class CurrentUser extends GenericUser
 
 		if(!$aImmediate)
 		{
-			$_GET['site'] = 'login'; // fake this get to display any login error
 			if(!$authRequest)
 			{
-				throw new Exception(l10n::_('Authentication error: OpenId invalid'));
+				throw new Exception(l10n::_('Authentication error: OpenID invalid'));
 			}
 			$sregRequest = Auth_OpenID_SRegRequest::build(array('nickname'), array());
 			$authRequest->addExtension($sregRequest);
-			// do not request these vars if the user is logged in via cookie.
+			// TODO: do not request these vars if the user is logged in via cookie.
 		}
 		elseif(!$authRequest)
 			return;
@@ -282,7 +288,7 @@ class CurrentUser extends GenericUser
 		$webroot = $GLOBALS['webRoot'];
 		header("Location: ".$authRequest->redirectURL(
 			$webroot,
-			$webroot.'?site=completelogin',
+			$webroot.'login?completelogin=1',
 			$aImmediate));
 		exit;
 	}
@@ -307,7 +313,7 @@ class CurrentUser extends GenericUser
 		$store = new Auth_OpenID_MySQLStore(Core::$db);
 		$store->createTables();
 		$consumer = new Auth_OpenID_Consumer($store);
-		$returnUrl = $GLOBALS['webRoot'].'?site=completelogin';
+		$returnUrl = $GLOBALS['webRoot'].'login?completelogin=1';
 		$response = $consumer->complete($returnUrl);
 		Core::$db->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
 		if(!$response)
@@ -397,7 +403,6 @@ class CurrentUser extends GenericUser
 				$error = l10n::_('Verification cancelled.');
 			elseif($response->status == Auth_OpenID_FAILURE)
 				$error = sprintf(l10n::_('OpenID authentication failed: %s'), $response->message);
-			$_GET['site'] = 'login';
 			throw new Exception($error);
 		}
 	}

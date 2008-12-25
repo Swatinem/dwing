@@ -188,20 +188,6 @@ spl_autoload_register('dWingAutoload');
 require_once('inc/rest.class.php'); // RESTful Interface
 require_once('inc/user.class.php');
 Core::$user = new CurrentUser();
-// TODO: rework user login
-// don't try to log in the user when loading a feed, it causes the feed to fail.
-/*if(empty($_GET['site']) || !in_array($_GET['site'],Array('atom', 'rdf', 'rss')))
-{
-	try
-	{
-		$_user->init();
-	}
-	catch(Exception $e)
-	{
-		$_GET['site'] = 'login'; // show the login error
-		$_tpl->assign('loginerror', $e->getMessage());
-	}
-}*/
 
 /*
  * check if update is needed

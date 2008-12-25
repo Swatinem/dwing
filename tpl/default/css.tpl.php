@@ -488,11 +488,13 @@ h1 + ol, h2 + ol, h3 + ol
 }
 .openid input[type="text"]
 {
+	/*appearance: field; not supported yet*/
 	width: 15em;
 	margin-right: 0.5em;
 	/*font-weight: bold;*/
+	/* setting color & background makes the native look disappear :( */
 	color: #2F960A;
-	background: url(../../dwing/images/openid-icon.png) white no-repeat;
+	background: url(images/openid-icon.png) white no-repeat;
 	padding-left: 28px;
 }
 

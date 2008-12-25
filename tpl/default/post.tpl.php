@@ -9,7 +9,7 @@ if(empty($post))
 		<?php endif; ?>
 		<div class="postinfo">
 			<?php if(($user = $post->user) != null): ?>
-			<span class="userinfo"><a href="user/<?php echo $user->user_id; ?>">
+			<span class="userinfo"><a href="user/<?php echo $user->id; ?>">
 				<?php echo htmlspecialchars($user->nick); ?>
 			</a></span>
 			<?php

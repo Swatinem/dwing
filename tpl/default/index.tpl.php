@@ -4,7 +4,6 @@ include($this->template('header.tpl.php'));
 
 // TODO: better tag cloud?
 // TODO: resurrect posting
-// TODO: implement voting as first RESTful service
 
 $displayPerPage = 5;
 $page = Utils::getPage();

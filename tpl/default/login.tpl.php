@@ -1,50 +1,26 @@
 <?php
 if(isset($_GET['logout']))
-	$user->logout();
-$title = l10n::_('Login');
-include($this->template('header.tpl.php'));
+	Core::$user->logout();
+
 if(!empty($_GET['returnto']) && !empty($_SERVER['HTTP_REFERER']))
 	$_SESSION['returnto'] = $_SERVER['HTTP_REFERER'];
+
+$title = l10n::_('Sign in');
+include($this->template('header.tpl.php'));
 ?>
-<?php
-/* Todo: Translation... */
-?>
-<form action="./" method="post">
-	<h2>Anmeldung mit deiner OpenID</h2>
-	<div class="openid box">
-		<input type="text" name="openid_url" /><input type="submit" value="Login"/>
-		<h3>Beispiele:</h3>
-		<ul>
-			<li>http://deineadresse.de</li>
-			<li>http://deinname.myopenid.com</li>
-			<li>http://deinname.livejournal.com</li>
-			<li>http://openid.aol.com/deinAIMname</li>
-			<li>http://yahoo.com</li>
-		</ul>
-	</div>
-</form>
+<div class="area">
+	<h1><?php echo l10n::_('Sign in with your OpenID'); ?></h1>
+	<form action="login" method="post" class="openid">
+		<input type="text" name="openid_url" /><input type="submit" value="<?php echo l10n::_('Sign in'); ?>"/>
+	</form>
+	<!-- TODO: buttons to log in with well known OpenID Providers + a little explanation -->
 <?php if(!empty($loginerror)): ?>
-<ul class="warning">
-	<li><?php echo htmlspecialchars($loginerror); ?></li>
-</ul>
+<h2><?php echo l10n::_('Error'); ?></h2>
+<p><?php echo htmlspecialchars($loginerror->getMessage()); ?></p>
 <?php endif; ?>
-<?php if($user->authed): ?>
-<ul class="warning">
-	<li>Du bist schon angemeldet. <a href="user/<?php echo $user->user_id; ?>">Zum Profil</a></li>
-</ul>
+<?php if(Core::$user->authed): ?>
+<h2><?php echo l10n::_('Already signed in'); ?></h2>
+<p><a href="user/<?php echo Core::$user->id; ?>"><?php echo l10n::_('Visit your profile for more details'); ?></a></p>
 <?php endif; ?>
-<h2>Was ist OpenID?</h2>
-<p>
-	OpenID ist ein dezentrales Identitätssystem, durch das ihr euch mit einem
-	einzigen Benutzernamen auf vielen verschiedenen Seiten anmelden könnt, ohne
-	euch extra registrieren zu müssen.
-</p>
-<h2>Wo bekomme ich eine OpenID?</h2>
-<p>
-	Zum Beispiel bei <a href="https://www.myopenid.com">MyOpenID.com</a>.
-	OpenID ist ein dezentrales System und es gibt viele verschiedene OpenID
-	Provider.
-	<a href="http://openid.net/wiki/index.php/Public_OpenID_providers">Hier</a>
-	gibt es eine Liste von weiteren OpenID Providern.
-</p>
+</div>
 <?php include($this->template('footer.tpl.php')); ?>

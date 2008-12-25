@@ -23,26 +23,13 @@ include($this->template('header.tpl.php'));
 			<?php endforeach; ?>
 		</ul>
 	</div>
+	<?php if(Core::$user->authed && Core::$user->id == $displayUser->id): ?>
+	<h1><?php echo l10n::_('Your profile'); ?></h1>
+	<!-- TODO: edit your own profile settings -->
+	<h2><?php echo l10n::_('Register another OpenID'); ?></h2>
+	<form action="login?returnto=1" method="post" class="openid">
+		<input type="text" name="openid_url" /><input type="submit" value="<?php echo l10n::_('add'); ?>"/>
+	</form>
+	<?php endif; ?>
 </div>
-<?php
-/* TODO: resurrect the openid login
-if($displayUser->user_id == $user->user_id):
-	$_SESSION['returnto'] = 'http://'.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'];
-?>
-<form action="./" method="post">
-	<h2>Weitere OpenID eintragen:</h2>
-	<div class="openid box">
-		<input type="text" name="openid_url" /><input type="submit" value="hinzufügen"/>
-		<h3>Beispiele:</h3>
-		<ul>
-			<li>http://deineadresse.de</li>
-			<li>http://deinname.myopenid.com</li>
-			<li>http://deinname.livejournal.com</li>
-			<li>http://openid.aol.com/deinAIMname</li>
-		</ul>
-	</div>
-</form>
-<?php
-endif;*/
-include($this->template('footer.tpl.php'));
-?>
+<?php include($this->template('footer.tpl.php')); ?>

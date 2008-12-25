@@ -1,6 +1,16 @@
 <?php
 $webroot = $GLOBALS['webRoot'];
 
+// do User sign in only in the templates that need the user to be signed in
+try
+{
+	Core::$user->init();
+}
+catch(Exception $loginerror)
+{
+	// Can't do redirect in the header file
+}
+
 header('Content-Type: application/xhtml+xml');
 echo '<?xml version="1.0" encoding="utf-8"?>'."\n";
 $site = !empty($_GET['site']) ? $_GET['site'] : 'index';
