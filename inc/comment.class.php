@@ -33,7 +33,7 @@ class Comment extends CRUD
 
 	public function __construct($obj = null)
 	{
-		// TODO: start using $obj::ContentType only we switch to PHP5.3
+		// TODO: start using $obj::ContentType when we switch to PHP5.3
 		if(is_object($obj) && isset($obj->id) && isset($obj->ContentType))
 		{
 			$this->data['content_id'] = $obj->id;
@@ -51,7 +51,7 @@ class Comment extends CRUD
 			case 'rating':
 				if(!isset($this->data['rating']))
 					$this->data['rating'] =
-						Ratings::getRating($this->id, self::ContentType);
+						Rating::getRating($this->id, self::ContentType);
 				return $this->data['rating'];
 			case 'user_id':
 				return null;
@@ -146,30 +146,41 @@ class CommentIterator implements Iterator, Countable
 
 class CommentDispatcher extends REST
 {
+	public static function GET(RESTDispatcher $dispatcher)
+	{
+		$current = $dispatcher->current();
+		if(empty($current['id']))
+			throw new NotImplementedException(); // listing not implemented
+		$obj = new $current['resource']($current['id']);
+		$dispatcher->assignObject($obj);
+
+		$child = $dispatcher->next();
+		if(!$child)
+			return $obj;
+		else
+			return $dispatcher->dispatch();
+	}
 	public static function POST(RESTDispatcher $dispatcher)
 	{
 		$current = $dispatcher->current();
 		$child = $dispatcher->next();
-		if($child && $child['resource'] == 'rating')
+		if($child)
 		{
 			$obj = new Comment($current['id']);
-			if(!Ratings::addRating($obj->id, Comment::ContentType,
-				(int)file_get_contents('php://input')))
-				throw new UnauthorizedException();
-			return json_encode(Ratings::getRating($obj->id, Comment::ContentType));
+			$dispatcher->previous();
+			$dispatcher->assignObject($obj);
+			$dispatcher->next(); // assign the object to the right resource
+			return $dispatcher->dispatch();
 		}
 		$parent = $dispatcher->previous();
-		if($parent && !$child)
-		{
-			$dispatcher->next(); // we return so make sure the dispatcher has the
-			// right current object
-			$obj = new Comment($parent['obj']); // so the Comment has info about the
-			// parent Id and ContentType
-			$obj->assignData(json_decode(file_get_contents('php://input'), true));
-			$obj->save();
-			return $obj;
-		}
-		return parent::POST($dispatcher);
+		if(!$parent)
+			throw new NotImplementedException();
+
+		$obj = new Comment($parent['obj']); // so the Comment has info about the
+		// parent Id and ContentType
+		$obj->assignData(json_decode(file_get_contents('php://input'), true));
+		$obj->save();
+		return $obj;
 	}
 }
 ?>

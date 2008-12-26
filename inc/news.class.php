@@ -49,7 +49,7 @@ class News extends CRUD
 			case 'rating':
 				if(!isset($this->data['rating']))
 					$this->data['rating'] =
-						Ratings::getRating($this->id, self::ContentType);
+						Rating::getRating($this->id, self::ContentType);
 				return $this->data['rating'];
 			break;
 			case 'user':
@@ -189,22 +189,6 @@ class NewsDispatcher extends REST
 			throw new UseTemplateException('index');
 		}
 		return parent::GET($dispatcher); // make parent handle the rest
-	}
-	public static function POST(RESTDispatcher $dispatcher)
-	{
-		$current = $dispatcher->current();
-		$child = $dispatcher->next();
-		if($child && $child['resource'] == 'rating')
-		{
-			$obj = new News($current['id']);
-			if(!Ratings::addRating($obj->id, News::ContentType,
-				(int)file_get_contents('php://input')))
-				throw new UnauthorizedException();
-			return json_encode(Ratings::getRating($obj->id, News::ContentType));
-		}
-		if($child)
-			$dispatcher->previous(); // so the parent can handle other resources
-		return parent::POST($dispatcher);
 	}
 }
 ?>

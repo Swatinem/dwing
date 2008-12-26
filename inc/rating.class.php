@@ -22,7 +22,7 @@
  *
  * rate any type of content.
  */
-class Ratings
+class Rating
 {
 	/**
 	 * get the number of ratings and the average rating of a Content Item and
@@ -68,6 +68,51 @@ class Ratings
 		$statement->bindValue(':rating', (int)$aRating, PDO::PARAM_INT);
 		$statement->execute();
 		return true;
+	}
+}
+
+class RatingDispatcher implements RESTful
+{
+	public static function GET(RESTDispatcher $dispatcher)
+	{
+		$child = $dispatcher->next();
+		if($child)
+			throw new NotImplementedException();
+		$parent = $dispatcher->previous();
+		// TODO: start using $obj::ContentType when we switch to PHP5.3
+		if(!$parent || !isset($parent['obj']->id) ||
+			!isset($parent['obj']->ContentType))
+			throw new NotImplementedException();
+		// we have a parent
+		$dispatcher->next(); // so the dispatcher does not think we are the parent
+		return json_encode(Rating::getRating($parent['obj']->id,
+			$parent['obj']->ContentType));
+	}
+	public static function POST(RESTDispatcher $dispatcher)
+	{
+		$child = $dispatcher->next();
+		if($child)
+			throw new NotImplementedException();
+		$parent = $dispatcher->previous();
+		// TODO: start using $obj::ContentType when we switch to PHP5.3
+		if(!$parent || !isset($parent['obj']->id) ||
+			!isset($parent['obj']->ContentType))
+			throw new NotImplementedException();
+		// we have a parent
+		$dispatcher->next(); // so the dispatcher does not think we are the parent
+		if(!Rating::addRating($parent['obj']->id, $parent['obj']->ContentType,
+			(int)file_get_contents('php://input')))
+			throw new UnauthorizedException();
+		return json_encode(Rating::getRating($parent['obj']->id,
+			$parent['obj']->ContentType));
+	}
+	public static function PUT(RESTDispatcher $dispatcher)
+	{
+		throw new NotImplementedException();
+	}
+	public static function DELETE(RESTDispatcher $dispatcher)
+	{
+		throw new NotImplementedException();
 	}
 }
 ?>
