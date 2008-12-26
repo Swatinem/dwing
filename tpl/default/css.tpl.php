@@ -69,6 +69,10 @@ body:target
 {
 	background-image: url(15pxgrid.png);
 }
+body.progress:hover, body.progress:hover *
+{
+	cursor: wait !important;
+}
 em
 {
 	font-style: italic;
@@ -331,6 +335,10 @@ h1 + ol, h2 + ol, h3 + ol
 	width: 1.1em;
 	line-height: 0.25em;
 	height: 0.25em;
+}
+.rating a:hover
+{
+	cursor: pointer;
 }
 .rating a::before
 {

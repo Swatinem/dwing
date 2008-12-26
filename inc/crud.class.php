@@ -250,8 +250,16 @@ abstract class CRUD
 		if(empty($this->id))
 			return 'false';
 		$displayArray = array('id' => $this->id);
-		foreach($this->definition as $column => $unused)
-			$displayArray[$column] = $this->data[$column];
+		foreach($this->definition as $column => $option)
+		{
+			if($option == 'user')
+			{
+				$user = Users::getUser($this->data[$column]);
+				$displayArray['user'] = array('id' => $user->id, 'nick' => $user->nick);
+			}
+			else
+				$displayArray[$column] = $this->data[$column];
+		}
 		return json_encode($displayArray);
 	}
 }

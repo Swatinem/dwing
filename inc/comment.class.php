@@ -180,6 +180,7 @@ class CommentDispatcher extends REST
 		// parent Id and ContentType
 		$obj->assignData(json_decode(file_get_contents('php://input'), true));
 		$obj->save();
+		$dispatcher->next(); // dispatcher has the right resource
 		return $obj;
 	}
 }
