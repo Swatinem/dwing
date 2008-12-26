@@ -247,6 +247,15 @@ h1 + ol, h2 + ol, h3 + ol
 {
 	text-align: right;
 }
+.small
+{
+	font-size: 0.625em;
+	line-height: 2em;
+}
+.col2.small
+{
+	width: 37.3em;
+}
 
 /* post style */
 
@@ -395,7 +404,6 @@ h1 + ol, h2 + ol, h3 + ol
 	color: hsl(120, 100%, 50%);
 }
 
-
 .ratingcaption
 {
 	display: none;
@@ -432,18 +440,18 @@ h1 + ol, h2 + ol, h3 + ol
 
 /* Header */
 
-#header
+/*#header
 {
 	width: 48em;
 	height: 2.5em;
 	padding-top: 7.5em;
 	margin: auto;
 	background: url(header.png);
-}
+}*/
 
 /* Header menu */
 
-#header > a::before
+/*#header > a::before
 {
 	content: '';
 	background: url(headertab.png) top left no-repeat;
@@ -464,16 +472,8 @@ h1 + ol, h2 + ol, h3 + ol
 	background: url(headertab.png) top right no-repeat;
 	font-weight: bold;
 	color: #2F960A;
-}
-/*#header > li:hover, #header li.selected
-{
-	background: url(images/headtabs.png) 0 -23px no-repeat;
-}
-#header > li:hover > a, #header li.selected > a
-{
-	padding: 4px 5px 3px 2px;
-	background: url(images/headtabs.png) 100% -23px no-repeat;
 }*/
+
 
 /* OpenID login */
 
@@ -498,60 +498,3 @@ h1 + ol, h2 + ol, h3 + ol
 	padding-left: 28px;
 }
 
-/* new post styles */
-
-/* Problem: content-box and native widget sizing... */
-#title, #tags, #text
-{
-	border: 0;
-	margin: 0;
-	padding: 0;
-	background: transparent;
-	outline: 0.0625em solid #99C1EA;
-}
-#title
-{
-	font-size: 1em;
-	width: 26.4em;
-	color: inherit;
-	font-family: inherit;
-	font-weight: inherit;
-}
-#tags
-{
-	color: #2F960A;
-	font-size: 1em;
-	width: 48em;
-}
-#tags_preview
-{
-	color: #2F960A;
-	font-size: 1em;
-}
-#text
-{
-	margin: 0;
-	border: 0;
-	padding: 0;
-	line-height: 1.25em;
-	margin-top: 1.25em;
-	font-size: 1em;
-	height: 10em;
-	width: 33em;
-}
-.postcontrols
-{
-	position: relative;
-	width: 10em;
-	height: 5em;
-	margin-top: -5em;
-	margin-bottom: -2.5em;
-	margin-left: 33em;
-	text-align: center;
-	line-height: 1.87500em;
-}
-.postcontrols input, .postcontrols button
-{
-	font-size: 1em;
-	font-weight: bold;
-}

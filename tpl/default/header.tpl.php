@@ -32,8 +32,16 @@ if(empty($title))
 		<script type="application/javascript;version=1.8" src="es"></script>
 	</head>
 	<body id="grid">
-		<!-- TODO: a new header. maybe a little SVG animation?
-		<div id="header">
-			<a href="#fake">Grid off</a>
-			<a href="#grid">Grid on</a>
-		</div>-->
+		<div class="area">
+			<div class="col2">
+				<h1><a href="./">dWing</a></h1>
+			</div>
+			<div class="col2 small right">
+				<?php if(Core::$user->authed): ?>
+					<a href="user/<?php echo Core::$user->id; ?>"><?php echo htmlspecialchars(Core::$user->nick); ?></a>
+				<?php else: ?>
+					<a href="login?returnto=1"><?php echo l10n::_('sign in'); ?></a>
+				<?php endif; ?>
+			</div>
+		</div>
+		<hr />
