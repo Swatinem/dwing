@@ -144,11 +144,12 @@ function ratingEventHandler(e)
 			printf(_('%s ratings / %s average'), rating.ratings, round(rating.average, 1));
 	}, e);
 }
-function submitComment(e)
+function submitComment()
 {
-	data = {'text': document.getElementById('commenttext').value};
+	var textArea = document.getElementById('commenttext');
+	data = {'text': textArea.value};
 
-	REST.post(e.target.action, JSON.stringify(data), function (req) {
+	REST.post(textArea.parentNode.action, JSON.stringify(data), function (req) {
 		// TODO: add this comment to the DOM
 		//alert(req.status + "\n" + req.responseText);
 		return;
@@ -157,11 +158,44 @@ function submitComment(e)
 		var comment = JSON.parse(req.responseText);
 	});
 }
-// TODO: hook up FCKeditor
+
+/*
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=45190
+ * What the hell do they think they are doing?!?
+ * So now that I spent hours to discover that submit EventListeners are
+ * broken intentionally, I need to do this the quirky way :(
+ *
+ * FCKeditor overrides the submit method and pushes its own content into
+ * the textarea and then calls our originally defined submit method
+ *
+ * Wouldn't it be good if we had EventListeners and bubbling for that?!?
+ *
+ * If the submit event is not initiated by scripts calling submit() but by the
+ * user submitting the form via a <input type="submit" /> element than we
+ * suddenly have the comfort of working EventListeners
+ */
 window.addEventListener('load', function () {
 	if(commentForm = document.getElementById('commentform'))
 	{
-		commentForm.addEventListener('submit', function(e) { e.preventDefault(); submitComment(e); }, false); 
+		if(window.FCKeditor)
+		{
+			commentForm.submit = function() {
+				submitComment();
+				return false;
+			};
+			var oFCKeditor = new FCKeditor('commenttext');
+			oFCKeditor.Config['CustomConfigurationsPath'] = '/fckconfig';
+			oFCKeditor.ToolbarSet = 'dWing';
+			oFCKeditor.ReplaceTextarea();
+			$('#commentformsubmit').hide();
+		}
+		else
+		{
+			commentForm.addEventListener('submit', function(e) {
+				submitComment();
+				e.preventDefault();
+			}, true);
+		}
 	}
 
 	registerRatingHandlers();

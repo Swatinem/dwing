@@ -13,7 +13,7 @@ $post = $object;
 foreach($object->comments as $post):
 	include($this->template('post.tpl.php'));
 endforeach;
-// TODO: better post style
+// TODO: better post style, even without FCKeditor
 ?>
 <hr />
 <div class="area">
@@ -21,7 +21,7 @@ endforeach;
 	<?php if(Core::$user->authed): ?>
 	<form action="news/<?php echo $object->fancyurl; ?>/comment" method="post" id="commentform">
 		<textarea id="commenttext"></textarea>
-		<input type="submit" />
+		<input id="commentformsubmit" type="submit" value="<?php echo l10n::_('Publish'); ?>" />
 	</form>
 	<?php else: ?>
 	<p><?php echo l10n::_('You need to <a href="login?returnto=1">sign in</a> first.'); ?></p>
