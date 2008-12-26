@@ -28,7 +28,6 @@ if(empty($title))
 		<link rel="alternate" type="application/rss+xml" title="dWing RSS 2.0" href="rss" />
 		<link rel="alternate" type="application/xml" title="dWing RDF 1.0" href="rdf" />
 
-		<!--<script type="application/javascript" src="js/mootools.js"></script>-->
 		<script type="application/javascript;version=1.8" src="es"></script>
 	</head>
 	<body id="grid">
