@@ -107,6 +107,25 @@ REST.post = function RESTpost(aUrl, aData, aCallback, aCallbackParam)
 	};
 	req.send(aData);
 }
+REST.delete = function RESTdelete(aUrl, aCallback, aCallbackParam)
+{
+	$($('body')[0]).addClass('progress');
+	var req = new XMLHttpRequest();
+	req.open('DELETE', aUrl, true);
+	req.onreadystatechange = function () {
+		if(req.readyState == 4)
+		{
+			$($('body')[0]).removeClass('progress');
+			if(req.status == 401)
+			{
+				alert(_('Not logged in.'));
+				return;
+			}
+			aCallback(req, aCallbackParam);
+		}
+	};
+	req.send(null);
+}
 function postStyle(aPost)
 {
 	if(!aPost.type)
@@ -150,10 +169,14 @@ function postStyle(aPost)
 			?>
 			<?php endif;*/ ?>
 	// TODO: real rating?
+	// TODO: rights management?
 	str+= '\
 			<span class="rating score0">\
 				<a>1</a><a>2</a><a>3</a><a>4</a><a>5</a>\
 				<span class="ratingcaption">'+ printf(_('%s ratings / %s average'), 0, 0) +'</span>\
+			</span>\
+			<span class="controls">\
+				<a class="delete">delete</a>\
 			</span>\
 		</div>\
 	</div>\
@@ -169,6 +192,11 @@ function getParentPost(aElem)
 	while(!$(parent = parent.parentNode).hasClass('post'))
 	{}
 	return parent;
+}
+function registerMagicHandlers()
+{
+	registerRatingHandlers();
+	registerDeleteHandlers();
 }
 function registerRatingHandlers()
 {
@@ -200,6 +228,25 @@ function ratingEventHandler(e)
 			printf(_('%s ratings / %s average'), rating.ratings, round(rating.average, 1));
 	}, e);
 }
+function registerDeleteHandlers()
+{
+	// hook up all the delete Widgets
+	var deleteWidgets = document.getElementsByClassName('delete');
+	for(var i = 0; i < deleteWidgets.length; i++)
+	{
+		var elem = deleteWidgets[i];
+		elem.removeEventListener('click', deleteEventHandler, false);
+		elem.addEventListener('click', deleteEventHandler, false);
+	}
+}
+function deleteEventHandler(e)
+{
+	e.preventDefault();
+	REST.delete(getParentPost(e.target).id, function(req, e) {
+		var post = getParentPost(e.target);
+		post.parentNode.removeChild(post); // remove the post from the DOM
+	}, e);
+}
 function submitComment()
 {
 	var textArea = document.getElementById('commenttext');
@@ -212,7 +259,7 @@ function submitComment()
 		comment.type = 'comment';
 		$(postStyle(comment)).appendTo('#newcomments'); // append this comment to
 		// the DOM using jQuery
-		registerRatingHandlers(); // so we can immediately rate the new comment
+		registerMagicHandlers(); // so we can immediately rate the new comment
 		if(window.FCKeditor)
 		{
 			var oEditor = FCKeditorAPI.GetInstance('commenttext');
@@ -262,5 +309,5 @@ window.addEventListener('load', function () {
 		}
 	}
 
-	registerRatingHandlers();
+	registerMagicHandlers();
 }, false);

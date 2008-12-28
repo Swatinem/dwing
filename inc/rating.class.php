@@ -69,6 +69,17 @@ class Rating
 		$statement->execute();
 		return true;
 	}
+
+	public static function deleteRating($aContentId, $aContentType)
+	{
+		// TODO: cache all the prepared statements as a private static
+		$statement = Core::$db->prepare('
+			DELETE FROM `'.Core::$db->pref.'ratings`
+			WHERE content_id=:contentId AND	content_type=:contentType;');
+		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
+		return $statement->execute();
+	}
 }
 
 class RatingDispatcher implements RESTful

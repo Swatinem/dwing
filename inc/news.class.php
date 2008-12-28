@@ -62,6 +62,17 @@ class News extends CRUD
 				return parent::__get($aVarName);
 		}
 	}
+	public function delete()
+	{
+		Core::$db->beginTransaction();
+		Rating::deleteRating($this->id, self::ContentType);
+		Tags::deleteTagsForContent($this->id, self::ContentType);
+		$comments = new CommentIterator($this->id, self::ContentType);
+		$comments->delete();
+		$ret = parent::delete();
+		Core::$db->commit();
+		return $ret;
+	}
 }
 
 /*
@@ -189,6 +200,11 @@ class NewsDispatcher extends REST
 			throw new UseTemplateException('index');
 		}
 		return parent::GET($dispatcher); // make parent handle the rest
+	}
+	public static function DELETE(RESTDispatcher $dispatcher)
+	{
+		// TODO: rights management
+		return parent::DELETE($dispatcher);
 	}
 }
 ?>

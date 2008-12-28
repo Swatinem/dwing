@@ -46,6 +46,11 @@ $resource = strtolower(get_class($post)).'/'.$post->id;
 				<span class="ratingcaption"><?php printf(l10n::_('%s ratings / %s average'), $rating['ratings'], round($rating['average'], 1)); ?></span>
 			</span>
 			<?php endif; ?>
+			<?php /* TODO: rights management? */ if(true): ?>
+			<span class="controls">
+				<a class="delete">delete</a>
+			</span>
+			<?php endif; ?>
 		</div>
 	</div>
 	<div class="postbody">

@@ -506,3 +506,25 @@ h1 + ol, h2 + ol, h3 + ol
 	padding-left: 28px;
 }
 
+/* Post Controls */
+
+.controls
+{
+	/* TODO: better position? */
+	position: absolute;
+	right: 0.25em;
+	top: 1.5em;
+}
+.delete
+{
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	overflow: hidden;
+	text-indent: 100px;
+	background: url(images/tango-delete.png);
+}
+.delete:hover
+{
+	cursor: pointer;
+}

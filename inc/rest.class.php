@@ -110,7 +110,7 @@ class RESTDispatcher
 			}
 			$obj = $this->dispatch();
 			$res = $this->resources[$this->current]['resource'];
-			if(Core::$tpl->template_exists($res.'.tpl.php'))
+			if(is_object($obj) && Core::$tpl->template_exists($res.'.tpl.php'))
 			{
 				// we have a template named like the resource -> the template knows how
 				// to display it
@@ -285,7 +285,7 @@ abstract class REST implements RESTful
 		if(!$child) // destroy the current resource
 		{
 			$obj->delete();
-			return true;
+			return 'true';
 		}
 		// have $child
 		return $dispatcher->dispatch(); // dispatch to child

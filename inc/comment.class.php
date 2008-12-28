@@ -60,6 +60,13 @@ class Comment extends CRUD
 				return parent::__get($aVarName);
 		}
 	}
+	public function delete()
+	{
+		// delete the associated ratings
+		// TODO: maybe use a transaction for this?
+		Rating::deleteRating($this->id, self::ContentType);
+		return parent::delete();
+	}
 }
 
 /*
@@ -106,6 +113,16 @@ class CommentIterator implements Iterator, Countable
 		$statement->execute();
 		$statement->setFetchMode(PDO::FETCH_CLASS, 'Comment');
 		$this->elements = $statement->fetchAll();
+	}
+	public function delete()
+	{
+		$this->lazyFetch();
+		foreach($this->elements as $element)
+		{
+			// the CRUD object can delete all the associated subobjects
+			$element->delete();
+		}
+		return true;
 	}
 
 	// Countable Interface:
@@ -182,6 +199,11 @@ class CommentDispatcher extends REST
 		$obj->save();
 		$dispatcher->next(); // dispatcher has the right resource
 		return $obj;
+	}
+	public static function DELETE(RESTDispatcher $dispatcher)
+	{
+		// TODO: rights management
+		return parent::DELETE($dispatcher);
 	}
 }
 ?>
