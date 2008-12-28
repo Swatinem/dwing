@@ -107,6 +107,62 @@ REST.post = function RESTpost(aUrl, aData, aCallback, aCallbackParam)
 	};
 	req.send(aData);
 }
+function postStyle(aPost)
+{
+	if(!aPost.type)
+		return;
+	var str = '\
+<div class="post" id="'+ aPost.type +'/'+ aPost.id +'">\
+	<div class="postheader">';
+	if(aPost.fancyurl && aPost.title)
+	{
+		str+= '<h1><a href="news/'+ aPost.fancyurl +'">'+ aPost.title +'</a></h1>';
+	}
+	str+= '<div class="postinfo">';
+	if(aPost.user)
+	{
+		str+= '<span class="userinfo"><a href="user/'+ aPost.user.id +'">'+
+			aPost.user.nick +'</a></span>'; // TODO: escape the user nick?!?
+	}
+	if(aPost.time)
+	{
+		str+= '<span class="dateinfo">'+ _('right now') +'</span>';
+	}
+	// TODO: tags
+	// TODO: comments?
+			<?php /*
+			$tags = $post->tags;
+			if(!empty($tags)):
+			?>
+			<span class="tagsinfo">
+				<?php foreach($tags as $tag): ?>
+				<a href="news/tags/<?php echo $tag; ?>"><?php echo $tag; ?></a>
+				<?php endforeach; ?>
+			</span>
+			<?php
+			endif;
+			if(($commentNum = count($post->comments)) > 0):
+			?>
+			<span class="commentinfo"><?php printf(l10n::_('%d comments'), $commentNum); ?></span>
+			<?php
+			endif;
+			if(($rating = $post->rating) != null):
+			?>
+			<?php endif;*/ ?>
+	// TODO: real rating?
+	str+= '\
+			<span class="rating score0">\
+				<a>1</a><a>2</a><a>3</a><a>4</a><a>5</a>\
+				<span class="ratingcaption">'+ printf(_('%s ratings / %s average'), 0, 0) +'</span>\
+			</span>\
+		</div>\
+	</div>\
+	<div class="postbody">\
+	'+ aPost.text +'\
+	</div>\
+</div>';
+	return str;
+}
 function getParentPost(aElem)
 {
 	var parent = aElem;
@@ -150,12 +206,20 @@ function submitComment()
 	data = {'text': textArea.value};
 
 	REST.post(textArea.parentNode.action, JSON.stringify(data), function (req) {
-		// TODO: add this comment to the DOM
-		//alert(req.status + "\n" + req.responseText);
-		return;
 		if(req.status != 200)
 			return;
 		var comment = JSON.parse(req.responseText);
+		comment.type = 'comment';
+		$(postStyle(comment)).appendTo('#newcomments'); // append this comment to
+		// the DOM using jQuery
+		registerRatingHandlers(); // so we can immediately rate the new comment
+		if(window.FCKeditor)
+		{
+			var oEditor = FCKeditorAPI.GetInstance('commenttext');
+			if(oEditor)
+				oEditor.SetHTML('');
+		}
+		document.getElementById('commenttext').value = '';
 	});
 }
 

@@ -15,6 +15,7 @@ foreach($object->comments as $post):
 endforeach;
 // TODO: better post style, even without FCKeditor
 ?>
+<div id="newcomments"></div>
 <hr />
 <div class="area">
 	<h1><?php echo l10n::_('Write comment'); ?></h1>
