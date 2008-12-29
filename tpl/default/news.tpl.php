@@ -10,6 +10,7 @@ $post = $object;
 	<h1><?php echo l10n::_('Comments'); ?></h1>
 </div>
 <?php
+$showDelete = Core::$user->hasRight('news');
 foreach($object->comments as $post):
 	include($this->template('post.tpl.php'));
 endforeach;

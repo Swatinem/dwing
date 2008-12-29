@@ -112,7 +112,7 @@ class Tags
 			$tagId = !empty($nameToIdMap[$tagName]) ? $nameToIdMap[$tagName] : self::addTag($tagName);
 			$statement->execute();
 		}
-		return true;
+		return $tagNames;
 	}
 
 	/**

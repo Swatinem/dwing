@@ -62,6 +62,13 @@ class News extends CRUD
 				return parent::__get($aVarName);
 		}
 	}
+	public function __set($aVarName, $aValue)
+	{
+		if($aVarName == 'tags')
+			$this->data['tags'] = $aValue;
+		else
+			return parent::__set($aVarName, $aValue);
+	}
 	public function delete()
 	{
 		Core::$db->beginTransaction();
@@ -72,6 +79,59 @@ class News extends CRUD
 		$ret = parent::delete();
 		Core::$db->commit();
 		return $ret;
+	}
+	public function save()
+	{
+		Core::$db->connectParent();
+		Core::$db->beginTransaction();
+		$this->data['fancyurl'] = $fancyUrl = Utils::fancyUrl($this->data['title']);
+		$statement = Core::$db->prepare('
+		SELECT COUNT(news_id) FROM '.Core::$db->pref.'news
+		WHERE fancyurl=:fancyurl;');
+		$statement->bindValue(':fancyurl', $fancyUrl, PDO::PARAM_STR);
+		$statement->execute();
+		$urlconflict = $statement->fetchColumn();
+		if(!empty($urlconflict))
+			$this->data['fancyurl'] = microtime();
+
+		$id = parent::save();
+
+		if(!empty($urlconflict))
+		{
+			$this->data['fancyurl'] = $fancyUrl.'-'.$id;
+			$statement = Core::$db->prepare('
+			UPDATE '.Core::$db->pref.'news
+			SET fancyurl=:fancyurl
+			WHERE news_id=:newsId;');
+			$statement->bindValue(':fancyurl', $this->data['fancyurl'], PDO::PARAM_STR);
+			$statement->bindValue(':newsId', (int)$id, PDO::PARAM_INT);
+			$statement->execute();
+		}
+
+		// link with tags
+		$this->data['tags'] =
+			Tags::setTagsForContent($id, self::ContentType, $this->data['tags']);
+
+		Core::$db->commit();
+		return $id;
+	}
+	public function toJSON()
+	{
+		if(empty($this->id))
+			return 'false';
+		$displayArray = array('id' => $this->id);
+		foreach($this->definition as $column => $option)
+		{
+			if($option == 'user')
+			{
+				$user = Users::getUser($this->data[$column]);
+				$displayArray['user'] = array('id' => $user->id, 'nick' => $user->nick);
+			}
+			else
+				$displayArray[$column] = $this->data[$column];
+		}
+		$displayArray['tags'] = $this->data['tags'];
+		return json_encode($displayArray);
 	}
 }
 
@@ -201,9 +261,29 @@ class NewsDispatcher extends REST
 		}
 		return parent::GET($dispatcher); // make parent handle the rest
 	}
+	public static function POST(RESTDispatcher $dispatcher)
+	{
+		if(!($child = $dispatcher->next()))
+		{
+			if(!Core::$user->hasRight('news'))
+				throw new UnauthorizedException();
+		}
+		else
+			$dispatcher->previous();
+		$obj = parent::POST($dispatcher);
+		if(get_class($obj) == 'News')
+			$obj = $obj->toJSON();
+		return $obj;
+	}
 	public static function DELETE(RESTDispatcher $dispatcher)
 	{
-		// TODO: rights management
+		if(!($child = $dispatcher->next()))
+		{
+			if(!Core::$user->hasRight('news'))
+				throw new UnauthorizedException();
+		}
+		else
+			$dispatcher->previous();
 		return parent::DELETE($dispatcher);
 	}
 }

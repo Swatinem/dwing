@@ -506,6 +506,27 @@ h1 + ol, h2 + ol, h3 + ol
 	padding-left: 28px;
 }
 
+/* Post Style */
+
+#newsform
+{
+	display: none;
+}
+#newstitle
+{
+	font-size: 1.25em;
+	line-height: 2em;
+	width: 30em;
+	color: #99C1EA;
+}
+#newstags
+{
+	font-size: 0.625em;
+	line-height: 2em;
+	width: 30em;
+	color: #2F960A;
+}
+
 /* Post Controls */
 
 .controls

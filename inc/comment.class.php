@@ -192,6 +192,8 @@ class CommentDispatcher extends REST
 		$parent = $dispatcher->previous();
 		if(!$parent)
 			throw new NotImplementedException();
+		if(!Core::$user->authed)
+			throw new UnauthorizedException();
 
 		$obj = new Comment($parent['obj']); // so the Comment has info about the
 		// parent Id and ContentType
@@ -202,7 +204,11 @@ class CommentDispatcher extends REST
 	}
 	public static function DELETE(RESTDispatcher $dispatcher)
 	{
-		// TODO: rights management
+		if(!($child = $dispatcher->next()))
+			if(!Core::$user->hasRight('news'))
+				throw new UnauthorizedException();
+		else
+			$dispatcher->previous();
 		return parent::DELETE($dispatcher);
 	}
 }

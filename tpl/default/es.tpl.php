@@ -147,19 +147,18 @@ function postStyle(aPost)
 	{
 		str+= '<span class="dateinfo">'+ _('right now') +'</span>';
 	}
-	// TODO: tags
+	if(aPost.tags)
+	{
+		str+= '<span class="tagsinfo">';
+		for(i in aPost.tags)
+		{
+			var tag = aPost.tags[i];
+			str+= '<a href="news/tags/'+ tag +'">'+ tag +'</a> ';
+		}
+		str+= '</span>';
+	}
 	// TODO: comments?
 			<?php /*
-			$tags = $post->tags;
-			if(!empty($tags)):
-			?>
-			<span class="tagsinfo">
-				<?php foreach($tags as $tag): ?>
-				<a href="news/tags/<?php echo $tag; ?>"><?php echo $tag; ?></a>
-				<?php endforeach; ?>
-			</span>
-			<?php
-			endif;
 			if(($commentNum = count($post->comments)) > 0):
 			?>
 			<span class="commentinfo"><?php printf(l10n::_('%d comments'), $commentNum); ?></span>
@@ -169,16 +168,20 @@ function postStyle(aPost)
 			?>
 			<?php endif;*/ ?>
 	// TODO: real rating?
-	// TODO: rights management?
 	str+= '\
 			<span class="rating score0">\
 				<a>1</a><a>2</a><a>3</a><a>4</a><a>5</a>\
 				<span class="ratingcaption">'+ printf(_('%s ratings / %s average'), 0, 0) +'</span>\
-			</span>\
-			<span class="controls">\
-				<a class="delete">delete</a>\
-			</span>\
-		</div>\
+			</span>';
+	var showDelete = <?php echo Core::$user->hasRight('news') ? 1 : 0; /* TODO: better rights management */ ?>;
+	if(showDelete || false)
+	{
+		str+= '<span class="controls">';
+		if(showDelete)
+			str+= '<a class="delete">delete</a>';
+		str+= '</span>';
+	}
+	str+= '</div>\
 	</div>\
 	<div class="postbody">\
 	'+ aPost.text +'\
@@ -269,7 +272,32 @@ function submitComment()
 		document.getElementById('commenttext').value = '';
 	});
 }
+function submitNews()
+{
+	var textArea = document.getElementById('newstext');
+	var title = document.getElementById('newstitle');
+	var tags = document.getElementById('newstags');
+	data = {'text': textArea.value, 'title': title.value, 'tags': tags.value};
 
+	REST.post(textArea.parentNode.action, JSON.stringify(data), function (req) {
+		if(req.status != 200)
+			return;
+		var news = JSON.parse(req.responseText);
+		news.type = 'news';
+		$(postStyle(news)).prependTo('#newnews');
+		registerMagicHandlers(); // so we can immediately rate the new news
+		$('#newsform').hide();
+		if(window.FCKeditor)
+		{
+			var oEditor = FCKeditorAPI.GetInstance('newstext');
+			if(oEditor)
+				oEditor.SetHTML('');
+		}
+		document.getElementById('newstext').value = '';
+		document.getElementById('newstitle').value = _('Title');
+		document.getElementById('newstags').value = _('tags');
+	});
+}
 /*
  * https://bugzilla.mozilla.org/show_bug.cgi?id=45190
  * What the hell do they think they are doing?!?
@@ -286,6 +314,8 @@ function submitComment()
  * suddenly have the comfort of working EventListeners
  */
 window.addEventListener('load', function () {
+	var commentForm;
+	var newsForm;
 	if(commentForm = document.getElementById('commentform'))
 	{
 		if(window.FCKeditor)
@@ -304,6 +334,52 @@ window.addEventListener('load', function () {
 		{
 			commentForm.addEventListener('submit', function(e) {
 				submitComment();
+				e.preventDefault();
+			}, true);
+		}
+	}
+	if(newsForm = document.getElementById('newsform'))
+	{
+		document.getElementById('writenews').addEventListener('click', function (e) {
+			$('#newsform').show();
+			e.preventDefault();
+		}, false);
+		document.getElementById('newstitle').addEventListener('focus', function(e) {
+			var title = document.getElementById('newstitle');
+			if(title.value == _('Title'))
+				title.value = '';
+		}, false);
+		document.getElementById('newstitle').addEventListener('blur', function(e) {
+			var title = document.getElementById('newstitle');
+			if(title.value == '')
+				title.value = _('Title');
+		}, false);
+		document.getElementById('newstags').addEventListener('focus', function(e) {
+			var tags = document.getElementById('newstags');
+			if(tags.value == _('tags'))
+				tags.value = '';
+		}, false);
+		document.getElementById('newstags').addEventListener('blur', function(e) {
+			var tags = document.getElementById('newstags');
+			if(tags.value == '')
+				tags.value = _('tags');
+		}, false);
+		if(window.FCKeditor)
+		{
+			newsForm.submit = function() {
+				submitNews();
+				return false;
+			};
+			var oFCKeditor = new FCKeditor('newstext');
+			oFCKeditor.Config['CustomConfigurationsPath'] = '/fckconfig';
+			oFCKeditor.ToolbarSet = 'dWing';
+			oFCKeditor.ReplaceTextarea();
+			$('#newsformsubmit').hide();
+		}
+		else
+		{
+			newsForm.addEventListener('submit', function(e) {
+				submitNews();
 				e.preventDefault();
 			}, true);
 		}

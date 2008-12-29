@@ -79,6 +79,7 @@ abstract class CRUD
 			{
 				$this->data = $aData;
 			}
+			return;
 		}
 		if(is_numeric($aData)) // We have an Id
 		{
