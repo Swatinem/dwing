@@ -258,7 +258,7 @@ h1 + ol, h2 + ol, h3 + ol
 }
 .col2.small
 {
-	width: 37.3em;
+	width: 36.4em; /* what is operas problem here? */
 }
 
 /* post style */
@@ -318,6 +318,9 @@ h1 + ol, h2 + ol, h3 + ol
 
 /* Rating */
 
+/* TODO: fix this in Opera; Opera does not register events on ::before pseudo
+ * elements? And why do browsers not support real content replacements?
+ */
 .rating
 {
 	font-size: 2.5em;
