@@ -88,7 +88,7 @@ function printf()
 	return aFormat;
 }
 REST = {};
-REST.post = function RESTpost(aUrl, aData, aCallback, aCallbackParam)
+REST.POST = function RESTpost(aUrl, aData, aCallback, aCallbackParam)
 {
 	$($('body')[0]).addClass('progress');
 	var req = new XMLHttpRequest();
@@ -97,7 +97,8 @@ REST.post = function RESTpost(aUrl, aData, aCallback, aCallbackParam)
 		if(req.readyState == 4)
 		{
 			$($('body')[0]).removeClass('progress');
-			if(req.status == 401)
+			if(req.status == 401 || req.status == 403) // opera sets status to 403
+			// even when the server sends a 401. :(
 			{
 				alert(_('Not logged in.'));
 				return;
@@ -107,7 +108,7 @@ REST.post = function RESTpost(aUrl, aData, aCallback, aCallbackParam)
 	};
 	req.send(aData);
 }
-REST.delete = function RESTdelete(aUrl, aCallback, aCallbackParam)
+REST.DELETE = function RESTdelete(aUrl, aCallback, aCallbackParam)
 {
 	$($('body')[0]).addClass('progress');
 	var req = new XMLHttpRequest();
@@ -221,7 +222,7 @@ function registerRatingHandlers()
 function ratingEventHandler(e)
 {
 	e.preventDefault();
-	REST.post(getParentPost(e.target).id+'/rating', e.target.textContent, function(req, e) {
+	REST.POST(getParentPost(e.target).id+'/rating', e.target.textContent, function(req, e) {
 		if(req.status != 200)
 			return;
 		var rating = JSON.parse(req.responseText);
@@ -245,7 +246,7 @@ function registerDeleteHandlers()
 function deleteEventHandler(e)
 {
 	e.preventDefault();
-	REST.delete(getParentPost(e.target).id, function(req, e) {
+	REST.DELETE(getParentPost(e.target).id, function(req, e) {
 		var post = getParentPost(e.target);
 		post.parentNode.removeChild(post); // remove the post from the DOM
 	}, e);
@@ -255,7 +256,7 @@ function submitComment()
 	var textArea = document.getElementById('commenttext');
 	data = {'text': textArea.value};
 
-	REST.post(textArea.parentNode.action, JSON.stringify(data), function (req) {
+	REST.POST(textArea.parentNode.action, JSON.stringify(data), function (req) {
 		if(req.status != 200)
 			return;
 		var comment = JSON.parse(req.responseText);

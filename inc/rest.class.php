@@ -61,6 +61,7 @@ class NoDispatcher extends Exception
 
 class UseTemplateException extends Exception
 {}
+// TODO: maybe use 201 Created?
 
 interface RESTful
 {

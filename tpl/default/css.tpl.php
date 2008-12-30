@@ -336,15 +336,18 @@ h1 + ol, h2 + ol, h3 + ol
 	float: left;
 	color: transparent;
 	width: 1.1em;
+	/*overflow: hidden; cuts off the text-shadow */
 	line-height: 0.25em;
-	height: 0.25em;
+	height: 0.4em;
 }
 .rating a:hover
 {
-	cursor: pointer;
+	cursor: pointer; /* does not work in opera? */
 }
 .rating a::before
 {
+	display: block;
+	position: absolute;
 	font-weight: bold;
 	content: "—";
 	text-shadow: 0 0 0.15em, 0 0 0.4em;
