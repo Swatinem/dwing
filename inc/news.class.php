@@ -275,6 +275,11 @@ class NewsDispatcher extends REST
 			$obj = $obj->toJSON();
 		return $obj;
 	}
+	public static function PUT(RESTDispatcher $dispatcher)
+	{
+		// TODO: implement
+		throw new NotImplementedException();
+	}
 	public static function DELETE(RESTDispatcher $dispatcher)
 	{
 		if(!($child = $dispatcher->next()))

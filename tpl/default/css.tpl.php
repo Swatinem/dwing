@@ -65,10 +65,10 @@ body
 	line-height: 1.25;
 	font-family: serif;
 }
-body:target
+/*body:target
 {
 	background-image: url(15pxgrid.png);
-}
+}*/
 body.progress:hover, body.progress:hover *
 {
 	cursor: wait !important;
@@ -97,7 +97,6 @@ ul, ol
 ul
 {
 	list-style-type: none;
-	/*list-style-image: url(bullet.png);*/
 }
 ul li::before
 {
@@ -194,7 +193,6 @@ hr
 	height: 1.25em;
 	width: 1em;
 	margin: auto;
-	/*background: url(separator.png) no-repeat;*/
 }
 h1
 {
@@ -318,9 +316,7 @@ h1 + ol, h2 + ol, h3 + ol
 
 /* Rating */
 
-/* TODO: fix this in Opera; Opera does not register events on ::before pseudo
- * elements? And why do browsers not support real content replacements?
- */
+/* Why do browsers not support real content replacements? */
 .rating
 {
 	font-size: 2.5em;
@@ -453,7 +449,7 @@ h1 + ol, h2 + ol, h3 + ol
 }
 
 /* Header */
-
+/* TODO: reimplement header */
 /*#header
 {
 	width: 48em;

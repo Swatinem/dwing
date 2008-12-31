@@ -202,6 +202,11 @@ class CommentDispatcher extends REST
 		$dispatcher->next(); // dispatcher has the right resource
 		return $obj;
 	}
+	public static function PUT(RESTDispatcher $dispatcher)
+	{
+		// TODO: implement
+		throw new NotImplementedException();
+	}
 	public static function DELETE(RESTDispatcher $dispatcher)
 	{
 		if(!($child = $dispatcher->next()))
