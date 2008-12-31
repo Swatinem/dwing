@@ -280,7 +280,7 @@ function submitNews()
 	var tags = document.getElementById('newstags');
 	data = {'text': textArea.value, 'title': title.value, 'tags': tags.value};
 
-	REST.post(textArea.parentNode.action, JSON.stringify(data), function (req) {
+	REST.POST(textArea.parentNode.action, JSON.stringify(data), function (req) {
 		if(req.status != 200)
 			return;
 		var news = JSON.parse(req.responseText);
