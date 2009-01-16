@@ -385,6 +385,23 @@ window.addEventListener('load', function () {
 			}, true);
 		}
 	}
+	/* OpenID Login special cases */
+	var googleId;
+	if(googleId = document.getElementById('googleid'))
+	{
+		googleId.addEventListener('click', function() {
+			document.getElementById('openid_url').value = 'https://www.google.com/accounts/o8/id';
+			// do not preventDefault since we want to submit the form
+		}, false);
+	}
+	var yahooId;
+	if(yahooId = document.getElementById('yahooid'))
+	{
+		yahooId.addEventListener('click', function() {
+			document.getElementById('openid_url').value = 'http://yahoo.com';
+			// do not preventDefault since we want to submit the form
+		}, false);
+	}
 
 	registerMagicHandlers();
 }, false);

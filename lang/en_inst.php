@@ -45,5 +45,7 @@ $__LANG = array (
   'right now' => 'right now',
   'sign in' => 'sign in',
   'tags' => 'tags',
+  'Or sign in using your' => 'Or sign in using your',
+  'Account' => 'Account',
 );
 ?>

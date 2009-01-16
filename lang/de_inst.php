@@ -45,5 +45,7 @@ $__LANG = array (
   'right now' => 'genau jetzt',
   'sign in' => 'anmelden',
   'tags' => 'tags',
+  'Or sign in using your' => 'Oder melde dich an mit deinem',
+  'Account' => 'Konto',
 );
 ?>

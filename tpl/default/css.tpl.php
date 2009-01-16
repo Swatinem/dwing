@@ -498,7 +498,7 @@ h1 + ol, h2 + ol, h3 + ol
 }
 .openid input[type="text"]
 {
-	/*appearance: field; not supported yet*/
+	/*appearance: field; not supported yet */
 	width: 15em;
 	margin-right: 0.5em;
 	/*font-weight: bold;*/
@@ -506,6 +506,23 @@ h1 + ol, h2 + ol, h3 + ol
 	color: #2F960A;
 	background: url(images/openid-icon.png) white no-repeat;
 	padding-left: 28px;
+}
+#googleid, #yahooid
+{
+	font-size: 1.125em;
+	/*appearance: button; not supported yet */
+}
+#googleid
+{
+	padding-left: 62px;
+	background: url(images/googleid.png) #f2efeb 4px 3px no-repeat;
+	/*border: 1px solid #9d968e;*/
+}
+#yahooid
+{
+	padding-left: 85px;
+	background: url(images/yahooid.png) #f2efeb 0px 2px no-repeat;
+	/*border: 1px solid #9d968e;*/
 }
 
 /* Post Style */

@@ -9,9 +9,12 @@ $title = l10n::_('Sign in');
 include($this->template('header.tpl.php'));
 ?>
 <div class="area">
-	<h1><?php echo l10n::_('Sign in with your OpenID'); ?></h1>
 	<form action="login" method="post" class="openid">
-		<input type="text" name="openid_url" /><input type="submit" value="<?php echo l10n::_('Sign in'); ?>"/>
+		<h1><?php echo l10n::_('Sign in with your OpenID'); ?></h1>
+		<input type="text" name="openid_url" id="openid_url" /><input type="submit" value="<?php echo l10n::_('Sign in'); ?>"/>
+		<h1><?php echo l10n::_('Or sign in using your'); ?></h1>
+		<button id="googleid"><?php echo l10n::_('Account'); /* https://www.google.com/accounts/o8/id */ ?></button>
+		<button id="yahooid"><?php echo l10n::_('Account'); /* http://yahoo.com */ ?></button>
 	</form>
 	<!-- TODO: buttons to log in with well known OpenID Providers + a little explanation -->
 <?php if(!empty($loginerror)): ?>
