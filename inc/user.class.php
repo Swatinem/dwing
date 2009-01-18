@@ -371,7 +371,7 @@ class CurrentUser extends GenericUser
 				$this->mUserId = Core::$db->insert_id;;
 				
 				$statement = Core::$db->prepare('
-					INSERT INTO '.Core::$db->pref.'openid SET user_id=:userId, openid=:openID;');
+					INSERT INTO '.Core::$db->pref.'openids SET user_id=:userId, openid=:openID;');
 				$statement->bindParam(':userId', $this->mUserId, PDO::PARAM_INT);
 				$statement->bindParam(':openID', $response->identity_url, PDO::PARAM_STR);
 				$statement->execute();
