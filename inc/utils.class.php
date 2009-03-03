@@ -45,8 +45,8 @@ class Utils
 			// load HTMLPurifier
 			require_once('HTMLPurifier.auto.php');
 			$config = HTMLPurifier_Config::createDefault();
-			$config->set('HTML', 'Doctype', 'XHTML 1.1');
-			$config->set('Filter', 'YouTube', true);
+			$config->set('HTML.Doctype', 'XHTML 1.1');
+			$config->set('Filter.YouTube', true);
 			self::$mPurifier = new HTMLPurifier($config);
 		}
 		return self::$mPurifier->purify($aInput);
