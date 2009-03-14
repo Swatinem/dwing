@@ -4,8 +4,8 @@
  */
 FCKConfig.ToolbarSets = {};
 FCKConfig.ToolbarSets['dWing'] = [
-	['Source','ShowBlocks','Save',/*'Preview',*/'-','SelectAll','RemoveFormat','-',
-		'Bold','Italic','Subscript','Superscript','-',
+	['Source','ShowBlocks','Save','-','SelectAll','RemoveFormat','-',
+		'Bold','Italic','-',
 		'OrderedList','UnorderedList','Blockquote','Rule','-',
 		'Link','Unlink','-','About']
 ];
