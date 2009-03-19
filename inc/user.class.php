@@ -417,6 +417,7 @@ class CurrentUser extends GenericUser
 		$this->mUserData = null;
 		$this->mUserId = null;
 		unset($_SESSION['uid']);
+		unset($_COOKIE['openid_url']);
 		setcookie('openid_url', '', 1);
 	}
 }
