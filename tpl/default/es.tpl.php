@@ -1,5 +1,12 @@
 <?php
 header('Content-Type: text/javascript; charset=utf-8');
+// make the browser cache this file
+header('Cache-Control: max-age=172800, public, must-revalidate');
+header('Pragma: cache');
+$oldLocale = setlocale(LC_ALL, 0);
+setlocale(LC_ALL, 'C');
+header(strftime('Expires: %a, %d %b %Y %T GMT', time()+172800));
+setlocale(LC_ALL, $oldLocale);
 // libraries first, after that is our own JS code
 ?>
 /*
