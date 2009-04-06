@@ -153,13 +153,4 @@ $_themedir = '/'.(!empty($_SESSION['theme']) ? $_SESSION['theme'] : $_cfg['defau
 $_tpl->addPath('./tpl'.$_themedir);
 
 $dispatcher = new RESTDispatcher();
-
-// do we still want this?
-if($_debug)
-{
-	echo '<!--'."\n".
-	'Parsed in '.$_bench->gettime().' Seconds'."\n";
-	//$_db->printdebuginfo();
-	echo "\n".'-->';
-}
 ?>
