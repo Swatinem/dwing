@@ -29,11 +29,6 @@ class TemplateSystem
 	{
 		$this->mAssigns[$aVarName] = $aValue;
 	}
-	public function __call($aMethod, $aArguments)
-	{
-		echo __METHOD__."\n";
-		//echo '';
-	}
 	public function template_exists($aFileName)
 	{
 		return $this->template($aFileName) != false;

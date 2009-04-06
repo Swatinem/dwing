@@ -50,29 +50,6 @@ class l10n
 	}
 
 	/**
-	 * list all the language files
-	 *
-	 * @return array
-	 **/
-	public static function getLanguages()
-	{
-		$langs = array();
-
-		if(($dir = @opendir('./lang')) == false)
-		{
-			return false;
-		}
-		while(false !== ($file = readdir($dir)))
-		{
-			if(substr($file,-4,4) == '.php')
-			{
-				$langs[] = substr($file,0,-4);
-			}
-		}
-		return $langs;
-	}
-
-	/**
 	 * get all the translations from one language file
 	 *
 	 * @param string $lang
@@ -104,35 +81,6 @@ class l10n
 			return $str;
 		else
 			return self::$langTable[$str];
-	}
-
-	/**
-	 * save the language table
-	 *
-	 * @param string $lang
-	 * @return bool
-	 **/
-	public static function saveLanguage($lang = null, $langTable = null)
-	{
-		if(!$lang || !$langTable)
-		{
-			$lang = self::$lang;
-			$langTable = self::$langTable;
-		}
-		file_put_contents('./lang/'.$lang.'.php', "<?php\n\$__LANG = ".var_export($langTable, true).";\n?>");
-		return true;
-	}
-
-	/**
-	 * merge all untranslated items from lang1 into lang2 and return the resulting language table
-	 *
-	 * @param string $lang1 the untranslated language
-	 * @param string $lang2 the already translated one
-	 * @return array
-	 **/
-	public static function mergeLang($lang1, $lang2)
-	{
-		return array_merge(self::getLangTable($lang1), self::getLangTable($lang2));
 	}
 }
 ?>
