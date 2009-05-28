@@ -104,6 +104,21 @@ class Utils
 	}
 
 	/**
+	 * sends headers to make the page cachable for aHours hours
+	 *
+	 * @param int $aHours	 **/
+	public static function allowCache($aHours)
+	{
+		$secs = $aHours*3600;
+		header('Cache-Control: max-age='.$secs.', public, must-revalidate');
+		header('Pragma: cache');
+		$oldLocale = setlocale(LC_ALL, 0);
+		setlocale(LC_ALL, 'C');
+		header(strftime('Expires: %a, %d %b %Y %T GMT', time()+$secs));
+		setlocale(LC_ALL, $oldLocale);
+	}
+
+	/**
 	 * returns the current page
 	 *
 	 * @return int
