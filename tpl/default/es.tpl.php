@@ -111,7 +111,8 @@ REST.DELETE = function RESTdelete(aUrl, aCallback, aCallbackParam)
 		if(req.readyState == 4)
 		{
 			$($('body')[0]).removeClass('progress');
-			if(req.status == 401)
+			if(req.status == 401 || req.status == 403) // opera sets status to 403
+			// even when the server sends a 401. :(
 			{
 				alert(_('Not logged in.'));
 				return;
