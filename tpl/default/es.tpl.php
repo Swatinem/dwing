@@ -235,6 +235,8 @@ function registerDeleteHandlers()
 function deleteEventHandler(e)
 {
 	e.preventDefault();
+	if(!confirm(_('Are you sure?')))
+		return;
 	REST.DELETE(getParentPost(e.target).id, function(req, e) {
 		var post = getParentPost(e.target);
 		post.parentNode.removeChild(post); // remove the post from the DOM

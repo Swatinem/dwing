@@ -11,6 +11,7 @@ $__LANG = array (
   '%s was empty' => '%s war leer',
   'All' => 'Alle',
   'Already signed in' => 'Bereits angemeldet',
+  'Are you sure?' => 'Sind sie sicher?',
   'Authentication error: OpenID invalid' => 'Anmeldefehler: OpenID ungültig',
   'Comments' => 'Kommentare',
   'Consumer->complete failed' => 'Consumer->complete ist fehlgeschlagen',
