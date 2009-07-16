@@ -1,5 +1,6 @@
 - evaluate the use of PHPs INTL Classes: http://de.php.net/manual/en/book.intl.php
 - move from custom Database class to vanilla PDO
+  What to do with Database->$pref? maybe Core::$pref or something like that
 - move the runtime config to a new directory "runtime" or something like that
 - move/merge language files to "runtime/lang/"
 - if INTL classes don't provide enough support: include a list of possible locale names in the lang files
@@ -19,6 +20,8 @@
   News->rating should automatically get the related Rating object
   the same for: News->tags, News->comments, Comment->rating and such relationships
 - REST.PUT for News and Comment that really updates the relevant ContentItem
+
+- Make dWing run nicely with lighttpd, document how to set up rewriting/directory restrictions with lighty config files
 
 - once PHP gets something like __getStatic:
   - Only make a PDO connection when Core::$db is requested for the first time
