@@ -1,0 +1,25 @@
+- evaluate the use of PHPs INTL Classes: http://de.php.net/manual/en/book.intl.php
+- move from custom Database class to vanilla PDO
+- move the runtime config to a new directory "runtime" or something like that
+- move/merge language files to "runtime/lang/"
+- if INTL classes don't provide enough support: include a list of possible locale names in the lang files
+- public static function ContentType() which maps to a system-wide database inside "runtime/settings.php"
+  maybe use late static binding to figure out the right class name
+- also include something like "ContentListeners" which will be notified oncy a "ContentItem" is deleted
+  "Comment" would be a ContentListener for "News", "Rating" would be one for both "News" and "Comment"
+- use IFNULL() in update statements to avoid a SELECT prior to an UPDATE in CRUD/ActiveRecord classes
+  really only SELECT when we request members via __get()
+- start using John Resigs JS templates
+- start using TextPrefill
+- maybe use jQuery ajax methods inside REST functions?
+- make all GLOBALS static Core:: members
+- maybe do all stuff that's inside index.php in Core::_construct()?
+- Make Rating and Tags into ActiveRecord-like classes
+- Make ContentItem __get() automatically fetch related ContentListeners
+  News->rating should automatically get the related Rating object
+  the same for: News->tags, News->comments, Comment->rating and such relationships
+- REST.PUT for News and Comment that really updates the relevant ContentItem
+
+- once PHP gets something like __getStatic:
+  - Only make a PDO connection when Core::$db is requested for the first time
+  - make the function ContentType into a static var, or even a const?!?
