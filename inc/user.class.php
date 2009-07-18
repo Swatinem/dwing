@@ -378,12 +378,11 @@ class CurrentUser extends GenericUser
 				}
 
 				Core::$db->beginTransaction();
-				Core::$db->query('
-				INSERT INTO '.Core::$db->pref.'user
-				SET
-					nick="'.Core::$db->escape($nickname).'",
-					registered='.time().';');
-				
+				$stmt = Core::$db->prepare('
+					INSERT INTO '.Core::$db->pref.'user
+					SET nick=:nick, registered=UNIX_TIMESTAMP();');
+				$stmt->bindValue(':nick', $nickname, PDO::PARAM_STR);
+				$stmt->execute();
 				$this->mUserId = Core::$db->lastInsertId();
 				
 				$statement = Core::$db->prepare('

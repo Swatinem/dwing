@@ -183,7 +183,7 @@ class Utils
 		}
 		else
 		{
-			return $aFieldName.' LIKE "'.Core::$db->escape($_GET['letter']).'%"';
+			return $aFieldName.' LIKE '.Core::$db->quote($_GET['letter'].'%');
 		}
 	}
 
