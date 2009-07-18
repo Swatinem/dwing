@@ -92,7 +92,7 @@ abstract class Core
 // start session management
 session_start();
 
-// gzip the output//ENDDYNCONF
+// gzip the output
 if(!ini_get('zlib.output_compression'))
 	ob_start('ob_gzhandler');
 header('X-Powered-By: dWing cms/'.Core::$version.' (swatinemz.sourceforge.net)',false);
