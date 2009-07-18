@@ -13,7 +13,6 @@
 - start using John Resigs JS templates
 - start using TextPrefill
 - maybe use jQuery ajax methods inside REST functions?
-- make all GLOBALS static Core:: members
 - maybe do all stuff that's inside index.php in Core::_construct()?
 - Make Rating and Tags into ActiveRecord-like classes
 - Make ContentItem __get() automatically fetch related ContentListeners

@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/xml');
 echo '<?xml version="1.0" encoding="utf-8"?>'."\n";
-$webroot = $GLOBALS['webRoot'];
+$webroot = Core::$webRoot;
 $newsall = new NewsRange();
 ?>
 <rdf:RDF

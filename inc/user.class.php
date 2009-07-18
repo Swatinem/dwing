@@ -285,7 +285,7 @@ class CurrentUser extends GenericUser
 		if(empty($_SESSION['returnto']))
 			$_SESSION['returnto'] = 'http://'.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'];
 
-		$webroot = $GLOBALS['webRoot'];
+		$webroot = Core::$webRoot;
 		header("Location: ".$authRequest->redirectURL(
 			$webroot,
 			$webroot.'login?completelogin=1',
@@ -313,7 +313,7 @@ class CurrentUser extends GenericUser
 		$store = new Auth_OpenID_MySQLStore(Core::$db);
 		$store->createTables();
 		$consumer = new Auth_OpenID_Consumer($store);
-		$returnUrl = $GLOBALS['webRoot'].'login?completelogin=1';
+		$returnUrl = Core::$webRoot.'login?completelogin=1';
 		$response = $consumer->complete($returnUrl);
 		Core::$db->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
 		if(!$response)

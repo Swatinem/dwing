@@ -35,6 +35,7 @@ abstract class Core
 	public static $user;
 	public static $config;
 	public static $tpl;
+	public static $webRoot;
 }
 
 // start session management

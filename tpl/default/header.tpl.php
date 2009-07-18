@@ -1,5 +1,5 @@
 <?php
-$webroot = $GLOBALS['webRoot'];
+$webroot = Core::$webRoot;
 
 // do User sign in only in the templates that need the user to be signed in
 try

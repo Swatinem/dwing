@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/rss+xml');
 echo '<?xml version="1.0" encoding="utf-8"?>'."\n";
-$webroot = $GLOBALS['webRoot'];
+$webroot = Core::$webRoot;
 $newsall = new NewsRange();
 ?>
 <rss version="2.0">
