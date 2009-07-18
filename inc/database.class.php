@@ -72,17 +72,6 @@ class Database extends PDO
 		$this->pref = $aPrefix;
 	}
 	/**
-	 * getter for use with insert_id
-	 *
-	 * @param string $aAttr Attribute to get
-	 * @return mixed
-	 **/
-	private function __get($aAttr)
-	{
-		if($aAttr == 'insert_id')
-			return parent::lastInsertId();
-	}
-	/**
 	 * connect to the database
 	 *
 	 * @return void

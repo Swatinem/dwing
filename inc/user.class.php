@@ -384,7 +384,7 @@ class CurrentUser extends GenericUser
 					nick="'.Core::$db->escape($nickname).'",
 					registered='.time().';');
 				
-				$this->mUserId = Core::$db->insert_id;;
+				$this->mUserId = Core::$db->lastInsertId();
 				
 				$statement = Core::$db->prepare('
 					INSERT INTO '.Core::$db->pref.'openids SET user_id=:userId, openid=:openID;');
