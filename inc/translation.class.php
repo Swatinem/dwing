@@ -18,55 +18,68 @@
  */
 
 /**
+ * TODO: rewrite l10n::mergeInto($aNewFile, $aLangFiles)
+ * that generates the language files inside runtime/lang/ that consist of
+ * all the strings from modules and custom strings...
+ */
+
+/**
  * Localization class
  *
  * the class manages the translations
  */
 class l10n
 {
-	public static $lang;
-	public static $langTable;
+	/**
+	 * This array contains both general and specific language names
+	 * general may be "de" while specific would be "de_DE", "de_AT" or something
+	 * like that
+	 * general is always set. It is equal to "C" if the language could not be
+	 * detected.
+	 * specific may not exist at all, pay attention to that
+	 */
+	public static $lang = array('general' => 'C', 'specific' => 'C');
+	public static $langName = 'C';
+	public static $langTable = array();
 
 	/**
 	 * the constructor which is called directly
-	 *
-	 **/
+	 */
 	public static function init()
 	{
 		$lang = self::browserLang();
-		self::$lang = $lang ? $lang : 'en'; // default lang: en;
-		self::$langTable = self::getLangTable(); // do this JIT somehow?
-		setlocale(LC_ALL, self::$lang);
+		if(!empty($lang))
+		{
+			self::$lang = $lang;
+			if(!empty($lang['specific']) && file_exists('lang/'.$lang['specific'].'.php'))
+				require_once('lang/'.$lang['specific'].'.php');
+			else if(file_exists('lang/'.$lang['general'].'.php'))
+				require_once('lang/'.$lang['general'].'.php');
+			
+			self::$langName = $langName;
+			self::$langTable = $langTable;
+			setlocale(LC_ALL, explode(',', $langLocales));
+		}
 	}
 
+	/**
+	 * Tries to detect the language as set up in the users browser
+	 */
 	public static function browserLang()
 	{
 		if(empty($_SERVER['HTTP_ACCEPT_LANGUAGE']))
 		{
-			return false;
+			return array();
 		}
-		@preg_match_all('/([a-z]+)[,;]?/i', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches);
-		return !empty($matches[1][0]) ? $matches[1][0] : false;
-	}
-
-	/**
-	 * get all the translations from one language file
-	 *
-	 * @param string $lang
-	 * @return array
-	 **/
-	public static function getLangTable($lang = null)
-	{
-		if(!$lang)
-			$lang = self::$lang;
-		if($lang == self::$lang && !is_null(self::$langTable))
-			return self::$langTable;
-		if(!file_exists('./lang/'.$lang.'.php'))
+		@preg_match_all('/([a-z]+)[-_]?([a-z]+)?/i', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches, PREG_SET_ORDER);
+		$lang = array();
+		if(!empty($matches[0][1]))
 		{
-			return false;
+			$lang['general'] = strtolower($matches[0][1]);
+			if(!empty($matches[0][2]))
+				$lang['specific'] = $lang['general'].'_'.strtoupper($matches[0][2]);
 		}
-		include('./lang/'.$lang.'.php');
-		return $__LANG;
+		return $lang;
 	}
 
 	/**
@@ -77,10 +90,7 @@ class l10n
 	 **/
 	public static function _($str)
 	{
-		if(!self::$lang || empty(self::$langTable[$str]))
-			return $str;
-		else
-			return self::$langTable[$str];
+		return !empty(self::$langTable[$str]) ? self::$langTable[$str] : $str;
 	}
 }
 ?>

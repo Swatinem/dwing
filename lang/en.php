@@ -1,5 +1,7 @@
 <?php
-$__LANG = array (
+$langName = 'English';
+$langLocales = 'en_US.utf8,en_US.UTF8,en_US.utf-8,en_US.UTF-8,en_US,en,eng,English,American';
+$langTable = array (
   '%d comments' => '%d comments',
   '%d days ago' => '%d days ago',
   '%d hours ago' => '%d hours ago',

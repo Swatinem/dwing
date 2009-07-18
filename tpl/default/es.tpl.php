@@ -10,23 +10,9 @@ include($this->template('jstemplates.js'));
 
 _ = function(str)
 {
-	if(!langTable[str])
-		return str;
-	else
-		return langTable[str];
+	return langTable[str] || str;
 };
-langTable = {
-<?php
-$i = 0;
-$langTable = l10n::getLangTable();
-$max = count($langTable);
-foreach($langTable as $from => $to):
-$i++;
-?>
-	'<?php echo $from; ?>': '<?php echo $to; ?>'<?php if($i != $max) echo ','; ?>
-
-<?php endforeach; ?>
-};
+var langTable = <?php echo json_encode(l10n::$langTable); ?>;
 
 function round(aNumber, aDecimal)
 {
