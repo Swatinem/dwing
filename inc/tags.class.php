@@ -52,8 +52,8 @@ class Tags
 	{
 		$statement = Core::$db->prepare('
 			SELECT tags.name
-			FROM '.Core::$db->pref.'tagstocontent AS tagstocontent
-			LEFT JOIN '.Core::$db->pref.'tags AS tags USING (tag_id)
+			FROM '.Core::$prefix.'tagstocontent AS tagstocontent
+			LEFT JOIN '.Core::$prefix.'tags AS tags USING (tag_id)
 			WHERE tagstocontent.content_id=:contentId AND
 				tagstocontent.content_type=:contentType
 			ORDER BY tags.name ASC;');
@@ -72,7 +72,7 @@ class Tags
 	 **/
 	public static function deleteTagsForContent($aContentId, $aContentType)
 	{
-		$statement = Core::$db->prepare('DELETE FROM '.Core::$db->pref.'tagstocontent
+		$statement = Core::$db->prepare('DELETE FROM '.Core::$prefix.'tagstocontent
 			WHERE content_id=:contentId AND content_type=:contentType;');
 		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
 		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
@@ -94,7 +94,7 @@ class Tags
 		self::deleteTagsForContent($aContentId, $aContentType);
 		// names to id mapping
 		$nameToIdMap = array();
-		$stmt = Core::$db->prepare('SELECT tag_id, name FROM '.Core::$db->pref.'tags;');
+		$stmt = Core::$db->prepare('SELECT tag_id, name FROM '.Core::$prefix.'tags;');
 		$stmt->execute();
 		$tagsRes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 		foreach($tagsRes as $tagRow)
@@ -104,7 +104,7 @@ class Tags
 
 		// link the tags with the content item, adding new tags when necessary
 		$statement = Core::$db->prepare('
-			INSERT INTO '.Core::$db->pref.'tagstocontent
+			INSERT INTO '.Core::$prefix.'tagstocontent
 			SET tag_id=:tagId, content_id=:contentId, content_type=:contentType;');
 		$statement->bindParam(':tagId', $tagId, PDO::PARAM_INT);
 		$statement->bindParam(':contentId', $aContentId, PDO::PARAM_INT);
@@ -124,7 +124,7 @@ class Tags
 	 **/
 	public static function getTags()
 	{
-		$statement = Core::$db->prepare('SELECT name FROM '.Core::$db->pref.'tags ORDER BY name ASC;');
+		$statement = Core::$db->prepare('SELECT name FROM '.Core::$prefix.'tags ORDER BY name ASC;');
 		$statement->execute();
 		return $statement->fetchAll(PDO::FETCH_COLUMN);
 	}
@@ -138,7 +138,7 @@ class Tags
 	private static function addTag($aTagName)
 	{
 		$statement = Core::$db->prepare('
-			INSERT INTO '.Core::$db->pref.'tags SET
+			INSERT INTO '.Core::$prefix.'tags SET
 			name=:name;');
 		$statement->bindValue(':name', $aTagName, PDO::PARAM_STR);
 		$statement->execute();
@@ -155,8 +155,8 @@ class Tags
 	{
 		$statement = Core::$db->prepare('
 			SELECT DISTINCT tags.name, COUNT(tagstocontent.content_id) AS content
-			FROM '.Core::$db->pref.'tags AS tags
-			LEFT JOIN '.Core::$db->pref.'tagstocontent AS tagstocontent USING (tag_id)
+			FROM '.Core::$prefix.'tags AS tags
+			LEFT JOIN '.Core::$prefix.'tagstocontent AS tagstocontent USING (tag_id)
 			WHERE tagstocontent.content_type=:contentType
 			GROUP BY tag_id
 			ORDER BY tags.name ASC;');
@@ -175,8 +175,8 @@ class Tags
 	public static function getContentCount($aTagName = null, $aContentType = null)
 	{
 		$query = '
-			SELECT COUNT(DISTINCT content_id) AS count FROM '.Core::$db->pref.'tagstocontent
-			LEFT JOIN '.Core::$db->pref.'tags as tags USING (tag_id)
+			SELECT COUNT(DISTINCT content_id) AS count FROM '.Core::$prefix.'tagstocontent
+			LEFT JOIN '.Core::$prefix.'tags as tags USING (tag_id)
 			';
 		if($aTagName || $aContentType)
 		{

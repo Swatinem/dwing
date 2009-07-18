@@ -54,7 +54,7 @@ abstract class CRUD
 		$this->className = get_class($this);
 		if(empty($this->tableName))
 			$this->tableName = strtolower($this->className);
-		$this->tableName = Core::$db->pref.$this->tableName;
+		$this->tableName = Core::$prefix.$this->tableName;
 		
 		if($aData == null)
 			return;

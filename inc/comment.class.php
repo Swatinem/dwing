@@ -90,14 +90,14 @@ class CommentIterator implements Iterator, Countable
 		if(empty(self::$selectStmt))
 		{
 			self::$selectStmt = Core::$db->prepare(
-				'SELECT comments.* FROM '.Core::$db->pref.'comments AS comments
+				'SELECT comments.* FROM '.Core::$prefix.'comments AS comments
 				WHERE content_id=:contentId AND content_type=:contentType
 				ORDER BY time ASC;');
 		}
 		if(empty(self::$countStmt))
 		{
 			self::$countStmt = Core::$db->prepare('
-				SELECT COUNT(*) as commentnum FROM '.Core::$db->pref.'comments
+				SELECT COUNT(*) as commentnum FROM '.Core::$prefix.'comments
 				WHERE content_id=:contentId AND content_type=:contentType;');
 		}
 		$this->contentId = (int)$aContentId;

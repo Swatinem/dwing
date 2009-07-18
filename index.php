@@ -32,6 +32,7 @@ abstract class Core
 {
 	public static $version = '0.0.7';
 	public static $db;
+	public static $prefix;
 	public static $user;
 	public static $config;
 	public static $tpl;

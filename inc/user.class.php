@@ -70,7 +70,7 @@ class GenericUser
 		{
 			if(empty(self::$selectStmt))
 			{
-				self::$selectStmt = Core::$db->prepare('SELECT * FROM '.Core::$db->pref.'user WHERE user_id=:userId;');
+				self::$selectStmt = Core::$db->prepare('SELECT * FROM '.Core::$prefix.'user WHERE user_id=:userId;');
 			}
 			$stmt = self::$selectStmt;
 			$stmt->bindValue(':userId', (int)$this->mUserId, PDO::PARAM_INT);
@@ -95,7 +95,7 @@ class GenericUser
 		{
 			if(empty(self::$openIdStmt))
 			{
-				self::$openIdStmt = Core::$db->prepare('SELECT openid FROM '.Core::$db->pref.'openids WHERE user_id=:userId ORDER BY openid ASC;');
+				self::$openIdStmt = Core::$db->prepare('SELECT openid FROM '.Core::$prefix.'openids WHERE user_id=:userId ORDER BY openid ASC;');
 			}
 			$statement = self::$openIdStmt;
 			$statement->bindParam(':userId', $this->mUserId, PDO::PARAM_INT);
@@ -234,7 +234,7 @@ class CurrentUser extends GenericUser
 	 **/
 	public function hasRight($aRight)
 	{
-		$this->_fetchData();
+		$this->fetchData();
 		$groupData = UserGroup::getGroup($this->mUserData['ugroup_id']);
 		return !empty($groupData[$aRight]);
 	}
@@ -273,7 +273,6 @@ class CurrentUser extends GenericUser
 		require_once "Auth/OpenID/MySQLStore.php";
 		require_once "Auth/OpenID/SReg.php";
 
-		Core::$db->connectParent();
 		$store = new Auth_OpenID_MySQLStore(Core::$db);
 		$store->createTables();
 		$consumer = new Auth_OpenID_Consumer($store);
@@ -293,7 +292,7 @@ class CurrentUser extends GenericUser
 		elseif(!$authRequest)
 			return;
 
-		if(empty($_SESSION['returnto']))
+		if(empty($_SESSION['returnto'])) // TODO use Core::$webRoot here
 			$_SESSION['returnto'] = 'http://'.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'];
 
 		$webroot = Core::$webRoot;
@@ -320,7 +319,6 @@ class CurrentUser extends GenericUser
 		require_once "Auth/OpenID/MySQLStore.php";
 		require_once "Auth/OpenID/SReg.php";
 
-		Core::$db->connectParent();
 		$store = new Auth_OpenID_MySQLStore(Core::$db);
 		$store->createTables();
 		$consumer = new Auth_OpenID_Consumer($store);
@@ -335,8 +333,8 @@ class CurrentUser extends GenericUser
 			$this->checkLogin();
 			// get the user ID from the DB or create a new user
 			// write the user id to the session for login
-			$stmt = Core::$db->prepare('SELECT * FROM '.Core::$db->pref.'user
-				LEFT JOIN '.Core::$db->pref.'openids as openids USING (user_id)
+			$stmt = Core::$db->prepare('SELECT * FROM '.Core::$prefix.'user
+				LEFT JOIN '.Core::$prefix.'openids as openids USING (user_id)
 				WHERE openids.openid=:openID;');
 			$stmt->bindValue(':openID', $response->identity_url, PDO::PARAM_STR);
 			$stmt->execute();
@@ -356,7 +354,7 @@ class CurrentUser extends GenericUser
 			{
 				// User was already logged in -> set this as a secondary OpenID
 				$statement = Core::$db->prepare('
-					INSERT INTO '.Core::$db->pref.'openids SET user_id=:userId, openid=:openID;');
+					INSERT INTO '.Core::$prefix.'openids SET user_id=:userId, openid=:openID;');
 				$statement->bindParam(':userId', $this->mUserId, PDO::PARAM_INT);
 				$statement->bindParam(':openID', $response->identity_url, PDO::PARAM_STR);
 				$statement->execute();
@@ -370,23 +368,24 @@ class CurrentUser extends GenericUser
 				$sreg = $sregResponse->contents();
 				if(!empty($sreg['nickname']))
 				{
-					$stmt = Core::$db->prepare('SELECT user_id FROM '.Core::$db->pref.'user WHERE nick=:nick;');
+					$stmt = Core::$db->prepare('SELECT user_id FROM '.Core::$prefix.'user WHERE nick=:nick;');
 					$stmt->bindValue(':nick', $sreg['nickname'], PDO::PARAM_STR);
 					$stmt->execute();
-					if(empty($stmt->fetch(PDO::FETCH_COLUMN)))
+					$haveNick = $stmt->fetch(PDO::FETCH_COLUMN);
+					if(empty($haveNick))
 						$nickname = $sreg['nickname'];
 				}
 
 				Core::$db->beginTransaction();
 				$stmt = Core::$db->prepare('
-					INSERT INTO '.Core::$db->pref.'user
+					INSERT INTO '.Core::$prefix.'user
 					SET nick=:nick, registered=UNIX_TIMESTAMP();');
 				$stmt->bindValue(':nick', $nickname, PDO::PARAM_STR);
 				$stmt->execute();
 				$this->mUserId = Core::$db->lastInsertId();
 				
 				$statement = Core::$db->prepare('
-					INSERT INTO '.Core::$db->pref.'openids SET user_id=:userId, openid=:openID;');
+					INSERT INTO '.Core::$prefix.'openids SET user_id=:userId, openid=:openID;');
 				$statement->bindParam(':userId', $this->mUserId, PDO::PARAM_INT);
 				$statement->bindParam(':openID', $response->identity_url, PDO::PARAM_STR);
 				$statement->execute();
@@ -497,7 +496,7 @@ class Usergroup
 		{
 			if(empty(self::$selectStmt))
 			{
-				self::$selectStmt = Core::$db->prepare('SELECT * FROM '.Core::$db->pref.'usergroup WHERE ugroup_id=:groupId;');
+				self::$selectStmt = Core::$db->prepare('SELECT * FROM '.Core::$prefix.'usergroup WHERE ugroup_id=:groupId;');
 			}
 			$stmt = self::$selectStmt;
 			$stmt->bindValue(':groupId', (int)$aGroupId, PDO::PARAM_INT);

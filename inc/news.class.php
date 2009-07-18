@@ -86,7 +86,7 @@ class News extends CRUD
 		Core::$db->beginTransaction();
 		$this->data['fancyurl'] = $fancyUrl = Utils::fancyUrl($this->data['title']);
 		$statement = Core::$db->prepare('
-		SELECT COUNT(news_id) FROM '.Core::$db->pref.'news
+		SELECT COUNT(news_id) FROM '.Core::$prefix.'news
 		WHERE fancyurl=:fancyurl;');
 		$statement->bindValue(':fancyurl', $fancyUrl, PDO::PARAM_STR);
 		$statement->execute();
@@ -100,7 +100,7 @@ class News extends CRUD
 		{
 			$this->data['fancyurl'] = $fancyUrl.'-'.$id;
 			$statement = Core::$db->prepare('
-			UPDATE '.Core::$db->pref.'news
+			UPDATE '.Core::$prefix.'news
 			SET fancyurl=:fancyurl
 			WHERE news_id=:newsId;');
 			$statement->bindValue(':fancyurl', $this->data['fancyurl'], PDO::PARAM_STR);
@@ -179,13 +179,13 @@ class NewsRange extends NewsIterator implements Countable
 		if(empty(self::$selectStmt))
 		{
 			self::$selectStmt = Core::$db->prepare(
-				'SELECT news.* FROM '.Core::$db->pref.'news AS news
+				'SELECT news.* FROM '.Core::$prefix.'news AS news
 				ORDER BY news.time DESC LIMIT :start, :limit;');
 		}
 		if(empty(self::$countStmt))
 		{
 			self::$countStmt = Core::$db->prepare('
-				SELECT COUNT(*) as num FROM '.Core::$db->pref.'news;');
+				SELECT COUNT(*) as num FROM '.Core::$prefix.'news;');
 		}
 		$statement = self::$selectStmt;
 		$statement->bindValue(':start', (int)$aStart, PDO::PARAM_INT);
@@ -221,10 +221,10 @@ class NewsWithTag extends NewsIterator implements Countable
 			// TODO: is there something equivalent to IN(...) using only prepared
 			// statements?
 			self::$selectStmt = Core::$db->prepare(
-				'SELECT news.* FROM '.Core::$db->pref.'news AS news
-				LEFT JOIN '.Core::$db->pref.'tagstocontent AS tagstocontent ON
+				'SELECT news.* FROM '.Core::$prefix.'news AS news
+				LEFT JOIN '.Core::$prefix.'tagstocontent AS tagstocontent ON
 				news.news_id = tagstocontent.content_id LEFT JOIN '.
-				Core::$db->pref.'tags AS tags ON tags.tag_id = tagstocontent.tag_id
+				Core::$prefix.'tags AS tags ON tags.tag_id = tagstocontent.tag_id
 				WHERE tags.name IN ("'.implode('","',Tags::cleanTags($aTag)).'") AND
 				tagstocontent.content_type='.News::ContentType.'
 				ORDER BY news.time DESC LIMIT :start, :limit;');

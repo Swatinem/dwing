@@ -17,44 +17,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// TODO: get rid of this completely when migrating to "runtime/" config system
+
 /**
- * dWign Database Class
+ * dWing Database Class
  * 
  * Extends the PDO class with a few useful functions
  **/
 class Database extends PDO
 {
-	/**
-	 * are we already connected or not?
-	 *
-	 * @var bool $mConnected
-	 **/
-	private $mConnected = false;
-	/**
-	 * PDO DSN String
-	 *
-	 * @var string $mDSN
-	 **/
-	private $mDSN;
-	/**
-	 * Database user
-	 *
-	 * @var string $mUser
-	 **/
-	private $mUser;
-	/**
-	 * Database password
-	 *
-	 * @var string $mPassword
-	 **/
-	private $mPassword;
-	/**
-	 * table prefix
-	 *
-	 * @var string $pref
-	 **/
-	public $pref;
-
 	/**
 	 * constructor
 	 *
@@ -66,58 +37,10 @@ class Database extends PDO
 	 **/
 	public function __construct($aDSN, $aUser, $aPassword, $aPrefix)
 	{
-		$this->mDSN = $aDSN;
-		$this->mUser = $aUser;
-		$this->mPassword = $aPassword;
-		$this->pref = $aPrefix;
-	}
-	/**
-	 * connect to the database
-	 *
-	 * @return void
-	 **/
-	public function connectParent()
-	{
-		if(!$this->mConnected)
-		{
-			parent::__construct($this->mDSN, $this->mUser, $this->mPassword);
-			$this->mConnected = true;
-			$this->exec('SET NAMES "utf8"');
-			$this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		}
-	}
-	/**
-	 * wrapper for query
-	 *
-	 * @param string $str
-	 * @return PDOStatement
-	 **/
-	public function query($str)
-	{
-		$this->connectParent();
-		return parent::query($str);
-	}
-	/**
-	 * wrapper for prepare
-	 *
-	 * @param string $str
-	 * @return PDOStatement
-	 **/
-	public function prepare($str)
-	{
-		$this->connectParent();
-		return parent::prepare($str);
-	}
-}
-
-/**
- * The old config.php Files use this class...
- **/
-class extmysqli extends Database
-{
-	public function __construct($aHost, $aUser, $aPassword, $aDatabase, $aPrefix)
-	{
-		parent::__construct('mysql:dbname='.$aDatabase.';host='.$aHost, $aUser, $aPassword, $aPrefix);
+		parent::__construct($aDSN, $aUser, $aPassword);
+		$this->exec('SET NAMES "utf8"');
+		$this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		Core::$prefix = $aPrefix;
 	}
 }
 

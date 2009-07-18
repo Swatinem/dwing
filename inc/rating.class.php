@@ -37,7 +37,7 @@ class Rating
 		$statement = Core::$db->prepare('
 			SELECT COUNT(rating) as ratings, AVG(rating) as average,
 				SUM(user_id=:userId) as voted
-			FROM `'.Core::$db->pref.'ratings`
+			FROM `'.Core::$prefix.'ratings`
 			WHERE content_id=:contentId AND	content_type=:contentType;');
 		$statement->bindValue(':userId', (int)Core::$user->user_id, PDO::PARAM_INT);
 		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
@@ -59,7 +59,7 @@ class Rating
 		if($aRating > 5 || $aRating < 1 || !Core::$user->authed)
 			return false;
 		$statement = Core::$db->prepare('
-			REPLACE INTO `'.Core::$db->pref.'ratings`
+			REPLACE INTO `'.Core::$prefix.'ratings`
 			SET user_id=:userId, content_id=:contentId, content_type=:contentType,
 				rating=:rating;');
 		$statement->bindValue(':userId', (int)Core::$user->user_id, PDO::PARAM_INT);
@@ -74,7 +74,7 @@ class Rating
 	{
 		// TODO: cache all the prepared statements as a private static
 		$statement = Core::$db->prepare('
-			DELETE FROM `'.Core::$db->pref.'ratings`
+			DELETE FROM `'.Core::$prefix.'ratings`
 			WHERE content_id=:contentId AND	content_type=:contentType;');
 		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
 		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);

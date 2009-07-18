@@ -39,7 +39,7 @@ class Smilies
 	private static function _loadSmilies()
 	{
 		self::$mSmilies = array();
-		$smilies_res = Core::$db->query('SELECT code, file FROM '.Core::$db->pref.'smilies ORDER BY LENGTH(code) DESC');
+		$smilies_res = Core::$db->query('SELECT code, file FROM '.Core::$prefix.'smilies ORDER BY LENGTH(code) DESC');
 		while($smilies_row = $smilies_res->fetch(PDO::FETCH_ASSOC))
 		{
 			self::$mSmilies[$smilies_row['code']] = '<img src="images/smilies/'.$smilies_row['file'].'" alt="'.$smilies_row['code'].'" />';
