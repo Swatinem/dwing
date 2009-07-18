@@ -1,2 +1,6 @@
 doc
 fckeditor
+
+syntax: glob
+runtime/*.php
+runtime/lang/*.php

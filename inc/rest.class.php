@@ -79,15 +79,6 @@ class RESTDispatcher
 	
 	public function __construct()
 	{
-		$isHttps = !empty($_SERVER['HTTPS']);
-		$port = ($isHttps && $_SERVER['SERVER_PORT'] == 443 ? '' : (
-			!$isHttps && $_SERVER['SERVER_PORT'] == 80 ? '' :
-			':'.$_SERVER['SERVER_PORT']));
-		$webRoot = ($isHttps ? 'https' : 'http').'://'.$_SERVER['SERVER_NAME'].$port.dirname($_SERVER['SCRIPT_NAME']);
-		if($webRoot[strlen($webRoot)-1] != '/')
-			$webRoot.= '/';
-		Core::$webRoot = $webRoot;
-
 		$url = !empty($_SERVER['PATH_INFO']) ? trim($_SERVER['PATH_INFO'], '/') : '';
 
 		$frags = explode('.', $url);

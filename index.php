@@ -33,16 +33,66 @@ abstract class Core
 	public static $version = '0.0.7';
 	public static $db;
 	public static $prefix;
-	public static $user;
 	public static $config;
+	public static $user;
 	public static $tpl;
+	/**
+	 * This var contains the web address of dWing, correct with ssl and port
+	 * number if needed
+	 */
 	public static $webRoot;
+	
+	/**
+	 * This function loads the runtime config and populates its static members
+	 * accordingly.
+	 * if no runtime config is found it returns false which means it is needs
+	 * to be installed first, otherwise it should ALWAYS have a runtime config
+	 */
+	public static function loadConfig()
+	{
+		if(!file_exists('runtime/config.php'))
+			return false;
+		require_once('runtime/config.php');
+
+		// TODO: this is currently a regression in behaviour because it is creating
+		// a database connection even when it may not be needed
+		$db->exec('SET NAMES "utf8"');
+		$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		self::$db = $db;
+
+		self::$prefix = $prefix;
+		self::$config = $config;
+		
+		$isHttps = !empty($_SERVER['HTTPS']);
+		$port = ($isHttps && $_SERVER['SERVER_PORT'] == 443 ? '' : (
+			!$isHttps && $_SERVER['SERVER_PORT'] == 80 ? '' :
+			':'.$_SERVER['SERVER_PORT']));
+		$webRoot = ($isHttps ? 'https' : 'http').'://'.$_SERVER['SERVER_NAME'].
+		           $port.dirname($_SERVER['SCRIPT_NAME']);
+		if($webRoot[strlen($webRoot)-1] != '/')
+			$webRoot.= '/';
+		self::$webRoot = $webRoot;
+		return true;
+	}
+
+	/**
+	 * This function writes the current $config into runtime/config.php
+	 */
+	public static function rewriteConfig()
+	{
+		$contents = file_get_contents('runtime/config.php');
+		$newstr = "//BEGINDYNCONF\n".var_export(self::$config, true).
+		          "\n//ENDDYNCONF";
+		$contents = preg_replace('!//BEGINDYNCONF(.*)//ENDDYNCONF!sm', $newstr,
+		                         $contents);
+		file_put_contents('runtime/config.php', $contents);
+	}
 }
 
 // start session management
 session_start();
 
-// gzip the output
+// gzip the output//ENDDYNCONF
 if(!ini_get('zlib.output_compression'))
 	ob_start('ob_gzhandler');
 header('X-Powered-By: dWing cms/'.Core::$version.' (swatinemz.sourceforge.net)',false);
@@ -75,8 +125,8 @@ l10n::init();
 
 // initiate template engine
 require_once('inc/template.class.php');
-$_tpl = new TemplateSystem();
-Core::$tpl = $_tpl;
+Core::$tpl = $_tpl = new TemplateSystem();
+
 /*
 TODO:
 - separate Install and Update classes
@@ -84,23 +134,16 @@ TODO:
 - Update will be a Module to include references to the DB
 */
 // check if the script is installed yet
-if(!file_exists('inc/settings.php'))
+if(!Core::loadConfig())
 {
 	// not installed -> include install class, display install template
 	exit('not installed, installer currently disabled');
+
 	$_tpl->setPath('./tpl/install');
 	$_tpl->display('install.tpl.php');
+	exit;
 }
 // exit -> no else needed
-
-// do we want dynamic settings at all?
-require_once("inc/settings.php");
-Core::$config = $_cfg;
-
-// Database class include. init in the config
-require_once('inc/database.class.php');
-require_once('inc/config.php');
-Core::$db = $_db;
 
 // autoload classes
 function dWingAutoload($aClassName)
@@ -128,7 +171,7 @@ Core::$user = new CurrentUser();
 if(version_compare(Core::$version, Core::$config['version']) == 1)
 {
 	// outdated -> include updater class, display update template
-	exit('not installed, installer currently disabled');
+	exit('outdated, updater currently disabled');
 
 	$_updater = new Updater();
 	$_tpl->assign('updater', $_updater);
@@ -151,7 +194,7 @@ if(!empty($_theme))
 		$_SESSION['theme'] = $_theme;
 	}
 }
-$_themedir = '/'.(!empty($_SESSION['theme']) ? $_SESSION['theme'] : $_cfg['default_theme']);
+$_themedir = '/'.(!empty($_SESSION['theme']) ? $_SESSION['theme'] : Core::$config['default_theme']);
 $_tpl->addPath('./tpl'.$_themedir);
 
 $dispatcher = new RESTDispatcher();

@@ -1,7 +1,4 @@
 - evaluate the use of PHPs INTL Classes: http://de.php.net/manual/en/book.intl.php
-- move from custom Database class to vanilla PDO
-  What to do with Database->$pref? maybe Core::$pref or something like that
-- move the runtime config to a new directory "runtime" or something like that
 - move/merge language files to "runtime/lang/"
 - if INTL classes don't provide enough support: include a list of possible locale names in the lang files
 - public static function ContentType() which maps to a system-wide database inside "runtime/settings.php"
