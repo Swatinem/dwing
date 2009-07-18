@@ -42,6 +42,11 @@ class GenericUser
 	 * @var array $mOpenIDs
 	 **/
 	protected $mOpenIDs = null;
+	/**
+	 * prepared statements to fetch user data or openids
+	 */
+	protected static $selectStmt = null;
+	protected static $openIdStmt = null;
 
 	/**
 	 * constructor
@@ -59,11 +64,18 @@ class GenericUser
 	 *
 	 * @return void
 	 **/
-	private function _fetchData()
+	protected function fetchData()
 	{
 		if(empty($this->mUserData))
 		{
-			$this->mUserData = Core::$db->queryFirst('SELECT * FROM '.Core::$db->pref.'user WHERE user_id='.$this->mUserId.';');
+			if(empty(self::$selectStmt))
+			{
+				self::$selectStmt = Core::$db->prepare('SELECT * FROM '.Core::$db->pref.'user WHERE user_id=:userId;');
+			}
+			$stmt = self::$selectStmt;
+			$stmt->bindValue(':userId', (int)$this->mUserId, PDO::PARAM_INT);
+			$stmt->execute();
+			$this->mUserData = $stmt->fetch(PDO::FETCH_ASSOC);
 			// if the user does not exist, still fill in a nick
 			if(empty($this->mUserData))
 			{
@@ -77,11 +89,15 @@ class GenericUser
 	 *
 	 * @return void
 	 **/
-	private function _fetchOpenIDs()
+	protected function fetchOpenIDs()
 	{
 		if($this->mOpenIDs == null)
 		{
-			$statement = Core::$db->prepare('SELECT openid FROM '.Core::$db->pref.'openids WHERE user_id=:userId ORDER BY openid ASC;');
+			if(empty(self::$openIdStmt))
+			{
+				self::$openIdStmt = Core::$db->prepare('SELECT openid FROM '.Core::$db->pref.'openids WHERE user_id=:userId ORDER BY openid ASC;');
+			}
+			$statement = self::$openIdStmt;
 			$statement->bindParam(':userId', $this->mUserId, PDO::PARAM_INT);
 			$statement->execute();
 			$this->mOpenIDs = $statement->fetchAll(PDO::FETCH_COLUMN);
@@ -96,10 +112,10 @@ class GenericUser
 	 **/
 	public function __get($aVarName)
 	{
-		$this->_fetchData();
+		$this->fetchData();
 		if($aVarName == 'openids')
 		{
-			$this->_fetchOpenIDs();
+			$this->fetchOpenIDs();
 			return $this->mOpenIDs;
 		}
 		if($aVarName == 'id')
@@ -169,14 +185,14 @@ class CurrentUser extends GenericUser
 	 **/
 	public function __get($aVarName)
 	{
-		$this->_fetchData();
+		$this->fetchData();
 		if($aVarName == 'authed')
 		{
 			return $this->mUserId != 0;
 		}
 		if($aVarName == 'openids')
 		{
-			$this->_fetchOpenIDs();
+			$this->fetchOpenIDs();
 			return $this->mOpenIDs;
 		}
 		if($aVarName == 'id')
@@ -191,7 +207,7 @@ class CurrentUser extends GenericUser
 	 *
 	 * @return void
 	 **/
-	private function _fetchData()
+	protected function fetchData()
 	{
 		if(empty($this->mUserData))
 		{
@@ -205,12 +221,7 @@ class CurrentUser extends GenericUser
 			}
 			else
 			{
-				$this->mUserData = Core::$db->queryFirst('SELECT * FROM '.Core::$db->pref.'user WHERE user_id='.$this->mUserId.';');
-				// if the user does not exist, still fill in a nick
-				if(empty($this->mUserData))
-				{
-					$this->mUserData = array('nick' => l10n::_('[Deleted]'), 'ugroup_id' => 1);
-				}
+				parent::fetchData();
 			}
 		}
 	}
@@ -324,9 +335,12 @@ class CurrentUser extends GenericUser
 			$this->checkLogin();
 			// get the user ID from the DB or create a new user
 			// write the user id to the session for login
-			$userData = Core::$db->queryFirst('SELECT * FROM '.Core::$db->pref.'user
+			$stmt = Core::$db->prepare('SELECT * FROM '.Core::$db->pref.'user
 				LEFT JOIN '.Core::$db->pref.'openids as openids USING (user_id)
-				WHERE openids.openid="'.Core::$db->escape($response->identity_url).'";');
+				WHERE openids.openid=:openID;');
+			$stmt->bindValue(':openID', $response->identity_url, PDO::PARAM_STR);
+			$stmt->execute();
+			$userData = $stmt->fetch(PDO::FETCH_ASSOC);
 			if(!empty($userData))
 			{
 				// user already exists
@@ -356,8 +370,10 @@ class CurrentUser extends GenericUser
 				$sreg = $sregResponse->contents();
 				if(!empty($sreg['nickname']))
 				{
-					$checknick = Core::$db->queryFirst('SELECT user_id FROM '.Core::$db->pref.'user WHERE nick="'.Core::$db->escape($sreg['nickname']).'";');
-					if(empty($checknick))
+					$stmt = Core::$db->prepare('SELECT user_id FROM '.Core::$db->pref.'user WHERE nick=:nick;');
+					$stmt->bindValue(':nick', $sreg['nickname'], PDO::PARAM_STR);
+					$stmt->execute();
+					if(empty($stmt->fetch(PDO::FETCH_COLUMN)))
 						$nickname = $sreg['nickname'];
 				}
 
@@ -465,6 +481,10 @@ class Usergroup
 	 * @var array $mGroupCache
 	 **/
 	private static $mGroupCache = array();
+	/**
+	 * cached prepared statement
+	 */
+	private static $selectStmt = null;
 
 	/**
 	 * returns the specified usergroup
@@ -476,8 +496,14 @@ class Usergroup
 	{
 		if(empty(self::$mGroupCache[$aGroupId]))
 		{
-			self::$mGroupCache[$aGroupId] = Core::$db->queryFirst(
-				'SELECT * FROM '.Core::$db->pref.'usergroup WHERE ugroup_id='.(int)$aGroupId.';');
+			if(empty(self::$selectStmt))
+			{
+				self::$selectStmt = Core::$db->prepare('SELECT * FROM '.Core::$db->pref.'usergroup WHERE ugroup_id=:groupId;');
+			}
+			$stmt = self::$selectStmt;
+			$stmt->bindValue(':groupId', (int)$aGroupId, PDO::PARAM_INT);
+			$stmt->execute();
+			self::$mGroupCache[$aGroupId] = $stmt->fetch(PDO::FETCH_ASSOC);
 		}
 		return self::$mGroupCache[$aGroupId];
 	}

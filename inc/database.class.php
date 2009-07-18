@@ -120,17 +120,6 @@ class Database extends PDO
 		return parent::prepare($str);
 	}
 	/**
-	 * query the first result
-	 *
-	 * @param string $str
-	 * @return array
-	 **/
-	public function queryFirst($str)
-	{
-		$result = $this->query($str);
-		return $result->fetch(PDO::FETCH_ASSOC);
-	}
-	/**
 	 * return all the results of the query as an array
 	 *
 	 * @param string $str
