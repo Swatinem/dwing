@@ -94,7 +94,9 @@ class Tags
 		self::deleteTagsForContent($aContentId, $aContentType);
 		// names to id mapping
 		$nameToIdMap = array();
-		$tagsRes = Core::$db->queryAll('SELECT tag_id, name FROM '.Core::$db->pref.'tags;');
+		$stmt = Core::$db->prepare('SELECT tag_id, name FROM '.Core::$db->pref.'tags;');
+		$stmt->execute();
+		$tagsRes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 		foreach($tagsRes as $tagRow)
 			$nameToIdMap[$tagRow['name']] = $tagRow['tag_id'];
 		// filter the tag names out of the input string

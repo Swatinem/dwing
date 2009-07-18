@@ -120,17 +120,6 @@ class Database extends PDO
 		return parent::prepare($str);
 	}
 	/**
-	 * return all the results of the query as an array
-	 *
-	 * @param string $str
-	 * @return array
-	 **/
-	public function queryAll($str)
-	{
-		$result = $this->query($str);
-		return $result->fetchAll(PDO::FETCH_ASSOC);
-	}
-	/**
 	 * wrapper for quote
 	 *
 	 * @param string $str
