@@ -108,17 +108,6 @@ class Database extends PDO
 		$this->connectParent();
 		return parent::prepare($str);
 	}
-	/**
-	 * wrapper for quote
-	 *
-	 * @param string $str
-	 * @return string
-	 **/
-	public function escape($str)
-	{
-		$this->connectParent(); // we need a connection to get the charset correct
-		return substr($this->quote($str), 1, -1);
-	}
 }
 
 /**
