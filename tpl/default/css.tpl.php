@@ -70,7 +70,7 @@ body
 {
 	background-image: url(15pxgrid.png);
 }*/
-body.progress:hover, body.progress:hover *
+.progress *:hover
 {
 	cursor: wait !important;
 }
@@ -279,7 +279,7 @@ h1 + ol, h2 + ol, h3 + ol
 	-moz-box-shadow: 0 0 0.625em #E1EEFB;*/
 	padding: 0 0.3125em 0 0.3125em;
 }
-.postheader h1
+.postheader > h1
 {
 	font-size: 1.25em;
 	line-height: 2em;
@@ -287,7 +287,7 @@ h1 + ol, h2 + ol, h3 + ol
 	font-weight: bold;
 	text-shadow: 0.0625em 0.0625em 0 #F8FAFC;
 }
-.postheader h1, .postheader h1 a
+.postheader > h1, .postheader > h1 > a
 {
 	color: #99C1EA;
 }
@@ -327,7 +327,7 @@ h1 + ol, h2 + ol, h3 + ol
 	width: 5.6em;
 	height: 0.25em;
 }
-.rating a
+.rating > a
 {
 	display: block;
 	float: left;
@@ -337,11 +337,11 @@ h1 + ol, h2 + ol, h3 + ol
 	line-height: 0.25em;
 	height: 0.4em;
 }
-.rating a:hover
+.rating > a:hover
 {
 	cursor: pointer; /* does not work in opera? */
 }
-.rating a::before
+.rating > a::before
 {
 	display: block;
 	position: absolute;
@@ -349,68 +349,68 @@ h1 + ol, h2 + ol, h3 + ol
 	content: "—";
 	text-shadow: 0 0 0.15em, 0 0 0.4em;
 }
-.rating a:first-child::before /* first */
+.rating > a:first-child::before /* first */
 {
 	color: hsl(0, 25%, 50%);
 }
-.rating a:first-child + a::before, .rating:hover a:first-child:hover + a::before
+.rating > a:first-child + a::before, .rating:hover > a:first-child:hover + a::before
 {
 	color: hsl(30, 25%, 50%);
 }
-.rating a:first-child + a + a::before,
-	.rating:hover a:first-child:hover + a + a::before,
-	.rating:hover a:first-child + a:hover + a::before
+.rating > a:first-child + a + a::before,
+	.rating:hover > a:first-child:hover + a + a::before,
+	.rating:hover > a:first-child + a:hover + a::before
 {
 	color: hsl(60, 25%, 50%);
 }
-.rating a:first-child + a + a + a::before,
-	.rating:hover a:first-child:hover + a + a + a::before,
-	.rating:hover a:first-child + a:hover + a + a::before,
-	.rating:hover a:first-child + a + a:hover + a::before
+.rating > a:first-child + a + a + a::before,
+	.rating:hover > a:first-child:hover + a + a + a::before,
+	.rating:hover > a:first-child + a:hover + a + a::before,
+	.rating:hover > a:first-child + a + a:hover + a::before
 {
 	color: hsl(90, 25%, 50%);
 }
-.rating a::before, /* last */
-	.rating:hover a:first-child:hover + a + a + a + a::before,
-	.rating:hover a:first-child + a:hover + a + a + a::before,
-	.rating:hover a:first-child + a + a:hover + a + a::before,
-	.rating:hover a:first-child + a + a + a:hover + a::before
+.rating > a::before, /* last */
+	.rating:hover > a:first-child:hover + a + a + a + a::before,
+	.rating:hover > a:first-child + a:hover + a + a + a::before,
+	.rating:hover > a:first-child + a + a:hover + a + a::before,
+	.rating:hover > a:first-child + a + a + a:hover + a::before
 {
 	color: hsl(120, 25%, 50%);
 }
 
-.rating:hover a:first-child::before, /* first */
-	.score1 a:first-child::before,
-	.score2 a:first-child::before,
-	.score3 a:first-child::before,
-	.score4 a:first-child::before,
-	.score5 a:first-child::before
+.rating:hover > a:first-child::before, /* first */
+	.score1 > a:first-child::before,
+	.score2 > a:first-child::before,
+	.score3 > a:first-child::before,
+	.score4 > a:first-child::before,
+	.score5 > a:first-child::before
 {
 	color: hsl(0, 100%, 50%);
 }
-.rating:hover a:first-child + a::before,
-	.score2 a:first-child + a::before,
-	.score3 a:first-child + a::before,
-	.score4 a:first-child + a::before,
-	.score5 a:first-child + a::before
+.rating:hover > a:first-child + a::before,
+	.score2 > a:first-child + a::before,
+	.score3 > a:first-child + a::before,
+	.score4 > a:first-child + a::before,
+	.score5 > a:first-child + a::before
 {
 	color: hsl(30, 100%, 50%);
 }
-.rating:hover a:first-child + a + a::before,
-	.score3 a:first-child + a + a::before,
-	.score4 a:first-child + a + a::before,
-	.score5 a:first-child + a + a::before
+.rating:hover > a:first-child + a + a::before,
+	.score3 > a:first-child + a + a::before,
+	.score4 > a:first-child + a + a::before,
+	.score5 > a:first-child + a + a::before
 {
 	color: hsl(60, 100%, 50%);
 }
-.rating:hover a:first-child + a + a + a::before,
-	.score4 a:first-child + a + a + a::before,
-	.score5 a:first-child + a + a + a::before
+.rating:hover > a:first-child + a + a + a::before,
+	.score4 > a:first-child + a + a + a::before,
+	.score5 > a:first-child + a + a + a::before
 {
 	color: hsl(90, 100%, 50%);
 }
-.rating:hover a::before, /* last */
-	.score5 a::before
+.rating:hover > a::before, /* last */
+	.score5 > a::before
 {
 	color: hsl(120, 100%, 50%);
 }
@@ -419,7 +419,7 @@ h1 + ol, h2 + ol, h3 + ol
 {
 	display: none;
 }
-.rating:hover .ratingcaption
+.rating:hover > .ratingcaption
 {
 	position: absolute;
 	bottom: 0.75em;
