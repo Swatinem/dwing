@@ -84,7 +84,6 @@ class News extends ActiveRecordBase
 	public function save($aUseTransaction = false)
 	{
 		// TODO: make use of $aUseTransaction
-		Core::$db->connectParent();
 		Core::$db->beginTransaction();
 		$this->data['fancyurl'] = $fancyUrl = Utils::fancyUrl($this->data['title']);
 		$statement = Core::$db->prepare('
