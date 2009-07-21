@@ -84,7 +84,7 @@ class Rating
 
 class RatingDispatcher implements RESTful
 {
-	public static function GET(RESTDispatcher $dispatcher)
+	public static function doGET(RESTDispatcher $dispatcher)
 	{
 		$child = $dispatcher->next();
 		if($child)
@@ -99,7 +99,7 @@ class RatingDispatcher implements RESTful
 		return json_encode(Rating::getRating($parent['obj']->id,
 			$parent['obj']->ContentType));
 	}
-	public static function POST(RESTDispatcher $dispatcher)
+	public static function doPOST(RESTDispatcher $dispatcher)
 	{
 		$child = $dispatcher->next();
 		if($child)
@@ -117,11 +117,11 @@ class RatingDispatcher implements RESTful
 		return json_encode(Rating::getRating($parent['obj']->id,
 			$parent['obj']->ContentType));
 	}
-	public static function PUT(RESTDispatcher $dispatcher)
+	public static function doPUT(RESTDispatcher $dispatcher)
 	{
 		throw new NotImplementedException();
 	}
-	public static function DELETE(RESTDispatcher $dispatcher)
+	public static function doDELETE(RESTDispatcher $dispatcher)
 	{
 		throw new NotImplementedException();
 	}

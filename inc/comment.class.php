@@ -163,7 +163,7 @@ class CommentIterator implements Iterator, Countable
 
 class CommentDispatcher extends REST
 {
-	public static function GET(RESTDispatcher $dispatcher)
+	public static function doGET(RESTDispatcher $dispatcher)
 	{
 		$current = $dispatcher->current();
 		if(empty($current['id']))
@@ -177,7 +177,7 @@ class CommentDispatcher extends REST
 		else
 			return $dispatcher->dispatch();
 	}
-	public static function POST(RESTDispatcher $dispatcher)
+	public static function doPOST(RESTDispatcher $dispatcher)
 	{
 		$current = $dispatcher->current();
 		$child = $dispatcher->next();
@@ -197,17 +197,17 @@ class CommentDispatcher extends REST
 
 		$obj = new Comment($parent['obj']); // so the Comment has info about the
 		// parent Id and ContentType
-		$obj->assignData(json_decode(file_get_contents('php://input'), true));
+		$obj->assignData($dispatcher->getJSON());
 		$obj->save();
 		$dispatcher->next(); // dispatcher has the right resource
 		return $obj;
 	}
-	public static function PUT(RESTDispatcher $dispatcher)
+	public static function doPUT(RESTDispatcher $dispatcher)
 	{
 		// TODO: implement
 		throw new NotImplementedException();
 	}
-	public static function DELETE(RESTDispatcher $dispatcher)
+	public static function doDELETE(RESTDispatcher $dispatcher)
 	{
 		if(!($child = $dispatcher->next()))
 			if(!Core::$user->hasRight('news'))

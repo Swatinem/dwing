@@ -250,7 +250,7 @@ class NewsWithTag extends NewsIterator implements Countable
 class NewsDispatcher extends REST
 {
 	// other REST method should be sufficient
-	public static function GET(RESTDispatcher $dispatcher)
+	public static function doGET(RESTDispatcher $dispatcher)
 	{
 		$current = $dispatcher->current();
 		if(empty($current['id']))
@@ -264,7 +264,7 @@ class NewsDispatcher extends REST
 		}
 		return parent::GET($dispatcher); // make parent handle the rest
 	}
-	public static function POST(RESTDispatcher $dispatcher)
+	public static function doPOST(RESTDispatcher $dispatcher)
 	{
 		if(!($child = $dispatcher->next()))
 		{
@@ -278,12 +278,12 @@ class NewsDispatcher extends REST
 			$obj = $obj->toJSON();
 		return $obj;
 	}
-	public static function PUT(RESTDispatcher $dispatcher)
+	public static function doPUT(RESTDispatcher $dispatcher)
 	{
 		// TODO: implement
 		throw new NotImplementedException();
 	}
-	public static function DELETE(RESTDispatcher $dispatcher)
+	public static function doDELETE(RESTDispatcher $dispatcher)
 	{
 		if(!($child = $dispatcher->next()))
 		{
