@@ -17,30 +17,70 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
-Used like this:
+// TODO: active.php may not be the best file name to house these classes
+// the autoload handler would miss JSONable for sure
 
-class News extends CRUD
+/**
+ * Interface for ActiveRecord Classes
+ */
+interface ActiveRecord
 {
-	//protected $tableName = 'news';
-	protected $primaryKey = 'news_id';
-	protected $definition = array('title' => 'required', 'text' => 'html',
-		'user_id' => 'user', 'time' => 'time', 'fancyurl' => 'value');
+	/**
+	 * Interfaces to not allow member variables, but please make sure to define
+	 * a public $id member.
+	 */
+	//public $id;
+	/**
+	 * Saves the object into the Database
+	 * Creates a new transaction and commits it when $aUseTransaction is true
+	 */
+	public function save($aUseTransaction = false);
+	/**
+	 * Deletes the object from the Database
+	 * Creates a new transaction and commits it when $aUseTransaction is true
+	 */
+	public function delete($aUseTransaction = false);
 }
-class Comment extends CRUD
+
+/**
+ * Interface for Objects that can be JSON-ified
+ */
+interface JSONable
 {
-	protected $tableName = 'comments';
-	protected $definition = array('text' => 'html', 'user_id' => 'user',
-		'time' => 'time', 'content_id' => 'required', 'content_type' => 'required');
+	/**
+	 * Turns the object into either a JSON String when $aEncode is true or
+	 * returns a associative array that can be turned into JSON via json_encode()
+	 * Also includes ContentProvider Children when $aIncludeChildren is true
+	 */
+	public function toJSON($aEncode = true, $aIncludeChildren = false);
 }
-*/
 
 /*
  * TODO:
  * fetch data on __get and use IFNULL() to not overwrite the record with empty data
  */
 
-abstract class CRUD
+/**
+ * Abstract Base implementation of ActiveRecord
+ */
+/*
+Used like this:
+
+class News extends ActiveRecordBase
+{
+	//protected $tableName = 'news';
+	protected $primaryKey = 'news_id';
+	protected $definition = array('title' => 'required', 'text' => 'html',
+		'user_id' => 'user', 'time' => 'time', 'fancyurl' => 'value');
+}
+class Comment extends ActiveRecordBase
+{
+	protected $tableName = 'comments';
+	protected $definition = array('text' => 'html', 'user_id' => 'user',
+		'time' => 'time', 'content_id' => 'required', 'content_type' => 'required');
+}
+*/
+abstract class ActiveRecordBase implements ActiveRecord, JSONable
 {
 	private static $statements = array();
 	protected $primaryKey = 'id';
@@ -155,8 +195,9 @@ abstract class CRUD
 		else
 			$this->data[$aVarName] = $aValue;
 	}
-	public function save()
+	public function save($aUseTransaction = false)
 	{
+		// TODO: make use of $aUseTransaction
 		$childClass = $this->className;
 		if(empty($this->id))
 		{
@@ -227,8 +268,9 @@ abstract class CRUD
 		else
 			return true;
 	}
-	public function delete()
+	public function delete($aUseTransaction = false)
 	{
+		// TODO: make use of $aUseTransaction
 		$childClass = $this->className;
 		if(empty(self::$statements[$childClass]['delete']))
 		{
@@ -246,8 +288,9 @@ abstract class CRUD
 		return $return;
 	}
 	// Maybe this is not the best place for toJSON()
-	public function toJSON()
+	public function toJSON($aEncode = true, $aIncludeChildren = false)
 	{
+		// TODO: make use of $aEncode and $aIncludeChildren
 		if(empty($this->id))
 			return 'false';
 		$displayArray = array('id' => $this->id);

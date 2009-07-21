@@ -20,7 +20,7 @@
 /*
  * News Object
  */
-class News extends CRUD
+class News extends ActiveRecordBase
 {
 	// TODO: $object::const only works in PHP5.3 -> use public var as alternative
 	const ContentType = 1;
@@ -69,8 +69,9 @@ class News extends CRUD
 		else
 			return parent::__set($aVarName, $aValue);
 	}
-	public function delete()
+	public function delete($aUseTransaction = false)
 	{
+		// TODO: make use of $aUseTransaction
 		Core::$db->beginTransaction();
 		Rating::deleteRating($this->id, self::ContentType);
 		Tags::deleteTagsForContent($this->id, self::ContentType);
@@ -80,8 +81,9 @@ class News extends CRUD
 		Core::$db->commit();
 		return $ret;
 	}
-	public function save()
+	public function save($aUseTransaction = false)
 	{
+		// TODO: make use of $aUseTransaction
 		Core::$db->connectParent();
 		Core::$db->beginTransaction();
 		$this->data['fancyurl'] = $fancyUrl = Utils::fancyUrl($this->data['title']);
@@ -115,8 +117,9 @@ class News extends CRUD
 		Core::$db->commit();
 		return $id;
 	}
-	public function toJSON()
+	public function toJSON($aEncode = true, $aIncludeChildren = false)
 	{
+		// TODO: make use of $aEncode and $aIncludeChildren
 		if(empty($this->id))
 			return 'false';
 		$displayArray = array('id' => $this->id);

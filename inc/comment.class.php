@@ -20,7 +20,7 @@
 /*
  * Comment Object
  */
-class Comment extends CRUD
+class Comment extends ActiveRecordBase
 {
 	// TODO: $object::const only works in PHP5.3 -> use public var as alternative
 	const ContentType = 4;
@@ -60,10 +60,10 @@ class Comment extends CRUD
 				return parent::__get($aVarName);
 		}
 	}
-	public function delete()
+	public function delete($aUseTransaction = false)
 	{
+		// TODO: make use of $aUseTransaction
 		// delete the associated ratings
-		// TODO: maybe use a transaction for this?
 		Rating::deleteRating($this->id, self::ContentType);
 		return parent::delete();
 	}
