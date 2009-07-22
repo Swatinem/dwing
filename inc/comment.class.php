@@ -20,8 +20,12 @@
 /*
  * Comment Object
  */
-class Comment extends ActiveRecordBase
+class Comment extends ActiveRecordBase implements ContentItem
 {
+	public static function ContentType()
+	{
+		return 4;
+	}
 	// TODO: $object::const only works in PHP5.3 -> use public var as alternative
 	const ContentType = 4;
 	public $ContentType = 4;
@@ -41,30 +45,11 @@ class Comment extends ActiveRecordBase
 		}
 		parent::__construct($obj);
 	}
-	public function __get($aVarName)
-	{
-		switch($aVarName)
-		{
-			case 'user':
-				return parent::__get('user_id');
-			break;
-			case 'rating':
-				if(!isset($this->data['rating']))
-					$this->data['rating'] =
-						Rating::getRating($this->id, self::ContentType);
-				return $this->data['rating'];
-			case 'user_id':
-				return null;
-			break;
-			default:
-				return parent::__get($aVarName);
-		}
-	}
 	public function delete($aUseTransaction = false)
 	{
 		// TODO: make use of $aUseTransaction
 		// delete the associated ratings
-		Rating::deleteRating($this->id, self::ContentType);
+		Rating::deleteFor($this);
 		return parent::delete();
 	}
 }

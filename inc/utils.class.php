@@ -119,6 +119,16 @@ class Utils
 	}
 
 	/**
+	 * Returns true if a class implements an interface
+	 * This is just a workaround because 'instanceof' doesn't work on class names
+	 * which is quite logical because $aClass is of type 'string'
+	 */
+	public static function doesImplement($aClass, $aInterface)
+	{
+		return in_array($aInterface, class_implements($aClass));
+	}
+
+	/**
 	 * returns the current page
 	 *
 	 * @return int

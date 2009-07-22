@@ -20,8 +20,12 @@
 /*
  * News Object
  */
-class News extends ActiveRecordBase
+class News extends ActiveRecordBase implements ContentItem
 {
+	public static function ContentType()
+	{
+		return 1;
+	}
 	// TODO: $object::const only works in PHP5.3 -> use public var as alternative
 	const ContentType = 1;
 	public $ContentType = 1;
@@ -46,18 +50,6 @@ class News extends ActiveRecordBase
 						Tags::getTagsForContent($this->id, self::ContentType);
 				return $this->data['tags'];
 			break;
-			case 'rating':
-				if(!isset($this->data['rating']))
-					$this->data['rating'] =
-						Rating::getRating($this->id, self::ContentType);
-				return $this->data['rating'];
-			break;
-			case 'user':
-				return parent::__get('user_id');
-			break;
-			case 'user_id':
-				return null;
-			break;
 			default:
 				return parent::__get($aVarName);
 		}
@@ -73,7 +65,7 @@ class News extends ActiveRecordBase
 	{
 		// TODO: make use of $aUseTransaction
 		Core::$db->beginTransaction();
-		Rating::deleteRating($this->id, self::ContentType);
+		Rating::deleteFor($this);
 		Tags::deleteTagsForContent($this->id, self::ContentType);
 		$comments = new CommentIterator($this->id, self::ContentType);
 		$comments->delete();

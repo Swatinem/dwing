@@ -31,6 +31,11 @@ interface ActiveRecord
 	 */
 	//public $id;
 	/**
+	 * An ActiveRecord class should have a constructor which takes an ID and
+	 * fetches the corresponding Object
+	 */
+	//public function __construct($aId)
+	/**
 	 * Saves the object into the Database
 	 * Creates a new transaction and commits it when $aUseTransaction is true
 	 */
@@ -40,6 +45,10 @@ interface ActiveRecord
 	 * Creates a new transaction and commits it when $aUseTransaction is true
 	 */
 	public function delete($aUseTransaction = false);
+	/**
+	 * This function assigns $aData passed in to the object
+	 */
+	public function assignData($aData);
 }
 
 /**
@@ -171,16 +180,25 @@ abstract class ActiveRecordBase implements ActiveRecord, JSONable
 	}
 	public function __get($aVarName)
 	{
-		if(!isset($this->definition[$aVarName]) || !isset($this->data[$aVarName]))
-			return null;
-		switch($this->definition[$aVarName])
+		$this->fetchData();
+		if(!isset($this->data[$aVarName]))
 		{
-			case 'user':
-				return Users::getUser($this->data[$aVarName]);
-			break;
-			default:
-				return $this->data[$aVarName];
+			// TODO: is it really good to hardcore 'user_id' here?
+			if($aVarName == 'user' && isset($this->definition['user_id']))
+			{
+				$this->data['user'] = $user = Users::getUser($this->data['user_id']);
+				return $user;
+			}
+			if(class_exists($aVarName) &&
+			   Utils::doesImplement($aVarName, 'ContentProviderSingle'))
+			{
+				$this->data[$aVarName] = $obj =
+					call_user_func(array($aVarName, 'getFor'), $this);
+				return $obj;
+			}
+			return null;
 		}
+		return $this->data[$aVarName];
 	}
 	public function __isset($aVarName)
 	{
