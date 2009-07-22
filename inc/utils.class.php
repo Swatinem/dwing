@@ -129,6 +129,22 @@ class Utils
 	}
 
 	/**
+	 * Weither $aWord is singular or not
+	 */
+	public static function isSingular($aWord)
+	{
+		// TODO: special case stuff like 'news' or 'person'
+		return substr($aWord, -1) != 's';
+	}
+	/**
+	 * Makes $aWord into a singular
+	 */
+	public static function makeSingular($aWord)
+	{
+		return !self::isSingular($aWord) ? substr($aWord, 0, -1) : $aWord;
+	}
+
+	/**
 	 * returns the current page
 	 *
 	 * @return int

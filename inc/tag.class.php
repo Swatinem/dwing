@@ -22,8 +22,85 @@
  *
  * This class provides functions to handle tags
  */
-class Tags
+class Tag implements ContentProvider
 {
+	private static $selectStmt = null;
+	private static $insertStmt = null;
+	private static $deleteStmt = null;
+
+
+	/**
+	 * ContentProvider Interface
+	 */
+	public static function addAllFor(ContentItem $aItem, $aItems, $aUseTransaction = false)
+	{
+		if($aUseTransaction)
+			Core::$db->startTransaction();
+		// delete old tags
+		self::deleteAllFor($aItem);
+		// names to id mapping
+		$nameToIdMap = array();
+		$stmt = Core::$db->prepare('SELECT tag_id, name FROM '.Core::$prefix.'tags;');
+		$stmt->execute();
+		$tagsRes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		foreach($tagsRes as $tagRow)
+			$nameToIdMap[$tagRow['name']] = $tagRow['tag_id'];
+		// filter the tag names out of the input string
+		$tagNames = self::cleanTags($aItems);
+
+		// link the tags with the content item, adding new tags when necessary
+		if(is_null(self::$insertStmt))
+		{
+			self::$insertStmt = Core::$db->prepare('
+				INSERT INTO '.Core::$prefix.'tagstocontent
+				SET tag_id=:tagId, content_id=:contentId, content_type=:contentType;');
+		}
+		$statement = self::$insertStmt;
+		$statement->bindParam(':tagId', $tagId, PDO::PARAM_INT);
+		$statement->bindParam(':contentId', $aItem->id, PDO::PARAM_INT);
+		$statement->bindParam(':contentType', $aItem->ContentType(), PDO::PARAM_INT);
+		foreach($tagNames as $tagName)
+		{
+			$tagId = !empty($nameToIdMap[$tagName]) ? $nameToIdMap[$tagName] : self::addTag($tagName);
+			$statement->execute();
+		}
+		if($aUseTransaction)
+			Core::$db->commit();
+		return $tagNames;
+	}
+	public static function getAllFor(ContentItem $aItem)
+	{
+		if(is_null(self::$selectStmt))
+		{
+			self::$selectStmt = Core::$db->prepare('
+				SELECT tags.name
+				FROM '.Core::$prefix.'tagstocontent AS tagstocontent
+				LEFT JOIN '.Core::$prefix.'tags AS tags USING (tag_id)
+				WHERE tagstocontent.content_id=:contentId AND
+					tagstocontent.content_type=:contentType
+				ORDER BY tags.name ASC;');
+		}
+		$statement = self::$selectStmt;
+		$statement->bindValue(':contentId', (int)$aItem->id, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$aItem->ContentType(), PDO::PARAM_INT);
+		$statement->execute();
+		return $statement->fetchAll(PDO::FETCH_COLUMN);
+	}
+	public static function deleteAllFor(ContentItem $aItem, $aUseTransaction = false)
+	{
+		if(is_null(self::$deleteStmt))
+		{
+			self::$deleteStmt = Core::$db->prepare('
+				DELETE FROM '.Core::$prefix.'tagstocontent
+				WHERE content_id=:contentId AND content_type=:contentType;');
+		}
+		// there is no sense in using a transaction for a 1-statement function
+		$statement = self::$deleteStmt;
+		$statement->bindValue(':contentId', (int)$aItem->id, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$aItem->ContentType(), PDO::PARAM_INT);
+		return $statement->execute();
+	}
+
 	/**
 	 * clean the incoming string and return an array of cleaned tag names
 	 *
@@ -39,82 +116,6 @@ class Tags
 		$tagNames = preg_replace('![^a-z0-9-\s]*!', '', $tagNames);
 		$tagNames = preg_replace('!\s+!', ' ', $tagNames);
 		return explode(' ', $tagNames);
-	}
-
-	/**
-	 * get all tags associated to one content item
-	 *
-	 * @param int $aContentId
-	 * @param int $aContentType
-	 * @return array
-	 **/
-	public static function getTagsForContent($aContentId, $aContentType)
-	{
-		$statement = Core::$db->prepare('
-			SELECT tags.name
-			FROM '.Core::$prefix.'tagstocontent AS tagstocontent
-			LEFT JOIN '.Core::$prefix.'tags AS tags USING (tag_id)
-			WHERE tagstocontent.content_id=:contentId AND
-				tagstocontent.content_type=:contentType
-			ORDER BY tags.name ASC;');
-		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
-		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
-		$statement->execute();
-		return $statement->fetchAll(PDO::FETCH_COLUMN);
-	}
-
-	/**
-	 * delete the associations for a content item
-	 *
-	 * @param int $aContentId
-	 * @param int $aContentType
-	 * @return bool
-	 **/
-	public static function deleteTagsForContent($aContentId, $aContentType)
-	{
-		$statement = Core::$db->prepare('DELETE FROM '.Core::$prefix.'tagstocontent
-			WHERE content_id=:contentId AND content_type=:contentType;');
-		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
-		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
-		$statement->execute();
-		return true;
-	}
-
-	/**
-	 * set tags for a content item
-	 *
-	 * @param int $aContentId
-	 * @param int $aContentType
-	 * @param string $aTags
-	 * @return bool
-	 **/
-	public static function setTagsForContent($aContentId, $aContentType, $aTags)
-	{
-		// delete old tags
-		self::deleteTagsForContent($aContentId, $aContentType);
-		// names to id mapping
-		$nameToIdMap = array();
-		$stmt = Core::$db->prepare('SELECT tag_id, name FROM '.Core::$prefix.'tags;');
-		$stmt->execute();
-		$tagsRes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-		foreach($tagsRes as $tagRow)
-			$nameToIdMap[$tagRow['name']] = $tagRow['tag_id'];
-		// filter the tag names out of the input string
-		$tagNames = self::cleanTags($aTags);
-
-		// link the tags with the content item, adding new tags when necessary
-		$statement = Core::$db->prepare('
-			INSERT INTO '.Core::$prefix.'tagstocontent
-			SET tag_id=:tagId, content_id=:contentId, content_type=:contentType;');
-		$statement->bindParam(':tagId', $tagId, PDO::PARAM_INT);
-		$statement->bindParam(':contentId', $aContentId, PDO::PARAM_INT);
-		$statement->bindParam(':contentType', $aContentType, PDO::PARAM_INT);
-		foreach($tagNames as $tagName)
-		{
-			$tagId = !empty($nameToIdMap[$tagName]) ? $nameToIdMap[$tagName] : self::addTag($tagName);
-			$statement->execute();
-		}
-		return $tagNames;
 	}
 
 	/**

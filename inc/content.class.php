@@ -77,6 +77,12 @@ interface ContentProviderSingle
 interface ContentProvider
 {
 	/**
+	 * This adds multiple objects $aItems to $aItem.
+	 * Uses a new transaction when $aUseTransaction is true
+	 * returns the added Items
+	 */
+	public static function addAllFor(ContentItem $aItem, $aItems, $aUseTransaction = false);
+	/**
 	 * This returns either an Array or an Object implementing Iterator and
 	 * Countable which includes Objects related to $aItem
 	 */

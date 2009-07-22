@@ -44,12 +44,6 @@ class News extends ActiveRecordBase implements ContentItem
 						new CommentIterator($this->id, self::ContentType);
 				return $this->data['comments'];
 			break;
-			case 'tags':
-				if(!isset($this->data['tags']))
-					$this->data['tags'] = 
-						Tags::getTagsForContent($this->id, self::ContentType);
-				return $this->data['tags'];
-			break;
 			default:
 				return parent::__get($aVarName);
 		}
@@ -66,7 +60,7 @@ class News extends ActiveRecordBase implements ContentItem
 		// TODO: make use of $aUseTransaction
 		Core::$db->beginTransaction();
 		Rating::deleteFor($this);
-		Tags::deleteTagsForContent($this->id, self::ContentType);
+		Tag::deleteAllFor($this);
 		$comments = new CommentIterator($this->id, self::ContentType);
 		$comments->delete();
 		$ret = parent::delete();
@@ -102,8 +96,7 @@ class News extends ActiveRecordBase implements ContentItem
 		}
 
 		// link with tags
-		$this->data['tags'] =
-			Tags::setTagsForContent($id, self::ContentType, $this->data['tags']);
+		$this->data['tags'] = Tag::addAllFor($this, $this->data['tags']);
 
 		Core::$db->commit();
 		return $id;
@@ -205,25 +198,19 @@ class NewsWithTag extends NewsIterator implements Countable
 {
 	protected $tag;
 
-	private static $selectStmt;
-
 	public function __construct($aTag, $aStart = 0, $aLimit = 10)
 	{
 		$this->tag = $aTag;
-		if(empty(self::$selectStmt))
-		{
-			// TODO: is there something equivalent to IN(...) using only prepared
-			// statements?
-			self::$selectStmt = Core::$db->prepare(
-				'SELECT news.* FROM '.Core::$prefix.'news AS news
-				LEFT JOIN '.Core::$prefix.'tagstocontent AS tagstocontent ON
-				news.news_id = tagstocontent.content_id LEFT JOIN '.
-				Core::$prefix.'tags AS tags ON tags.tag_id = tagstocontent.tag_id
-				WHERE tags.name IN ("'.implode('","',Tags::cleanTags($aTag)).'") AND
-				tagstocontent.content_type='.News::ContentType.'
-				ORDER BY news.time DESC LIMIT :start, :limit;');
-		}
-		$statement = self::$selectStmt;
+		// TODO: is there something equivalent to IN(...) using only prepared
+		// statements?
+		$statement = Core::$db->prepare(
+			'SELECT news.* FROM '.Core::$prefix.'news AS news
+			LEFT JOIN '.Core::$prefix.'tagstocontent AS tagstocontent ON
+			news.news_id = tagstocontent.content_id LEFT JOIN '.
+			Core::$prefix.'tags AS tags ON tags.tag_id = tagstocontent.tag_id
+			WHERE tags.name IN ("'.implode('","',Tag::cleanTags($aTag)).'") AND
+			tagstocontent.content_type='.News::ContentType.'
+			ORDER BY news.time DESC LIMIT :start, :limit;');
 		$statement->bindValue(':start', (int)$aStart, PDO::PARAM_INT);
 		$statement->bindValue(':limit', (int)$aLimit, PDO::PARAM_INT);
 		$statement->execute();
@@ -234,7 +221,7 @@ class NewsWithTag extends NewsIterator implements Countable
 	// Countable Interface:
 	public function count()
 	{
-		return Tags::getContentCount($this->tag, News::ContentType);
+		return Tag::getContentCount($this->tag, News::ContentType);
 	}
 }
 

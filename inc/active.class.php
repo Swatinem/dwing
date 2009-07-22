@@ -189,7 +189,15 @@ abstract class ActiveRecordBase implements ActiveRecord, JSONable
 				$this->data['user'] = $user = Users::getUser($this->data['user_id']);
 				return $user;
 			}
-			if(class_exists($aVarName) &&
+			$singular = Utils::makeSingular($aVarName);
+			if(!Utils::isSingular($aVarName) && class_exists($singular) &&
+			   Utils::doesImplement($singular, 'ContentProvider'))
+			{
+				$this->data[$aVarName] = $obj =
+					call_user_func(array($singular, 'getAllFor'), $this);
+				return $obj;
+			}
+			if(Utils::isSingular($aVarName) && class_exists($aVarName) &&
 			   Utils::doesImplement($aVarName, 'ContentProviderSingle'))
 			{
 				$this->data[$aVarName] = $obj =
