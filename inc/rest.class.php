@@ -206,7 +206,7 @@ class RESTDispatcher
 	public function dispatch()
 	{
 		$className = $this->resources[$this->current]['resource'].'Dispatcher';
-		if(!class_exists($className) || Utils::doesImplement($className, 'RESTful'))
+		if(!class_exists($className) || !Utils::doesImplement($className, 'RESTful'))
 		{
 			throw new NoDispatcher();
 		}
