@@ -26,9 +26,6 @@ class News extends ActiveRecordBase implements ContentItem
 	{
 		return 1;
 	}
-	// TODO: $object::const only works in PHP5.3 -> use public var as alternative
-	const ContentType = 1;
-	public $ContentType = 1;
 
 	protected $primaryKey = 'news_id';
 	protected $definition = array('title' => 'required', 'text' => 'html',
@@ -41,7 +38,7 @@ class News extends ActiveRecordBase implements ContentItem
 			case 'comments':
 				if(!isset($this->data['comments']))
 					$this->data['comments'] =
-						new CommentIterator($this->id, self::ContentType);
+						new CommentIterator($this);
 				return $this->data['comments'];
 			break;
 			default:
@@ -61,7 +58,7 @@ class News extends ActiveRecordBase implements ContentItem
 		Core::$db->beginTransaction();
 		Rating::deleteFor($this);
 		Tag::deleteAllFor($this);
-		$comments = new CommentIterator($this->id, self::ContentType);
+		$comments = new CommentIterator($this->id, self::ContentType());
 		$comments->delete();
 		$ret = parent::delete();
 		Core::$db->commit();
@@ -209,7 +206,7 @@ class NewsWithTag extends NewsIterator implements Countable
 			news.news_id = tagstocontent.content_id LEFT JOIN '.
 			Core::$prefix.'tags AS tags ON tags.tag_id = tagstocontent.tag_id
 			WHERE tags.name IN ("'.implode('","',Tag::cleanTags($aTag)).'") AND
-			tagstocontent.content_type='.News::ContentType.'
+			tagstocontent.content_type='.News::ContentType().'
 			ORDER BY news.time DESC LIMIT :start, :limit;');
 		$statement->bindValue(':start', (int)$aStart, PDO::PARAM_INT);
 		$statement->bindValue(':limit', (int)$aLimit, PDO::PARAM_INT);
@@ -221,7 +218,7 @@ class NewsWithTag extends NewsIterator implements Countable
 	// Countable Interface:
 	public function count()
 	{
-		return Tag::getContentCount($this->tag, News::ContentType);
+		return Tag::getContentCount($this->tag, News::ContentType());
 	}
 }
 

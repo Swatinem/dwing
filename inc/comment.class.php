@@ -26,9 +26,6 @@ class Comment extends ActiveRecordBase implements ContentItem
 	{
 		return 4;
 	}
-	// TODO: $object::const only works in PHP5.3 -> use public var as alternative
-	const ContentType = 4;
-	public $ContentType = 4;
 
 	protected $tableName = 'comments';
 	protected $primaryKey = 'comment_id';
@@ -37,11 +34,10 @@ class Comment extends ActiveRecordBase implements ContentItem
 
 	public function __construct($obj = null)
 	{
-		// TODO: start using $obj::ContentType when we switch to PHP5.3
-		if(is_object($obj) && isset($obj->id) && isset($obj->ContentType))
+		if(is_object($obj) && $obj instanceof ContentItem)
 		{
 			$this->data['content_id'] = $obj->id;
-			$this->data['content_type'] = $obj->ContentType;
+			$this->data['content_type'] = $obj->ContentType();
 		}
 		parent::__construct($obj);
 	}
@@ -57,8 +53,6 @@ class Comment extends ActiveRecordBase implements ContentItem
 /*
  * Comment Iterator for a Content Item
  */
-// TODO: maybe manage deleting all Comments of one Content Item through this
-// Iterator?
 class CommentIterator implements Iterator, Countable
 {
 	protected $elements = null;
@@ -70,7 +64,7 @@ class CommentIterator implements Iterator, Countable
 	private static $countStmt;
 	private static $selectStmt;
 
-	public function __construct($aContentId, $aContentType)
+	public function __construct(ContentItem $aItem)
 	{
 		if(empty(self::$selectStmt))
 		{
@@ -85,8 +79,8 @@ class CommentIterator implements Iterator, Countable
 				SELECT COUNT(*) as commentnum FROM '.Core::$prefix.'comments
 				WHERE content_id=:contentId AND content_type=:contentType;');
 		}
-		$this->contentId = (int)$aContentId;
-		$this->contentType = (int)$aContentType;
+		$this->contentId = (int)$aItem->id;
+		$this->contentType = (int)$aItem->ContentType();
 	}
 	protected function lazyFetch()
 	{

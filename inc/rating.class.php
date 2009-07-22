@@ -71,8 +71,8 @@ class Rating implements ActiveRecord, ContentProviderSingle, JSONable
 		}
 		// there is no sense in using a transaction for a 1-statement function
 		$statement = self::$deleteStmt;
-		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
-		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
+		$statement->bindValue(':contentId', (int)$this->contentId, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$this->contentType, PDO::PARAM_INT);
 		return $statement->execute();
 	}
 	public function assignData($aData)
