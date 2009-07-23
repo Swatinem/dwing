@@ -233,7 +233,7 @@ abstract class ActiveItem implements ActiveRecord, JSONable, ContentItem
 	public function save($aUseTransaction = false)
 	{
 		if($aUseTransaction)
-			Core::$db->startTransaction();
+			Core::$db->beginTransaction();
 		$childClass = $this->className;
 		if(empty($this->id))
 		{
@@ -309,7 +309,7 @@ abstract class ActiveItem implements ActiveRecord, JSONable, ContentItem
 	public function delete($aUseTransaction = false)
 	{
 		if($aUseTransaction)
-			Core::$db->startTransaction();
+			Core::$db->beginTransaction();
 		$childClass = $this->className;
 		if(empty(self::$statements[$childClass]['delete']))
 		{

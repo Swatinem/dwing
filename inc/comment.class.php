@@ -57,7 +57,7 @@ class Comment extends ActiveItem implements ContentItem, ContentProvider
 	public static function deleteAllFor(ContentItem $aItem, $aUseTransaction = false)
 	{
 		if($aUseTransaction)
-			Core::$db->startTransaction();
+			Core::$db->beginTransaction();
 		$all = new CommentIterator($aItem);
 		$all->delete();
 		if($aUseTransaction)

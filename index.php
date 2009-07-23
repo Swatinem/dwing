@@ -95,7 +95,7 @@ abstract class Core
 	public static function deleteEverythingFor(ContentItem $aItem, $aUseTransaction = false)
 	{
 		if($aUseTransaction)
-			Core::$db->startTransaction();
+			Core::$db->beginTransaction();
 		foreach(self::$config['ContentProviders'] as $provider)
 		{
 			if(Utils::doesimplement($provider, 'ContentProvider'))

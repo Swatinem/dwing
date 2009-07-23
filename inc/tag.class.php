@@ -35,7 +35,7 @@ class Tag implements ContentProvider
 	public static function addAllFor(ContentItem $aItem, $aItems, $aUseTransaction = false)
 	{
 		if($aUseTransaction)
-			Core::$db->startTransaction();
+			Core::$db->beginTransaction();
 		// delete old tags
 		self::deleteAllFor($aItem);
 		// names to id mapping
