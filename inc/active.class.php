@@ -210,7 +210,7 @@ abstract class ActiveRecordBase implements ActiveRecord, JSONable
 	}
 	public function __isset($aVarName)
 	{
-		return isset($this->data[$aVarName]);
+		return $this->__get($aVarName) != null;
 	}
 	public function __set($aVarName, $aValue)
 	{
@@ -223,7 +223,8 @@ abstract class ActiveRecordBase implements ActiveRecord, JSONable
 	}
 	public function save($aUseTransaction = false)
 	{
-		// TODO: make use of $aUseTransaction
+		if($aUseTransaction)
+			Core::$db->startTransaction();
 		$childClass = $this->className;
 		if(empty($this->id))
 		{
@@ -289,14 +290,17 @@ abstract class ActiveRecordBase implements ActiveRecord, JSONable
 		}
 		if(!$statement->execute())
 			throw new Exception($statement->errorInfo[2]);
-		if(empty($this->id))
-			return ($this->id = Core::$db->lastInsertId());
-		else
-			return true;
+		if($aUseTransaction)
+			Core::$db->commit();
+		$return = empty($this->id) ? ($this->id = Core::$db->lastInsertId()) : true;
+		if($aUseTransaction)
+			Core::$db->commit();
+		return $return;
 	}
 	public function delete($aUseTransaction = false)
 	{
-		// TODO: make use of $aUseTransaction
+		if($aUseTransaction)
+			Core::$db->startTransaction();
 		$childClass = $this->className;
 		if(empty(self::$statements[$childClass]['delete']))
 		{
@@ -311,6 +315,8 @@ abstract class ActiveRecordBase implements ActiveRecord, JSONable
 			$this->data = array();
 			unset($this->id);
 		}
+		if($aUseTransaction)
+			Core::$db->commit();
 		return $return;
 	}
 	// Maybe this is not the best place for toJSON()

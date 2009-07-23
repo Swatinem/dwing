@@ -31,20 +31,6 @@ class News extends ActiveRecordBase implements ContentItem
 	protected $definition = array('title' => 'required', 'text' => 'html',
 		'user_id' => 'user', 'time' => 'time', 'fancyurl' => 'fancyurl');
 
-	public function __get($aVarName)
-	{
-		switch($aVarName)
-		{
-			case 'comments':
-				if(!isset($this->data['comments']))
-					$this->data['comments'] =
-						new CommentIterator($this);
-				return $this->data['comments'];
-			break;
-			default:
-				return parent::__get($aVarName);
-		}
-	}
 	public function __set($aVarName, $aValue)
 	{
 		if($aVarName == 'tags')
@@ -58,8 +44,7 @@ class News extends ActiveRecordBase implements ContentItem
 		Core::$db->beginTransaction();
 		Rating::deleteFor($this);
 		Tag::deleteAllFor($this);
-		$comments = new CommentIterator($this->id, self::ContentType());
-		$comments->delete();
+		Comment::deleteAllFor($this);
 		$ret = parent::delete();
 		Core::$db->commit();
 		return $ret;
@@ -67,6 +52,7 @@ class News extends ActiveRecordBase implements ContentItem
 	public function save($aUseTransaction = false)
 	{
 		// TODO: make use of $aUseTransaction
+		// TODO: this does not handle UPDATE yet
 		Core::$db->beginTransaction();
 		$this->data['fancyurl'] = $fancyUrl = Utils::fancyUrl($this->data['title']);
 		$statement = Core::$db->prepare('

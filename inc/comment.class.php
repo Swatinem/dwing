@@ -20,7 +20,7 @@
 /*
  * Comment Object
  */
-class Comment extends ActiveRecordBase implements ContentItem
+class Comment extends ActiveRecordBase implements ContentItem, ContentProvider
 {
 	public static function ContentType()
 	{
@@ -47,6 +47,29 @@ class Comment extends ActiveRecordBase implements ContentItem
 		// delete the associated ratings
 		Rating::deleteFor($this);
 		return parent::delete();
+	}
+
+	/**
+	 * ContentProvider Interface
+	 */
+	public static function addAllFor(ContentItem $aItem, $aItems, $aUseTransaction = false)
+	{
+		// this does not apply for Comment
+		return false;
+	}
+	public static function getAllFor(ContentItem $aItem)
+	{
+		return new CommentIterator($aItem);
+	}
+	public static function deleteAllFor(ContentItem $aItem, $aUseTransaction = false)
+	{
+		if($aUseTransaction)
+			Core::$db->startTransaction();
+		$all = new CommentIterator($aItem);
+		$all->delete();
+		if($aUseTransaction)
+			Core::$db->commit();
+		return true;
 	}
 }
 
