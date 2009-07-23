@@ -57,8 +57,8 @@ class Tag implements ContentProvider
 		}
 		$statement = self::$insertStmt;
 		$statement->bindParam(':tagId', $tagId, PDO::PARAM_INT);
-		$statement->bindParam(':contentId', $aItem->id, PDO::PARAM_INT);
-		$statement->bindParam(':contentType', $aItem->ContentType(), PDO::PARAM_INT);
+		$statement->bindValue(':contentId', $aItem->id, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', $aItem->ContentType(), PDO::PARAM_INT);
 		foreach($tagNames as $tagName)
 		{
 			$tagId = !empty($nameToIdMap[$tagName]) ? $nameToIdMap[$tagName] : self::addTag($tagName);
