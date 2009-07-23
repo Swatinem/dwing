@@ -311,8 +311,7 @@ abstract class REST implements RESTful
 		$child = $dispatcher->next();
 		if(!$child) // destroy the current resource
 		{
-			$obj->delete();
-			return 'true';
+			return $obj->delete(true);
 		}
 		// have $child
 		return $dispatcher->dispatch(); // dispatch to child

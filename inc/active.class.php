@@ -75,21 +75,21 @@ interface JSONable
 /*
 Used like this:
 
-class News extends ActiveRecordBase
+class News extends ActiveItem
 {
 	//protected $tableName = 'news';
 	protected $primaryKey = 'news_id';
 	protected $definition = array('title' => 'required', 'text' => 'html',
 		'user_id' => 'user', 'time' => 'time', 'fancyurl' => 'value');
 }
-class Comment extends ActiveRecordBase
+class Comment extends ActiveItem
 {
 	protected $tableName = 'comments';
 	protected $definition = array('text' => 'html', 'user_id' => 'user',
 		'time' => 'time', 'content_id' => 'required', 'content_type' => 'required');
 }
 */
-abstract class ActiveRecordBase implements ActiveRecord, JSONable
+abstract class ActiveItem implements ActiveRecord, JSONable, ContentItem
 {
 	private static $statements = array();
 	protected $primaryKey = 'id';
@@ -97,6 +97,15 @@ abstract class ActiveRecordBase implements ActiveRecord, JSONable
 	protected $className;
 	protected $tableName;
 	public $id;
+
+	/**
+	 * Until we require PHP5.3, just reimplement this method, returning the
+	 * correct ContentType
+	 */
+	public static function ContentType()
+	{
+		return 0;
+	}
 	
 	public function __construct($aData = null)
 	{
@@ -312,6 +321,7 @@ abstract class ActiveRecordBase implements ActiveRecord, JSONable
 		$statement->bindValue(':id', $this->id, PDO::PARAM_INT);
 		if($return = $statement->execute())
 		{
+			Core::deleteEverythingFor($this);
 			$this->data = array();
 			unset($this->id);
 		}

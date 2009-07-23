@@ -20,7 +20,7 @@
 /*
  * News Object
  */
-class News extends ActiveRecordBase implements ContentItem
+class News extends ActiveItem implements ContentItem
 {
 	public static function ContentType()
 	{
@@ -37,17 +37,6 @@ class News extends ActiveRecordBase implements ContentItem
 			$this->data['tags'] = $aValue;
 		else
 			return parent::__set($aVarName, $aValue);
-	}
-	public function delete($aUseTransaction = false)
-	{
-		// TODO: make use of $aUseTransaction
-		Core::$db->beginTransaction();
-		Rating::deleteFor($this);
-		Tag::deleteAllFor($this);
-		Comment::deleteAllFor($this);
-		$ret = parent::delete();
-		Core::$db->commit();
-		return $ret;
 	}
 	public function save($aUseTransaction = false)
 	{
