@@ -37,13 +37,13 @@ $resource = strtolower(get_class($post)).'/'.$post->id;
 			endif;
 			if(($rating = $post->rating) != null):
 			?>
-			<span class="rating score<?php echo round($rating['average']); ?>">
+			<span class="rating score<?php echo round($rating->average); ?>">
 				<a>1</a>
 				<a>2</a>
 				<a>3</a>
 				<a>4</a>
 				<a>5</a>
-				<span class="ratingcaption"><?php printf(l10n::_('%s ratings / %s average'), $rating['ratings'], round($rating['average'], 1)); ?></span>
+				<span class="ratingcaption"><?php printf(l10n::_('%s ratings / %s average'), $rating->ratings, round($rating->average, 1)); ?></span>
 			</span>
 			<?php endif; ?>
 			<?php if(!empty($showDelete) || false): ?>

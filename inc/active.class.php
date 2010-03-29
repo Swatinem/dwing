@@ -17,30 +17,79 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
-Used like this:
+// TODO: active.php may not be the best file name to house these classes
+// the autoload handler would miss JSONable for sure
 
-class News extends CRUD
+/**
+ * Interface for ActiveRecord Classes
+ */
+interface ActiveRecord
 {
-	//protected $tableName = 'news';
-	protected $primaryKey = 'news_id';
-	protected $definition = array('title' => 'required', 'text' => 'html',
-		'user_id' => 'user', 'time' => 'time', 'fancyurl' => 'value');
+	/**
+	 * Interfaces to not allow member variables, but please make sure to define
+	 * a public $id member.
+	 */
+	//public $id;
+	/**
+	 * An ActiveRecord class should have a constructor which takes an ID and
+	 * fetches the corresponding Object
+	 */
+	//public function __construct($aId)
+	/**
+	 * Saves the object into the Database
+	 * Creates a new transaction and commits it when $aUseTransaction is true
+	 */
+	public function save($aUseTransaction = false);
+	/**
+	 * Deletes the object from the Database
+	 * Creates a new transaction and commits it when $aUseTransaction is true
+	 */
+	public function delete($aUseTransaction = false);
+	/**
+	 * This function assigns $aData passed in to the object
+	 */
+	public function assignData($aData);
 }
-class Comment extends CRUD
+
+/**
+ * Interface for Objects that can be JSON-ified
+ */
+interface JSONable
 {
-	protected $tableName = 'comments';
-	protected $definition = array('text' => 'html', 'user_id' => 'user',
-		'time' => 'time', 'content_id' => 'required', 'content_type' => 'required');
+	/**
+	 * Turns the object into either a JSON String when $aEncode is true or
+	 * returns a associative array that can be turned into JSON via json_encode()
+	 * Also includes ContentProvider Children when $aIncludeChildren is true
+	 */
+	public function toJSON($aEncode = true, $aIncludeChildren = false);
 }
-*/
 
 /*
  * TODO:
  * fetch data on __get and use IFNULL() to not overwrite the record with empty data
  */
 
-abstract class CRUD
+/**
+ * Abstract Base implementation of ActiveRecord
+ */
+/*
+Used like this:
+
+class News extends ActiveItem
+{
+	//protected $tableName = 'news';
+	protected $primaryKey = 'news_id';
+	protected $definition = array('title' => 'required', 'text' => 'html',
+		'user_id' => 'user', 'time' => 'time', 'fancyurl' => 'value');
+}
+class Comment extends ActiveItem
+{
+	protected $tableName = 'comments';
+	protected $definition = array('text' => 'html', 'user_id' => 'user',
+		'time' => 'time', 'content_id' => 'required', 'content_type' => 'required');
+}
+*/
+abstract class ActiveItem implements ActiveRecord, JSONable, ContentItem
 {
 	private static $statements = array();
 	protected $primaryKey = 'id';
@@ -48,6 +97,15 @@ abstract class CRUD
 	protected $className;
 	protected $tableName;
 	public $id;
+
+	/**
+	 * Until we require PHP5.3, just reimplement this method, returning the
+	 * correct ContentType
+	 */
+	public static function ContentType()
+	{
+		return 0;
+	}
 	
 	public function __construct($aData = null)
 	{
@@ -131,20 +189,37 @@ abstract class CRUD
 	}
 	public function __get($aVarName)
 	{
-		if(!isset($this->definition[$aVarName]) || !isset($this->data[$aVarName]))
-			return null;
-		switch($this->definition[$aVarName])
+		$this->fetchData();
+		if(!isset($this->data[$aVarName]))
 		{
-			case 'user':
-				return Users::getUser($this->data[$aVarName]);
-			break;
-			default:
-				return $this->data[$aVarName];
+			// TODO: is it really good to hardcore 'user_id' here?
+			if($aVarName == 'user' && isset($this->definition['user_id']))
+			{
+				$this->data['user'] = $user = Users::getUser($this->data['user_id']);
+				return $user;
+			}
+			$singular = Utils::makeSingular($aVarName);
+			if(!Utils::isSingular($aVarName) && class_exists($singular) &&
+			   Utils::doesImplement($singular, 'ContentProvider'))
+			{
+				$this->data[$aVarName] = $obj =
+					call_user_func(array($singular, 'getAllFor'), $this);
+				return $obj;
+			}
+			if(Utils::isSingular($aVarName) && class_exists($aVarName) &&
+			   Utils::doesImplement($aVarName, 'ContentProviderSingle'))
+			{
+				$this->data[$aVarName] = $obj =
+					call_user_func(array($aVarName, 'getFor'), $this);
+				return $obj;
+			}
+			return null;
 		}
+		return $this->data[$aVarName];
 	}
 	public function __isset($aVarName)
 	{
-		return isset($this->data[$aVarName]);
+		return $this->__get($aVarName) != null;
 	}
 	public function __set($aVarName, $aValue)
 	{
@@ -155,8 +230,10 @@ abstract class CRUD
 		else
 			$this->data[$aVarName] = $aValue;
 	}
-	public function save()
+	public function save($aUseTransaction = false)
 	{
+		if($aUseTransaction)
+			Core::$db->beginTransaction();
 		$childClass = $this->className;
 		if(empty($this->id))
 		{
@@ -222,13 +299,17 @@ abstract class CRUD
 		}
 		if(!$statement->execute())
 			throw new Exception($statement->errorInfo[2]);
-		if(empty($this->id))
-			return ($this->id = Core::$db->lastInsertId());
-		else
-			return true;
+		if($aUseTransaction)
+			Core::$db->commit();
+		$return = empty($this->id) ? ($this->id = Core::$db->lastInsertId()) : true;
+		if($aUseTransaction)
+			Core::$db->commit();
+		return $return;
 	}
-	public function delete()
+	public function delete($aUseTransaction = false)
 	{
+		if($aUseTransaction)
+			Core::$db->beginTransaction();
 		$childClass = $this->className;
 		if(empty(self::$statements[$childClass]['delete']))
 		{
@@ -240,14 +321,18 @@ abstract class CRUD
 		$statement->bindValue(':id', $this->id, PDO::PARAM_INT);
 		if($return = $statement->execute())
 		{
+			Core::deleteEverythingFor($this);
 			$this->data = array();
 			unset($this->id);
 		}
+		if($aUseTransaction)
+			Core::$db->commit();
 		return $return;
 	}
 	// Maybe this is not the best place for toJSON()
-	public function toJSON()
+	public function toJSON($aEncode = true, $aIncludeChildren = false)
 	{
+		// TODO: make use of $aEncode and $aIncludeChildren
 		if(empty($this->id))
 			return 'false';
 		$displayArray = array('id' => $this->id);
