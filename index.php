@@ -52,7 +52,16 @@ abstract class Core
 	{
 		if(!file_exists('runtime/config.php'))
 			return false;
-		require_once('runtime/config.php');
+		try
+		{
+			require_once('runtime/config.php');
+		}
+		catch(Exception $e)
+		{
+			// rethrow as a custom exception, it would otherwise output the mysql
+			// password in the stack trace
+			throw new Exception($e->getMessage());
+		}
 
 		// TODO: this is currently a regression in behaviour because it is creating
 		// a database connection even when it may not be needed
