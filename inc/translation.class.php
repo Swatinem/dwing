@@ -55,6 +55,8 @@ class l10n
 				require_once('lang/'.$lang['specific'].'.php');
 			else if(file_exists('lang/'.$lang['general'].'.php'))
 				require_once('lang/'.$lang['general'].'.php');
+			else
+				return;
 			
 			self::$langName = $langName;
 			self::$langTable = $langTable;
