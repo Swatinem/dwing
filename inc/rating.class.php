@@ -22,106 +22,160 @@
  *
  * rate any type of content.
  */
-class Rating
+class Rating implements ActiveRecord, ContentProviderSingle, JSONable
 {
 	/**
-	 * get the number of ratings and the average rating of a Content Item and
-	 * whether the user has voted or not
-	 *
-	 * @param int $aContentId
-	 * @param int $aContentType
-	 * @return array
-	 **/
-	public static function getRating($aContentId, $aContentType)
-	{
-		$statement = Core::$db->prepare('
-			SELECT COUNT(rating) as ratings, AVG(rating) as average,
-				SUM(user_id=:userId) as voted
-			FROM `'.Core::$prefix.'ratings`
-			WHERE content_id=:contentId AND	content_type=:contentType;');
-		$statement->bindValue(':userId', (int)Core::$user->user_id, PDO::PARAM_INT);
-		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
-		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
-		$statement->execute();
-		return $statement->fetch(PDO::FETCH_ASSOC);
-	}
+	 * The ContentItem this Rating corresponds to
+	 */
+	protected $contentId;
+	protected $contentType;
+	protected $myRating = null;
+
+	protected $data = null;
+
+	private static $selectStmt = null;
+	private static $insertStmt = null;
+	private static $deleteStmt = null;
+
 
 	/**
-	 * rate a Content Item
-	 *
-	 * @param int $aContentId
-	 * @param int $aContentType
-	 * @param int $aRating
-	 * @return bool
-	 **/
-	public static function addRating($aContentId, $aContentType, $aRating)
+	 * ActiveRecord Interface
+	 */
+	public function save($aUseTransaction = false)
 	{
-		if($aRating > 5 || $aRating < 1 || !Core::$user->authed)
+		if($this->myRating > 5 || $this->myRating < 1 || !Core::$user->authed)
 			return false;
-		$statement = Core::$db->prepare('
-			REPLACE INTO `'.Core::$prefix.'ratings`
-			SET user_id=:userId, content_id=:contentId, content_type=:contentType,
-				rating=:rating;');
+		if(is_null(self::$insertStmt))
+		{
+			self::$insertStmt = Core::$db->prepare('
+				INSERT INTO `'.Core::$prefix.'ratings`
+				SET user_id=:userId, content_id=:contentId, content_type=:contentType,
+					rating=:rating
+				ON DUPLICATE KEY UPDATE rating=VALUES(rating);');
+		}
+		// there is no sense in using a transaction for a 1-statement function
+		$statement = self::$insertStmt;
 		$statement->bindValue(':userId', (int)Core::$user->user_id, PDO::PARAM_INT);
-		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
-		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
-		$statement->bindValue(':rating', (int)$aRating, PDO::PARAM_INT);
-		$statement->execute();
-		return true;
+		$statement->bindValue(':contentId', (int)$this->contentId, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$this->contentType, PDO::PARAM_INT);
+		$statement->bindValue(':rating', (int)$this->myRating, PDO::PARAM_INT);
+		return $statement->execute();
+	}
+	public function delete($aUseTransaction = false)
+	{
+		if(is_null(self::$deleteStmt))
+		{
+			self::$deleteStmt = Core::$db->prepare('
+				DELETE FROM `'.Core::$prefix.'ratings`
+				WHERE content_id=:contentId AND	content_type=:contentType;');
+		}
+		// there is no sense in using a transaction for a 1-statement function
+		$statement = self::$deleteStmt;
+		$statement->bindValue(':contentId', (int)$this->contentId, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$this->contentType, PDO::PARAM_INT);
+		return $statement->execute();
+	}
+	public function assignData($aData)
+	{
+		$this->myRating = (int)$aData;
 	}
 
-	public static function deleteRating($aContentId, $aContentType)
+
+	/**
+	 * ContentProviderSingle Interface
+	 */
+	public static function getFor(ContentItem $aItem)
 	{
-		// TODO: cache all the prepared statements as a private static
-		$statement = Core::$db->prepare('
-			DELETE FROM `'.Core::$prefix.'ratings`
-			WHERE content_id=:contentId AND	content_type=:contentType;');
-		$statement->bindValue(':contentId', (int)$aContentId, PDO::PARAM_INT);
-		$statement->bindValue(':contentType', (int)$aContentType, PDO::PARAM_INT);
-		return $statement->execute();
+		return new Rating($aItem);
+	}
+	public static function deleteFor(ContentItem $aItem, $aUseTransaction = false)
+	{
+		$rating = new Rating($aItem);
+		$rating->delete($aUseTransaction);
+	}
+
+
+	/**
+	 * JSONable Interface
+	 */
+	public function toJSON($aEncode = true, $aIncludeChildren = false)
+	{
+		$this->fetchData();
+		return $aEncode ? json_encode($this->data) : $this->data;
+	}
+
+
+	public function __construct($aItem)
+	{
+		$this->contentId = $aItem->id;
+		$this->contentType = $aItem->ContentType();
+	}
+	
+	protected function fetchData()
+	{
+		if(!is_null($this->data))
+			return;
+		if(is_null(self::$selectStmt))
+		{
+			self::$selectStmt = Core::$db->prepare('
+				SELECT COUNT(rating) as ratings, AVG(rating) as average,
+					SUM(user_id=:userId) as voted
+				FROM `'.Core::$prefix.'ratings`
+				WHERE content_id=:contentId AND	content_type=:contentType;');
+		}
+		$statement = self::$selectStmt;
+		$statement->bindValue(':userId', (int)Core::$user->user_id, PDO::PARAM_INT);
+		$statement->bindValue(':contentId', (int)$this->contentId, PDO::PARAM_INT);
+		$statement->bindValue(':contentType', (int)$this->contentType, PDO::PARAM_INT);
+		$statement->execute();
+		$this->data = $statement->fetch(PDO::FETCH_ASSOC);
+	}
+	
+	public function __get($aVar)
+	{
+		$this->fetchData();
+		return isset($this->data[$aVar]) ? $this->data[$aVar] : null;
+	}
+	public function __isset($aVar)
+	{
+		$this->fetchData();
+		return isset($this->data[$aVar]);
 	}
 }
 
+/**
+ * TODO: use a modified version of this as basis for a better RESTDispatcher
+ */
 class RatingDispatcher implements RESTful
 {
-	public static function GET(RESTDispatcher $dispatcher)
+	public static function doGET(RESTDispatcher $dispatcher)
 	{
-		$child = $dispatcher->next();
-		if($child)
-			throw new NotImplementedException();
-		$parent = $dispatcher->previous();
-		// TODO: start using $obj::ContentType when we switch to PHP5.3
-		if(!$parent || !isset($parent['obj']->id) ||
-			!isset($parent['obj']->ContentType))
+		$child = $dispatcher->peekNext();
+		$parent = $dispatcher->peekPrevious();
+		if($child || !$parent || !($parent['obj'] instanceof ContentItem))
 			throw new NotImplementedException();
 		// we have a parent
-		$dispatcher->next(); // so the dispatcher does not think we are the parent
-		return json_encode(Rating::getRating($parent['obj']->id,
-			$parent['obj']->ContentType));
+		return Rating::getFor($parent['obj']);
 	}
-	public static function POST(RESTDispatcher $dispatcher)
+	public static function doPOST(RESTDispatcher $dispatcher)
 	{
-		$child = $dispatcher->next();
-		if($child)
-			throw new NotImplementedException();
-		$parent = $dispatcher->previous();
-		// TODO: start using $obj::ContentType when we switch to PHP5.3
-		if(!$parent || !isset($parent['obj']->id) ||
-			!isset($parent['obj']->ContentType))
+		$child = $dispatcher->peekNext();
+		$parent = $dispatcher->peekPrevious();
+		if($child || !$parent || !($parent['obj'] instanceof ContentItem))
 			throw new NotImplementedException();
 		// we have a parent
-		$dispatcher->next(); // so the dispatcher does not think we are the parent
-		if(!Rating::addRating($parent['obj']->id, $parent['obj']->ContentType,
-			(int)file_get_contents('php://input')))
+		$dispatcher->getJSON();
+		$rating = Rating::getFor($parent['obj']);
+		$rating->assignData($dispatcher->getJSON());
+		if(!$rating->save(true))
 			throw new UnauthorizedException();
-		return json_encode(Rating::getRating($parent['obj']->id,
-			$parent['obj']->ContentType));
+		return $rating;
 	}
-	public static function PUT(RESTDispatcher $dispatcher)
+	public static function doPUT(RESTDispatcher $dispatcher)
 	{
 		throw new NotImplementedException();
 	}
-	public static function DELETE(RESTDispatcher $dispatcher)
+	public static function doDELETE(RESTDispatcher $dispatcher)
 	{
 		throw new NotImplementedException();
 	}

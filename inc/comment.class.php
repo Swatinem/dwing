@@ -20,11 +20,12 @@
 /*
  * Comment Object
  */
-class Comment extends CRUD
+class Comment extends ActiveItem implements ContentItem, ContentProvider
 {
-	// TODO: $object::const only works in PHP5.3 -> use public var as alternative
-	const ContentType = 4;
-	public $ContentType = 4;
+	public static function ContentType()
+	{
+		return 4;
+	}
 
 	protected $tableName = 'comments';
 	protected $primaryKey = 'comment_id';
@@ -33,47 +34,41 @@ class Comment extends CRUD
 
 	public function __construct($obj = null)
 	{
-		// TODO: start using $obj::ContentType when we switch to PHP5.3
-		if(is_object($obj) && isset($obj->id) && isset($obj->ContentType))
+		if(is_object($obj) && $obj instanceof ContentItem)
 		{
 			$this->data['content_id'] = $obj->id;
-			$this->data['content_type'] = $obj->ContentType;
+			$this->data['content_type'] = $obj->ContentType();
 		}
 		parent::__construct($obj);
 	}
-	public function __get($aVarName)
+
+	/**
+	 * ContentProvider Interface
+	 */
+	public static function addAllFor(ContentItem $aItem, $aItems, $aUseTransaction = false)
 	{
-		switch($aVarName)
-		{
-			case 'user':
-				return parent::__get('user_id');
-			break;
-			case 'rating':
-				if(!isset($this->data['rating']))
-					$this->data['rating'] =
-						Rating::getRating($this->id, self::ContentType);
-				return $this->data['rating'];
-			case 'user_id':
-				return null;
-			break;
-			default:
-				return parent::__get($aVarName);
-		}
+		// this does not apply for Comment
+		return false;
 	}
-	public function delete()
+	public static function getAllFor(ContentItem $aItem)
 	{
-		// delete the associated ratings
-		// TODO: maybe use a transaction for this?
-		Rating::deleteRating($this->id, self::ContentType);
-		return parent::delete();
+		return new CommentIterator($aItem);
+	}
+	public static function deleteAllFor(ContentItem $aItem, $aUseTransaction = false)
+	{
+		if($aUseTransaction)
+			Core::$db->beginTransaction();
+		$all = new CommentIterator($aItem);
+		$all->delete();
+		if($aUseTransaction)
+			Core::$db->commit();
+		return true;
 	}
 }
 
 /*
  * Comment Iterator for a Content Item
  */
-// TODO: maybe manage deleting all Comments of one Content Item through this
-// Iterator?
 class CommentIterator implements Iterator, Countable
 {
 	protected $elements = null;
@@ -85,7 +80,7 @@ class CommentIterator implements Iterator, Countable
 	private static $countStmt;
 	private static $selectStmt;
 
-	public function __construct($aContentId, $aContentType)
+	public function __construct(ContentItem $aItem)
 	{
 		if(empty(self::$selectStmt))
 		{
@@ -100,8 +95,8 @@ class CommentIterator implements Iterator, Countable
 				SELECT COUNT(*) as commentnum FROM '.Core::$prefix.'comments
 				WHERE content_id=:contentId AND content_type=:contentType;');
 		}
-		$this->contentId = (int)$aContentId;
-		$this->contentType = (int)$aContentType;
+		$this->contentId = (int)$aItem->id;
+		$this->contentType = (int)$aItem->ContentType();
 	}
 	protected function lazyFetch()
 	{
@@ -163,7 +158,7 @@ class CommentIterator implements Iterator, Countable
 
 class CommentDispatcher extends REST
 {
-	public static function GET(RESTDispatcher $dispatcher)
+	public static function doGET(RESTDispatcher $dispatcher)
 	{
 		$current = $dispatcher->current();
 		if(empty($current['id']))
@@ -177,7 +172,7 @@ class CommentDispatcher extends REST
 		else
 			return $dispatcher->dispatch();
 	}
-	public static function POST(RESTDispatcher $dispatcher)
+	public static function doPOST(RESTDispatcher $dispatcher)
 	{
 		$current = $dispatcher->current();
 		$child = $dispatcher->next();
@@ -197,17 +192,17 @@ class CommentDispatcher extends REST
 
 		$obj = new Comment($parent['obj']); // so the Comment has info about the
 		// parent Id and ContentType
-		$obj->assignData(json_decode(file_get_contents('php://input'), true));
+		$obj->assignData($dispatcher->getJSON());
 		$obj->save();
 		$dispatcher->next(); // dispatcher has the right resource
 		return $obj;
 	}
-	public static function PUT(RESTDispatcher $dispatcher)
+	public static function doPUT(RESTDispatcher $dispatcher)
 	{
 		// TODO: implement
 		throw new NotImplementedException();
 	}
-	public static function DELETE(RESTDispatcher $dispatcher)
+	public static function doDELETE(RESTDispatcher $dispatcher)
 	{
 		if(!($child = $dispatcher->next()))
 			if(!Core::$user->hasRight('news'))

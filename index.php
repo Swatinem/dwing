@@ -96,6 +96,26 @@ abstract class Core
 		                         $contents);
 		file_put_contents('runtime/config.php', $contents);
 	}
+
+	/**
+	 * This method deletes every ContentProvider which is registered for $aItem
+	 * Uses a new transaction when $aUseTransaction is true
+	 */
+	public static function deleteEverythingFor(ContentItem $aItem, $aUseTransaction = false)
+	{
+		if($aUseTransaction)
+			Core::$db->beginTransaction();
+		foreach(self::$config['ContentProviders'] as $provider)
+		{
+			if(Utils::doesimplement($provider, 'ContentProvider'))
+				call_user_func(array($provider, 'deleteAllFor'), $aItem);
+			else if(Utils::doesimplement($provider, 'ContentProviderSingle'))
+				call_user_func(array($provider, 'deleteFor'), $aItem);
+		}
+		if($aUseTransaction)
+			Core::$db->commit();
+		return true;
+	}
 }
 
 // start session management

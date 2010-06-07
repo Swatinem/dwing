@@ -63,14 +63,24 @@ class UseTemplateException extends Exception
 {}
 // TODO: maybe use 201 Created?
 
+/**
+ * Interface of a Resource that can react to the 4 basic HTTP methods
+ * Each one of those methods corresponds to the specified HTTP method
+ * Each one of those methods returns either a String, a JSONable object or
+ * throws one of the exceptions mentioned on top
+ */
 interface RESTful
 {
-	public static function GET(RESTDispatcher $dispatcher);
-	public static function POST(RESTDispatcher $dispatcher);
-	public static function PUT(RESTDispatcher $dispatcher);
-	public static function DELETE(RESTDispatcher $dispatcher);
+	public static function doGET(RESTDispatcher $dispatcher);
+	public static function doPOST(RESTDispatcher $dispatcher);
+	public static function doPUT(RESTDispatcher $dispatcher);
+	public static function doDELETE(RESTDispatcher $dispatcher);
 }
 
+/**
+ * This is the main Object that handles all the incoming requests and dispatches
+ * Them to Object dispatcher implementing the RESTful interface
+ */
 class RESTDispatcher
 {
 	public $requestedType;
@@ -176,6 +186,11 @@ class RESTDispatcher
 			return $this->resources[$this->current];
 		}
 	}
+	public function peekNext()
+	{
+		return !empty($this->resources[$this->current+1]) ?
+			$this->resources[$this->current+1] : null;
+	}
 	public function previous()
 	{
 		if($this->current > 0)
@@ -184,29 +199,46 @@ class RESTDispatcher
 			return $this->resources[$this->current];
 		}
 	}
+	public function peekPrevious()
+	{
+		return $this->current > 0 ? $this->resources[$this->current-1] : null;
+	}
 	public function dispatch()
 	{
 		$className = $this->resources[$this->current]['resource'].'Dispatcher';
-		if(!class_exists($className) || !in_array('RESTful',
-			class_implements($className)))
+		if(!class_exists($className) || !Utils::doesImplement($className, 'RESTful'))
 		{
 			throw new NoDispatcher();
 		}
-		return call_user_func(array($className, $_SERVER['REQUEST_METHOD']), $this);
+		return call_user_func(array($className, 'do'.$_SERVER['REQUEST_METHOD']), $this);
+	}
+	/**
+	 * Returns the JSON object passed in as POST/PUT body
+	 */
+	public function getJSON()
+	{
+		return json_decode(file_get_contents('php://input'), true);
 	}
 }
 
+/**
+ * REST is the abstract base class implementing the RESTful interface
+ * you may override the methods to specify a more suitable behavior.
+ */
 abstract class REST implements RESTful
 {
-	/*
+	/**
+	 * TODO: make the base class work with parent/child resources.
+	 * Use the new ContentProvider interfaces for that.
+	 * 
 	 * the abstract class cannot deal with parent-resources and fails.
 	 * it automatically forwards the request to any child-resources.
 	 * override the methods if other behavior is wanted.
-	 **/
-	/*
+	 */
+	/**
 	 * the abstract class cannot deal with getting multiple objects.
 	 * override this method to deal with that.
-	 **/
+	 */
 	public static function GET(RESTDispatcher $dispatcher)
 	{
 		$current = $dispatcher->current();
@@ -228,21 +260,20 @@ abstract class REST implements RESTful
 		$current = $dispatcher->current();
 		if($parent = $dispatcher->previous())
 			throw new NotImplementedException(); // can't deal with parent-resources
-		$child = $dispatcher->next();
+		$child = $dispatcher->peekNext();
 		if(!$child && !empty($current['id']))
 			throw new NotImplementedException(); // can't POST to a existing resource
 		if(!$child)
 		{
-			$obj = new $current['resource'](json_decode(file_get_contents('php://input'), true));
+			$obj = new $current['resource']($dispatcher->getJSON());
 			$obj->save();
 			return $obj;
 		}
-		// have $child
-		$dispatcher->previous(); // goes back to current, needed for assignObject()
+		// else: have $child
 		$obj = new $current['resource']($current['id']);
 		$dispatcher->assignObject($obj);
 
-		$dispatcher->next(); // goes forward to the child again
+		$dispatcher->next(); // goes forward to the child
 		return $dispatcher->dispatch();
 	}
 	public static function PUT(RESTDispatcher $dispatcher)
@@ -259,7 +290,7 @@ abstract class REST implements RESTful
 		$child = $dispatcher->next();
 		if(!$child) // update the current resource
 		{
-			$obj->assignData(json_decode(file_get_contents('php://input'), true));
+			$obj->assignData($dispatcher->getJSON());
 			$obj->save();
 			return $obj;
 		}
@@ -280,8 +311,7 @@ abstract class REST implements RESTful
 		$child = $dispatcher->next();
 		if(!$child) // destroy the current resource
 		{
-			$obj->delete();
-			return 'true';
+			return $obj->delete(true);
 		}
 		// have $child
 		return $dispatcher->dispatch(); // dispatch to child

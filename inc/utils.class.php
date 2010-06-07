@@ -119,6 +119,32 @@ class Utils
 	}
 
 	/**
+	 * Returns true if a class implements an interface
+	 * This is just a workaround because 'instanceof' doesn't work on class names
+	 * which is quite logical because $aClass is of type 'string'
+	 */
+	public static function doesImplement($aClass, $aInterface)
+	{
+		return in_array($aInterface, class_implements($aClass));
+	}
+
+	/**
+	 * Weither $aWord is singular or not
+	 */
+	public static function isSingular($aWord)
+	{
+		// TODO: special case stuff like 'news' or 'person'
+		return substr($aWord, -1) != 's';
+	}
+	/**
+	 * Makes $aWord into a singular
+	 */
+	public static function makeSingular($aWord)
+	{
+		return !self::isSingular($aWord) ? substr($aWord, 0, -1) : $aWord;
+	}
+
+	/**
 	 * returns the current page
 	 *
 	 * @return int

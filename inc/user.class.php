@@ -509,7 +509,7 @@ class Usergroup
 
 class UserDispatcher implements RESTful
 {
-	public static function GET(RESTDispatcher $dispatcher)
+	public static function doGET(RESTDispatcher $dispatcher)
 	{
 		$current = $dispatcher->current();
 		if($parent = $dispatcher->previous())
@@ -532,15 +532,15 @@ class UserDispatcher implements RESTful
 			throw new NotImplementedException(); // no subresources allowed
 			//return $dispatcher->dispatch();
 	}
-	public static function POST(RESTDispatcher $dispatcher)
+	public static function doPOST(RESTDispatcher $dispatcher)
 	{
 		throw new NotImplementedException();
 	}
-	public static function PUT(RESTDispatcher $dispatcher)
+	public static function doPUT(RESTDispatcher $dispatcher)
 	{
 		throw new NotImplementedException();
 	}
-	public static function DELETE(RESTDispatcher $dispatcher)
+	public static function doDELETE(RESTDispatcher $dispatcher)
 	{
 		throw new NotImplementedException();
 	}

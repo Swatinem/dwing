@@ -20,48 +20,17 @@
 /*
  * News Object
  */
-class News extends CRUD
+class News extends ActiveItem implements ContentItem
 {
-	// TODO: $object::const only works in PHP5.3 -> use public var as alternative
-	const ContentType = 1;
-	public $ContentType = 1;
+	public static function ContentType()
+	{
+		return 1;
+	}
 
 	protected $primaryKey = 'news_id';
 	protected $definition = array('title' => 'required', 'text' => 'html',
 		'user_id' => 'user', 'time' => 'time', 'fancyurl' => 'fancyurl');
 
-	public function __get($aVarName)
-	{
-		switch($aVarName)
-		{
-			case 'comments':
-				if(!isset($this->data['comments']))
-					$this->data['comments'] =
-						new CommentIterator($this->id, self::ContentType);
-				return $this->data['comments'];
-			break;
-			case 'tags':
-				if(!isset($this->data['tags']))
-					$this->data['tags'] = 
-						Tags::getTagsForContent($this->id, self::ContentType);
-				return $this->data['tags'];
-			break;
-			case 'rating':
-				if(!isset($this->data['rating']))
-					$this->data['rating'] =
-						Rating::getRating($this->id, self::ContentType);
-				return $this->data['rating'];
-			break;
-			case 'user':
-				return parent::__get('user_id');
-			break;
-			case 'user_id':
-				return null;
-			break;
-			default:
-				return parent::__get($aVarName);
-		}
-	}
 	public function __set($aVarName, $aValue)
 	{
 		if($aVarName == 'tags')
@@ -69,20 +38,10 @@ class News extends CRUD
 		else
 			return parent::__set($aVarName, $aValue);
 	}
-	public function delete()
+	public function save($aUseTransaction = false)
 	{
-		Core::$db->beginTransaction();
-		Rating::deleteRating($this->id, self::ContentType);
-		Tags::deleteTagsForContent($this->id, self::ContentType);
-		$comments = new CommentIterator($this->id, self::ContentType);
-		$comments->delete();
-		$ret = parent::delete();
-		Core::$db->commit();
-		return $ret;
-	}
-	public function save()
-	{
-		Core::$db->connectParent();
+		// TODO: make use of $aUseTransaction
+		// TODO: this does not handle UPDATE yet
 		Core::$db->beginTransaction();
 		$this->data['fancyurl'] = $fancyUrl = Utils::fancyUrl($this->data['title']);
 		$statement = Core::$db->prepare('
@@ -109,14 +68,14 @@ class News extends CRUD
 		}
 
 		// link with tags
-		$this->data['tags'] =
-			Tags::setTagsForContent($id, self::ContentType, $this->data['tags']);
+		$this->data['tags'] = Tag::addAllFor($this, $this->data['tags']);
 
 		Core::$db->commit();
 		return $id;
 	}
-	public function toJSON()
+	public function toJSON($aEncode = true, $aIncludeChildren = false)
 	{
+		// TODO: make use of $aEncode and $aIncludeChildren
 		if(empty($this->id))
 			return 'false';
 		$displayArray = array('id' => $this->id);
@@ -211,25 +170,19 @@ class NewsWithTag extends NewsIterator implements Countable
 {
 	protected $tag;
 
-	private static $selectStmt;
-
 	public function __construct($aTag, $aStart = 0, $aLimit = 10)
 	{
 		$this->tag = $aTag;
-		if(empty(self::$selectStmt))
-		{
-			// TODO: is there something equivalent to IN(...) using only prepared
-			// statements?
-			self::$selectStmt = Core::$db->prepare(
-				'SELECT news.* FROM '.Core::$prefix.'news AS news
-				LEFT JOIN '.Core::$prefix.'tagstocontent AS tagstocontent ON
-				news.news_id = tagstocontent.content_id LEFT JOIN '.
-				Core::$prefix.'tags AS tags ON tags.tag_id = tagstocontent.tag_id
-				WHERE tags.name IN ("'.implode('","',Tags::cleanTags($aTag)).'") AND
-				tagstocontent.content_type='.News::ContentType.'
-				ORDER BY news.time DESC LIMIT :start, :limit;');
-		}
-		$statement = self::$selectStmt;
+		// TODO: is there something equivalent to IN(...) using only prepared
+		// statements?
+		$statement = Core::$db->prepare(
+			'SELECT news.* FROM '.Core::$prefix.'news AS news
+			LEFT JOIN '.Core::$prefix.'tagstocontent AS tagstocontent ON
+			news.news_id = tagstocontent.content_id LEFT JOIN '.
+			Core::$prefix.'tags AS tags ON tags.tag_id = tagstocontent.tag_id
+			WHERE tags.name IN ("'.implode('","',Tag::cleanTags($aTag)).'") AND
+			tagstocontent.content_type='.News::ContentType().'
+			ORDER BY news.time DESC LIMIT :start, :limit;');
 		$statement->bindValue(':start', (int)$aStart, PDO::PARAM_INT);
 		$statement->bindValue(':limit', (int)$aLimit, PDO::PARAM_INT);
 		$statement->execute();
@@ -240,14 +193,14 @@ class NewsWithTag extends NewsIterator implements Countable
 	// Countable Interface:
 	public function count()
 	{
-		return Tags::getContentCount($this->tag, News::ContentType);
+		return Tag::getContentCount($this->tag, News::ContentType());
 	}
 }
 
 class NewsDispatcher extends REST
 {
 	// other REST method should be sufficient
-	public static function GET(RESTDispatcher $dispatcher)
+	public static function doGET(RESTDispatcher $dispatcher)
 	{
 		$current = $dispatcher->current();
 		if(empty($current['id']))
@@ -261,7 +214,7 @@ class NewsDispatcher extends REST
 		}
 		return parent::GET($dispatcher); // make parent handle the rest
 	}
-	public static function POST(RESTDispatcher $dispatcher)
+	public static function doPOST(RESTDispatcher $dispatcher)
 	{
 		if(!($child = $dispatcher->next()))
 		{
@@ -275,12 +228,12 @@ class NewsDispatcher extends REST
 			$obj = $obj->toJSON();
 		return $obj;
 	}
-	public static function PUT(RESTDispatcher $dispatcher)
+	public static function doPUT(RESTDispatcher $dispatcher)
 	{
 		// TODO: implement
 		throw new NotImplementedException();
 	}
-	public static function DELETE(RESTDispatcher $dispatcher)
+	public static function doDELETE(RESTDispatcher $dispatcher)
 	{
 		if(!($child = $dispatcher->next()))
 		{
