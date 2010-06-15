@@ -16,9 +16,9 @@ switch(l10n::$lang['general'])
 dWing benutzt den <a href="http://fckeditor.net">FCKeditor</a>
 (<abbr title="Lesser General Public License">LGPL</abbr>) um uneingeschränkte
 Freiheit bei der Gestaltung der Beiträge zu gewährleisten.<br />
-dWing benutzt den <a href="http://hp.jpsband.org/">HTMLPurifier</a>
+dWing benutzt den <a href="http://htmlpurifier.org/">HTMLPurifier</a>
 (<abbr title="Lesser General Public License">LGPL</abbr>) um dennoch Schadcode rauszufiltern.<br />
-dWing benutzt <a href="http://mootools.net/">jQuery</a>
+dWing benutzt <a href="http://jquery.com/">jQuery</a>
 (<abbr title="Massachusetts Institute of Technology">MIT</abbr> und
 <abbr title="General Public License">GPL</abbr>) als ECMAScript Hilfsbibliothek.<br />
 dWing benutzt <a href="http://www.json.org/json2.js">JSON2</a>
@@ -34,9 +34,9 @@ dWing benutzt <a href="http://www.json.org/json2.js">JSON2</a>
 the terms of the <abbr title="General Public License">GPL</abbr> from <a href="http://dwing.swatinem.de">dwing.swatinem.de</a><br />
 dWing uses the <a href="http://fckeditor.net">FCKeditor</a>
 (<abbr title="Lesser General Public License">LGPL</abbr>) to provide unlimited freedom in the styling of the postings<br />
-dWing uses <a href="http://hp.jpsband.org/">HTMLPurifier</a>
+dWing uses <a href="http://htmlpurifier.org/">HTMLPurifier</a>
 (<abbr title="Lesser General Public License">LGPL</abbr>) to protect against malicious code inside user postings.<br />
-dWing uses <a href="http://mootools.net/">jQuery</a>
+dWing uses <a href="http://jquery.com/">jQuery</a>
 (<abbr title="Massachusetts Institute of Technology">MIT</abbr> and
 <abbr title="General Public License">GPL</abbr>) as ECMAScript helper library.<br />
 dWing uses <a href="http://www.json.org/json2.js">JSON2</a>
