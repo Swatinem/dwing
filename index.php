@@ -1,7 +1,7 @@
 <?php
 /*
  * dWing - a cms aimed to be as bleeding edge as possible
- * Copyright (C) 2004-2009 Arpad Borsos <arpad.borsos@googlemail.com>
+ * Copyright (C) 2004-2010 Arpad Borsos <arpad.borsos@googlemail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ abstract class Core
 	 * number if needed
 	 */
 	public static $webRoot;
-	
+
 	/**
 	 * This function loads the runtime config and populates its static members
 	 * accordingly.
@@ -71,7 +71,7 @@ abstract class Core
 
 		self::$prefix = $prefix;
 		self::$config = $config;
-		
+
 		$isHttps = !empty($_SERVER['HTTPS']);
 		$port = ($isHttps && $_SERVER['SERVER_PORT'] == 443 ? '' : (
 			!$isHttps && $_SERVER['SERVER_PORT'] == 80 ? '' :
@@ -125,28 +125,6 @@ session_start();
 if(!ini_get('zlib.output_compression'))
 	ob_start('ob_gzhandler');
 header('X-Powered-By: dWing cms/'.Core::$version.' (swatinemz.sourceforge.net)',false);
-
-// disable magic quotes
-if(function_exists('set_magic_quotes_runtime') && function_exists('get_magic_quotes_gpc'))
-{
-	set_magic_quotes_runtime(0);
-	if(get_magic_quotes_gpc() == 1)
-	{
-		function magicSlashes($element)
-		{
-			if(is_array($element))
-				return array_map('magicSlashes', $element);
-			else
-				return stripslashes($element);
-		}
-	
-		// strip slashes from all incoming GET/POST/COOKIE/REQUEST data.
-		$_GET = array_map('magicSlashes', $_GET);
-		$_POST = array_map('magicSlashes', $_POST);
-		$_COOKIE = array_map('magicSlashes', $_COOKIE);
-		$_REQUEST = array_map('magicSlashes', $_REQUEST);
-	}
-}
 
 // init the translation system, this is independet from any module
 require_once('inc/translation.class.php');
