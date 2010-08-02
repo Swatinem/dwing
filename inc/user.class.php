@@ -292,10 +292,14 @@ class CurrentUser extends GenericUser
 		elseif(!$authRequest)
 			return;
 
-		if(empty($_SESSION['returnto'])) // TODO use Core::$webRoot here
-			$_SESSION['returnto'] = 'http://'.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'];
-
 		$webroot = Core::$webRoot;
+
+		if(empty($_SESSION['returnto']))
+			// the request url will be relative to script name anyway
+			$_SESSION['returnto'] = $webroot.
+			                        substr($_SERVER['REQUEST_URI'],
+			                        strlen(dirname($_SERVER['SCRIPT_NAME'])));
+
 		header("Location: ".$authRequest->redirectURL(
 			$webroot,
 			$webroot.'login?completelogin=1',
