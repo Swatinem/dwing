@@ -11,8 +11,8 @@ if(Core::$user->hasRight('news')):
 	<form action="news" method="post" id="newsform">
 		<div class="post">
 			<div class="postheader">
-				<input type="text" id="newstitle" value="<?php echo l10n::_('Title'); ?>" /><br />
-				<input type="test" id="newstags" value="<?php echo l10n::_('tags'); ?>" />
+				<input type="text" id="newstitle" placeholder="<?php echo l10n::_('Title'); ?>" /><br />
+				<input type="test" id="newstags" placeholder="<?php echo l10n::_('tags'); ?>" />
 			</div>
 		</div>
 		<textarea id="newstext"></textarea>

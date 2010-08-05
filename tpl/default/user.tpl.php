@@ -35,15 +35,18 @@ include($this->template('header.tpl.php'));
 	</div>
 	<?php if(Core::$user->authed && Core::$user->id == $displayUser->id): ?>
 	<h1><?php echo l10n::_('Your profile'); ?></h1>
-	<h2><?php echo l10n::_('Register another OpenID'); ?></h2>
 	<form action="login?returnto=1" method="post" class="openid">
-		<input type="text" name="openid_url" /><input type="submit" value="<?php echo l10n::_('add'); ?>"/>
+		<h2><?php echo l10n::_('Register another OpenID'); ?></h2>
+		<input type="text" name="openid_url" placeholder="<?php echo l10n::_('OpenID'); ?>" /><input type="submit" value="<?php echo l10n::_('add'); ?>"/>
+		<h2><?php echo l10n::_('Or link with your'); ?></h2>
+		<button id="googleid"><?php echo l10n::_('Account'); /* https://www.google.com/accounts/o8/id */ ?></button>
+		<button id="yahooid"><?php echo l10n::_('Account'); /* http://yahoo.com */ ?></button>
 	</form>
 	<?php endif; ?>
 	<?php if(Core::$user->authed && (Core::$user->id == $displayUser->id) || Core::$user->hasRight('users')): ?>
 	<h2><?php echo l10n::_('Change nickname'); ?></h2>
 	<form action="user/<?php echo $displayUser->id; ?>/nick" method="post">
-		<input type="text" id="nick" /><input type="submit" value="<?php echo l10n::_('change'); ?>"/>
+		<input type="text" id="nick" placeholder="<?php echo l10n::_('new nickname'); ?>" /><input type="submit" value="<?php echo l10n::_('change'); ?>"/>
 	</form>
 	<?php endif; ?>
 </div>

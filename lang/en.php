@@ -27,6 +27,7 @@ $langTable = array (
   'News' => 'News',
   'Not logged in.' => 'Not logged in.',
   'OpenID authentication failed: %s' => 'OpenID authentication failed: %s',
+  'OpenID' => 'OpenID',
   'OpenIDs' => 'OpenIDs',
   'Pages (%d):' => 'Pages (%d):',
   'Publish' => 'Publish',
@@ -56,6 +57,7 @@ $langTable = array (
   'since %B %d %Y' => 'since %B %d %Y',
   'tags' => 'tags',
   'Or sign in using your' => 'Or sign in using your',
+  'Or link with your' => 'Or link with your',
   'Account' => 'Account',
 );
 ?>

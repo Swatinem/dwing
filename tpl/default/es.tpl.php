@@ -31,29 +31,6 @@ function printf()
 	return aFormat;
 }
 
-/**
- * TextPrefill makes sure that aField always contains aPrefill but clears the
- * field once the user focuses it
- */
-var TextPrefill = function(aField, aPrefill)
-{
-	var field = aField;
-	var prefill = aPrefill;
-	var self = {
-		focusListener: function prefillFocus() {
-			if(field.value == prefill)
-				field.value = '';
-		},
-		blurListener: function prefillBlur() {
-			if(field.value == '')
-				field.value = prefill;
-		}
-	};
-	blurListener();
-	field.addEventListener('focus', self.focusListener, false);
-	field.addEventListener('blur', self.blurListener, false);
-}
-
 REST = {};
 REST.POST = function RESTpost(aUrl, aData, aCallback, aCallbackParam)
 {
@@ -265,8 +242,8 @@ function submitNews()
 				oEditor.SetHTML('');
 		}
 		document.getElementById('newstext').value = '';
-		document.getElementById('newstitle').value = _('Title');
-		document.getElementById('newstags').value = _('tags');
+		document.getElementById('newstitle').value = '';
+		document.getElementById('newstags').value = '';
 	});
 }
 /*
@@ -315,26 +292,6 @@ window.addEventListener('load', function () {
 			$('#newsform').show();
 			e.preventDefault();
 		}, false);
-		document.getElementById('newstitle').addEventListener('focus', function(e) {
-			var title = document.getElementById('newstitle');
-			if(title.value == _('Title'))
-				title.value = '';
-		}, false);
-		document.getElementById('newstitle').addEventListener('blur', function(e) {
-			var title = document.getElementById('newstitle');
-			if(title.value == '')
-				title.value = _('Title');
-		}, false);
-		document.getElementById('newstags').addEventListener('focus', function(e) {
-			var tags = document.getElementById('newstags');
-			if(tags.value == _('tags'))
-				tags.value = '';
-		}, false);
-		document.getElementById('newstags').addEventListener('blur', function(e) {
-			var tags = document.getElementById('newstags');
-			if(tags.value == '')
-				tags.value = _('tags');
-		}, false);
 		if(window.FCKeditor)
 		{
 			newsForm.submit = function() {
@@ -376,7 +333,6 @@ window.addEventListener('load', function () {
 	var nickField;
 	if(nickField = document.getElementById('nick'))
 	{
-		TextPrefill(nickField, _('new nickname'));
 		nickField.form.addEventListener('submit', function(ev) {
 			REST.POST(nickField.form.action, JSON.stringify(nickField.value), function (req) {
 				if(req.status != 200 || req.responseText != 'true')

@@ -27,6 +27,7 @@ $langTable = array (
   'News' => 'Neuigkeiten',
   'Not logged in.' => 'Nicht angemeldet.',
   'OpenID authentication failed: %s' => 'OpenID Anmeldung fehlgeschlagen: %s',
+  'OpenID' => 'OpenID',
   'OpenIDs' => 'OpenIDs',
   'Pages (%d):' => 'Seiten (%d):',
   'Publish' => 'Veröffentlichen',
@@ -56,6 +57,7 @@ $langTable = array (
   'since %B %d %Y' => 'seit %d. %B %Y',
   'tags' => 'tags',
   'Or sign in using your' => 'Oder melde dich an mit deinem',
+  'Or link with your' => 'Oder verknüpfe dein',
   'Account' => 'Konto',
 );
 ?>

@@ -11,12 +11,11 @@ include($this->template('header.tpl.php'));
 <div class="area">
 	<form action="login" method="post" class="openid">
 		<h1><?php echo l10n::_('Sign in with your OpenID'); ?></h1>
-		<input type="text" name="openid_url" id="openid_url" /><input type="submit" value="<?php echo l10n::_('Sign in'); ?>"/>
+		<input type="text" name="openid_url" id="openid_url" placeholder="<?php echo l10n::_('OpenID'); ?>" /><input type="submit" value="<?php echo l10n::_('Sign in'); ?>"/>
 		<h1><?php echo l10n::_('Or sign in using your'); ?></h1>
 		<button id="googleid"><?php echo l10n::_('Account'); /* https://www.google.com/accounts/o8/id */ ?></button>
 		<button id="yahooid"><?php echo l10n::_('Account'); /* http://yahoo.com */ ?></button>
 	</form>
-	<!-- TODO: buttons to log in with well known OpenID Providers + a little explanation -->
 <?php if(!empty($loginerror)): ?>
 <h2><?php echo l10n::_('Error'); ?></h2>
 <p><?php echo htmlspecialchars($loginerror->getMessage()); ?></p>
