@@ -337,6 +337,7 @@ class CurrentUser extends GenericUser
 		require_once "Auth/OpenID/Consumer.php";
 		require_once "Auth/OpenID/MySQLStore.php";
 		require_once "Auth/OpenID/SReg.php";
+		require_once "Auth/OpenID/AX.php";
 
 		$store = new Auth_OpenID_MySQLStore(Core::$db);
 		$store->createTables();
@@ -350,9 +351,14 @@ class CurrentUser extends GenericUser
 			{
 				throw new Exception(l10n::_('Authentication error: OpenID invalid'));
 			}
+			$axRequest = new Auth_OpenID_AX_FetchRequest();
+			$axRequest->add(Auth_OpenID_AX_AttrInfo::make('http://schema.openid.net/namePerson/friendly', 1, true, 'nickoid'));
+			$axRequest->add(Auth_OpenID_AX_AttrInfo::make('http://axschema.org/namePerson/friendly', 1, true, 'nickax'));
+			$authRequest->addExtension($axRequest);
 			$sregRequest = Auth_OpenID_SRegRequest::build(array('nickname'), array());
 			$authRequest->addExtension($sregRequest);
-			// TODO: do not request these vars if the user is logged in via cookie.
+			//var_dump($authRequest);
+			//exit;
 		}
 		elseif(!$authRequest)
 			return;
@@ -387,6 +393,7 @@ class CurrentUser extends GenericUser
 		require_once "Auth/OpenID/Consumer.php";
 		require_once "Auth/OpenID/MySQLStore.php";
 		require_once "Auth/OpenID/SReg.php";
+		require_once "Auth/OpenID/AX.php";
 
 		$store = new Auth_OpenID_MySQLStore(Core::$db);
 		$store->createTables();
@@ -431,9 +438,19 @@ class CurrentUser extends GenericUser
 			else
 			{
 				// on-the-fly account creation
+				$nickname = $response->identity_url;
+				$axResponse = Auth_OpenID_AX_FetchResponse::fromSuccessResponse($response);
 				$sregResponse = Auth_OpenID_SRegResponse::fromSuccessResponse($response);
-				$sreg = $sregResponse->contents();
-				$nickname = !empty($sreg['nickname']) ? $sreg['nickname'] : $response->identity_url;
+				if($axResponse)
+				{
+					$nickname = $axResponse->getSingle('http://schema.openid.net/namePerson/friendly', $nickname);
+					$nickname = $axResponse->getSingle('http://axschema.org/namePerson/friendly', $nickname);
+				}
+				else
+				{
+					$sreg = $sregResponse->contents();
+					$nickname = !empty($sreg['nickname']) ? $sreg['nickname'] : $nickname;
+				}
 
 				Core::$db->beginTransaction();
 				$stmt = Core::$db->prepare('INSERT INTO '.Core::$prefix.'user VALUES (DEFAULT, DEFAULT);');
