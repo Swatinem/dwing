@@ -436,7 +436,7 @@ class CurrentUser extends GenericUser
 				$nickname = !empty($sreg['nickname']) ? $sreg['nickname'] : $response->identity_url;
 
 				Core::$db->beginTransaction();
-				$stmt = Core::$db->prepare('INSERT INTO '.Core::$prefix.'user;');
+				$stmt = Core::$db->prepare('INSERT INTO '.Core::$prefix.'user VALUES (DEFAULT, DEFAULT);');
 				$stmt->execute();
 				$this->mUserId = Core::$db->lastInsertId();
 				
