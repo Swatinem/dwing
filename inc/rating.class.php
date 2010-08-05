@@ -164,7 +164,6 @@ class RatingDispatcher implements RESTful
 		if($child || !$parent || !($parent['obj'] instanceof ContentItem))
 			throw new NotImplementedException();
 		// we have a parent
-		$dispatcher->getJSON();
 		$rating = Rating::getFor($parent['obj']);
 		$rating->assignData($dispatcher->getJSON());
 		if(!$rating->save(true))

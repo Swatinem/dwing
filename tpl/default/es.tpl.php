@@ -49,6 +49,7 @@ var TextPrefill = function(aField, aPrefill)
 				field.value = prefill;
 		}
 	};
+	blurListener();
 	field.addEventListener('focus', self.focusListener, false);
 	field.addEventListener('blur', self.blurListener, false);
 }
@@ -280,7 +281,7 @@ function submitNews()
  * Wouldn't it be good if we had EventListeners and bubbling for that?!?
  *
  * If the submit event is not initiated by scripts calling submit() but by the
- * user submitting the form via a <input type="submit" /> element than we
+ * user submitting the form via a <input type="submit" /> element then we
  * suddenly have the comfort of working EventListeners
  */
 window.addEventListener('load', function () {
@@ -369,6 +370,24 @@ window.addEventListener('load', function () {
 		yahooId.addEventListener('click', function() {
 			document.getElementById('openid_url').value = 'http://yahoo.com';
 			// do not preventDefault since we want to submit the form
+		}, false);
+	}
+
+	var nickField;
+	if(nickField = document.getElementById('nick'))
+	{
+		TextPrefill(nickField, _('new nickname'));
+		nickField.form.addEventListener('submit', function(ev) {
+			REST.POST(nickField.form.action, JSON.stringify(nickField.value), function (req) {
+				if(req.status != 200 || req.responseText != 'true')
+				{
+					alert(_('Error'));
+					return;
+				}
+				// not the best solution, but I don't want to mess with the DOM right now
+				document.location.reload();
+			});
+			ev.preventDefault();
 		}, false);
 	}
 

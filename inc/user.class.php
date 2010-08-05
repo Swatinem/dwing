@@ -43,10 +43,15 @@ class GenericUser
 	 **/
 	protected $mOpenIDs = null;
 	/**
+	 * all previous nicknames of the user
+	 **/
+	protected $nicks = null;
+	/**
 	 * prepared statements to fetch user data or openids
 	 */
 	protected static $selectStmt = null;
 	protected static $openIdStmt = null;
+	protected static $nickStmt   = null;
 
 	/**
 	 * constructor
@@ -70,7 +75,15 @@ class GenericUser
 		{
 			if(empty(self::$selectStmt))
 			{
-				self::$selectStmt = Core::$db->prepare('SELECT * FROM '.Core::$prefix.'user WHERE user_id=:userId;');
+				self::$selectStmt = Core::$db->prepare('
+					SELECT user_id, ugroup_id, n1.nick, n2.since AS registered
+					FROM `'.Core::$prefix.'user` AS u
+					JOIN '.Core::$prefix.'nicknames AS n1 USING ( user_id )
+					JOIN '.Core::$prefix.'nicknames AS n2 USING ( user_id )
+					WHERE n1.since = (SELECT max( since ) FROM '.Core::$prefix.'nicknames WHERE user_id = u.user_id )
+					AND n2.since = (SELECT min( since ) FROM '.Core::$prefix.'nicknames WHERE user_id = u.user_id )
+					AND u.user_id = :userId;
+				');
 			}
 			$stmt = self::$selectStmt;
 			$stmt->bindValue(':userId', (int)$this->mUserId, PDO::PARAM_INT);
@@ -105,6 +118,53 @@ class GenericUser
 	}
 
 	/**
+	 * fetch the users nicknames
+	 *
+	 * @return void
+	 **/
+	protected function fetchNicks()
+	{
+		if($this->nicks == null)
+		{
+			if(empty(self::$nickStmt))
+			{
+				self::$nickStmt = Core::$db->prepare('SELECT nick, since FROM '.Core::$prefix.'nicknames WHERE user_id=:userId ORDER BY since DESC;');
+			}
+			$statement = self::$nickStmt;
+			$statement->bindParam(':userId', $this->mUserId, PDO::PARAM_INT);
+			$statement->execute();
+			$this->nicks = $statement->fetchAll(PDO::FETCH_ASSOC);
+		}
+	}
+
+	public function newNick($aNewNick)
+	{
+		$stmt = Core::$db->prepare('
+			SELECT :nick
+			IN (
+				SELECT n.nick
+				FROM `'.Core::$prefix.'user` AS u
+				JOIN '.Core::$prefix.'nicknames AS n
+				USING ( user_id )
+				WHERE n.since = (
+				SELECT max( since )
+				FROM '.Core::$prefix.'nicknames
+				WHERE user_id = u.user_id )
+			) AS inuse;
+		');
+		$stmt->bindParam(':nick', $aNewNick, PDO::PARAM_STR);
+		$stmt->execute();
+		if($stmt->fetch(PDO::FETCH_COLUMN))
+			return false;
+
+		$stmt = Core::$db->prepare('INSERT INTO '.Core::$prefix.'nicknames SET nick=:nick, user_id=:userId, since=UNIX_TIMESTAMP();');
+		$stmt->bindParam(':userId', $this->mUserId, PDO::PARAM_INT);
+		$stmt->bindParam(':nick', $aNewNick, PDO::PARAM_STR);
+		$stmt->execute();
+		return true;
+	}
+
+	/**
 	 * getter
 	 *
 	 * @param int $aVarName what kind of info we want to get from the user
@@ -117,6 +177,11 @@ class GenericUser
 		{
 			$this->fetchOpenIDs();
 			return $this->mOpenIDs;
+		}
+		if($aVarName == 'nicks')
+		{
+			$this->fetchNicks();
+			return $this->nicks;
 		}
 		if($aVarName == 'id')
 		{
@@ -337,7 +402,7 @@ class CurrentUser extends GenericUser
 			$this->checkLogin();
 			// get the user ID from the DB or create a new user
 			// write the user id to the session for login
-			$stmt = Core::$db->prepare('SELECT * FROM '.Core::$prefix.'user
+			$stmt = Core::$db->prepare('SELECT user_id FROM '.Core::$prefix.'user
 				LEFT JOIN '.Core::$prefix.'openids as openids USING (user_id)
 				WHERE openids.openid=:openID;');
 			$stmt->bindValue(':openID', $response->identity_url, PDO::PARAM_STR);
@@ -347,7 +412,7 @@ class CurrentUser extends GenericUser
 			{
 				// user already exists
 				// TODO: sync our user profile with the data provided by the OpenID server?
-				$this->mUserData = $userData;
+				//$this->mUserData = $userData;
 				$this->mUserId = $userData['user_id'];
 				$_SESSION['uid'] = $this->mUserId;
 
@@ -366,27 +431,19 @@ class CurrentUser extends GenericUser
 			else
 			{
 				// on-the-fly account creation
-				$nickname = $response->identity_url;
-				
 				$sregResponse = Auth_OpenID_SRegResponse::fromSuccessResponse($response);
 				$sreg = $sregResponse->contents();
-				if(!empty($sreg['nickname']))
-				{
-					$stmt = Core::$db->prepare('SELECT user_id FROM '.Core::$prefix.'user WHERE nick=:nick;');
-					$stmt->bindValue(':nick', $sreg['nickname'], PDO::PARAM_STR);
-					$stmt->execute();
-					$haveNick = $stmt->fetch(PDO::FETCH_COLUMN);
-					if(empty($haveNick))
-						$nickname = $sreg['nickname'];
-				}
+				$nickname = !empty($sreg['nickname']) ? $sreg['nickname'] : $response->identity_url;
 
 				Core::$db->beginTransaction();
-				$stmt = Core::$db->prepare('
-					INSERT INTO '.Core::$prefix.'user
-					SET nick=:nick, registered=UNIX_TIMESTAMP();');
-				$stmt->bindValue(':nick', $nickname, PDO::PARAM_STR);
+				$stmt = Core::$db->prepare('INSERT INTO '.Core::$prefix.'user;');
 				$stmt->execute();
 				$this->mUserId = Core::$db->lastInsertId();
+				
+				// if the nick is already taken, just use the identity url, it should be
+				// unique in theory
+				if(!$this->newNick($nickname))
+					$this->newNick($response->identity_url);
 				
 				$statement = Core::$db->prepare('
 					INSERT INTO '.Core::$prefix.'openids SET user_id=:userId, openid=:openID;');
@@ -538,7 +595,14 @@ class UserDispatcher implements RESTful
 	}
 	public static function doPOST(RESTDispatcher $dispatcher)
 	{
-		throw new NotImplementedException();
+		$current = $dispatcher->current();
+		$user = Users::getUser($current['id']);
+		$child = $dispatcher->next();
+		if(!Core::$user->authed || !($current['id'] == Core::$user->id || Core::$user->hasRight('users')))
+			throw new UnauthorizedException();
+		if(!$child || $child['resource'] != 'nick')
+			throw new NotImplementedException();
+		return json_encode($user->newNick($dispatcher->getJSON()));
 	}
 	public static function doPUT(RESTDispatcher $dispatcher)
 	{
